@@ -43,16 +43,18 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                     .requestMatchers(
-                            "/api/auth/**"
+                            "/api/auth/**",
+                            "/api/test/**",
+                            "/api/secretary/register",
+                            "/api/secretary/is-registered",
+                            "/api/registration/resident"
                     ).permitAll()
 
                     .requestMatchers(
-                            "/api/test/secretary-only"
+                            "/api/secretary/**",
+                            "/api/registration/**",
+                            "/api/caretaker/**"
                     ).hasRole("SECRETARY")
-
-                    .requestMatchers(
-                            "/api/test/**"
-                    ).permitAll()
 
                     .anyRequest()
                     .authenticated())
