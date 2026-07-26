@@ -53,7 +53,8 @@ public class SecurityConfig {
                     .requestMatchers(
                             "/api/secretary/**",
                             "/api/registration/**",
-                            "/api/caretaker/**"
+                            "/api/caretaker/**",
+                            "/api/payment/**"
                     ).hasRole("SECRETARY")
 
                     .anyRequest()
