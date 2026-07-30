@@ -44,7 +44,7 @@ public class ResidentProfile {
     @Column(name = "status", length = 20)
     private String status;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credential_id")
     private Credential credential;
 

@@ -50,5 +50,11 @@ public class CaretakerProfile {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    @Column(name = "leaving_reason")
+    private String leavingReason;
+
+    @Column(name = "left_at")
+    private LocalDateTime leftAt;
 
 }

@@ -13,5 +13,9 @@ public interface RegistrationService {
     RegistrationRequestDTO approve(Long id);
 
     RegistrationRequestDTO reject(Long id, RejectionRequest request);
+    
+    boolean isFlatOccupied(String wingName, String flatNumber, String residentType);
+    
+    boolean hasPendingTenantForFlat(String flatNumber);
 
 }

@@ -54,18 +54,23 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(
-                            "/api/auth/**",
-                            "/api/test/**",
-                            "/api/secretary/register",
-                            "/api/secretary/is-registered",
-                            "/api/registration/resident"
-                    ).permitAll()
+            		.requestMatchers(
+            		        "/api/auth/**",
+            		        "/api/test/**",
+            		        "/api/secretary/register",
+            		        "/api/secretary/is-registered",
+            		        "/api/registration/resident",
+            		        "/api/registration/check-flat",
+            		        "/api/registration/verify-owner",
+            		        "/api/registration/fetch-owner-by-flat",
+            		        "/api/registration/check-pending-tenant"
+            		).permitAll()
                     .requestMatchers(
                             "/api/secretary/**",
                             "/api/registration/**",
                             "/api/caretaker/**",
-                            "/api/payment/**"
+                            "/api/payment/**",
+                            "/api/registration/check-flat"
                     ).hasRole("SECRETARY")
                     .anyRequest().authenticated())
             .addFilterBefore(
