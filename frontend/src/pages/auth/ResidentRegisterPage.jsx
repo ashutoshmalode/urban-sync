@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -17,17 +17,13 @@ import {
   InputLabel,
   Divider,
   Avatar,
-  //InputAdornment,
-  // IconButton,
-  // Stepper,
-  // Step,
-  // StepLabel,
 } from "@mui/material";
-// import ApartmentIcon from "@mui/icons-material/Apartment";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SendIcon from "@mui/icons-material/Send";
+import CheckIcon from "@mui/icons-material/Check";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlined";
 import axiosInstance from "../../api/axiosInstance";
 
 const wings = ["A", "B", "C", "D", "E"];
@@ -42,16 +38,43 @@ const fieldStyle = {
   "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
 };
 
-// ── Validation helpers ──────────────────────────────────────────
-const validate = {
-  name: (v) =>
-    /^[a-zA-Z\s]+$/.test(v.trim()) ? "" : "Only letters and spaces allowed",
-  mobile: (v) => (/^\d{10}$/.test(v) ? "" : "Must be exactly 10 digits"),
-  aadhaar: (v) => (/^\d{4}$/.test(v) ? "" : "Must be exactly 4 digits"),
-  flat: (v) => (/^\w{1}-\d{3,4}$/.test(v) ? "" : "Format: A-201 or A-2012"),
-  wing: (v) => (v ? "" : "Please select a wing"),
-  otp: (v) => (/^\d{6}$/.test(v) ? "" : "OTP must be 6 digits"),
+const disabledFieldStyle = {
+  ...fieldStyle,
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "#1e293b",
+    fontWeight: 600,
+  },
+  "& .MuiOutlinedInput-root.Mui-disabled fieldset": {
+    borderColor: "#bbf7d0",
+    borderWidth: 1.5,
+  },
 };
+
+const emptyOwnerForm = {
+  firstName: "",
+  lastName: "",
+  mobileNumber: "",
+  aadhaarLastFour: "",
+  residentType: "OWNER",
+  wingName: "",
+  flatNumber: "",
+};
+
+const emptyTenantForm = {
+  firstName: "",
+  lastName: "",
+  mobileNumber: "",
+  aadhaarLastFour: "",
+  residentType: "TENANT",
+  wingName: "",
+  flatNumber: "",
+  landlordName: "",
+  landlordWingName: "",
+  landlordFlatNumber: "",
+  landlordMobileNumber: "",
+};
+
+const MOCK_OTP = "123456";
 
 const ResidentRegisterPage = () => {
   const navigate = useNavigate();
@@ -59,44 +82,33 @@ const ResidentRegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
-  // OTP state (mock)
+  const [ownerForm, setOwnerForm] = useState({ ...emptyOwnerForm });
+  const [tenantForm, setTenantForm] = useState({ ...emptyTenantForm });
+
+  const [flatChecking, setFlatChecking] = useState(false);
+  const [flatStatus, setFlatStatus] = useState(null);
+
   const [otpStep, setOtpStep] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
-  const MOCK_OTP = "123456";
 
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    mobileNumber: "",
-    aadhaarLastFour: "",
-    residentType: "OWNER",
-    wingName: "",
-    flatNumber: "",
-    landlordName: "",
-    landlordWingName: "",
-    landlordFlatNumber: "",
-    landlordMobileNumber: "",
-  });
+  const [ownerFetched, setOwnerFetched] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+  const [fetchingOwner, setFetchingOwner] = useState(false);
 
-  const [errors, setErrors] = useState({});
+  const form = tab === 0 ? ownerForm : tenantForm;
+  const setForm = tab === 0 ? setOwnerForm : setTenantForm;
 
-  const handleTab = (_, newVal) => {
-    setTab(newVal);
-    setOtpStep(false);
-    setOtpSent(false);
-    setOtpValue("");
-    setOtpVerified(false);
-    setOtpError("");
-    setErrors({});
-    setError("");
-    setForm((prev) => ({
+  const resetOwnerFields = () => {
+    setOwnerFetched(false);
+    setFetchError("");
+    setTenantForm((prev) => ({
       ...prev,
-      residentType: newVal === 0 ? "OWNER" : "TENANT",
       landlordName: "",
       landlordWingName: "",
       landlordFlatNumber: "",
@@ -104,80 +116,190 @@ const ResidentRegisterPage = () => {
     }));
   };
 
+  const handleTab = (_, newVal) => {
+    setTab(newVal);
+    setErrors({});
+    setError("");
+    setFlatStatus(null);
+    setOtpStep(false);
+    setOtpSent(false);
+    setOtpValue("");
+    setOtpVerified(false);
+    setOtpError("");
+    setOwnerForm({ ...emptyOwnerForm });
+    setTenantForm({ ...emptyTenantForm });
+    setOwnerFetched(false);
+    setFetchError("");
+    setFlatChecking(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Restrict input types
-    if (
-      ["mobileNumber", "aadhaarLastFour"].includes(name) &&
-      !/^\d*$/.test(value)
-    )
-      return;
-    if (["landlordMobileNumber"].includes(name) && !/^\d*$/.test(value)) return;
-    if (name === "aadhaarLastFour" && value.length > 4) return;
-    if (name === "mobileNumber" && value.length > 10) return;
-    if (name === "landlordMobileNumber" && value.length > 10) return;
-
-    setForm({ ...form, [name]: value });
-    setErrors({ ...errors, [name]: "" });
+    if (["firstName", "lastName"].includes(name)) {
+      if (value && !/^[a-zA-Z\s]*$/.test(value)) return;
+    }
+    if (name === "mobileNumber") {
+      if (!/^\d*$/.test(value) || value.length > 10) return;
+    }
+    if (name === "aadhaarLastFour") {
+      if (!/^\d*$/.test(value) || value.length > 4) return;
+    }
+    if (name === "flatNumber") {
+      if (!/^\d*$/.test(value) || value.length > 4) return;
+      setFlatStatus(null);
+      resetOwnerFields();
+    }
+    if (name === "wingName") {
+      resetOwnerFields();
+    }
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
     setError("");
   };
 
-  const validateOwnerForm = () => {
-    const e = {};
-    e.firstName = validate.name(form.firstName);
-    e.lastName = validate.name(form.lastName);
-    e.mobileNumber = validate.mobile(form.mobileNumber);
-    e.aadhaarLastFour = validate.aadhaar(form.aadhaarLastFour);
-    e.wingName = validate.wing(form.wingName);
-    e.flatNumber = validate.flat(form.flatNumber);
-    setErrors(e);
-    return Object.values(e).every((v) => !v);
-  };
+  // Auto-fetch owner after flat availability confirmed
+  const autoFetchOwner = useCallback(async (wingName, flatNumber) => {
+    const fullFlat = `${wingName}-${flatNumber}`;
+    setFetchingOwner(true);
+    setFetchError("");
+    setOwnerFetched(false);
+    setTenantForm((prev) => ({
+      ...prev,
+      landlordName: "",
+      landlordWingName: "",
+      landlordFlatNumber: "",
+      landlordMobileNumber: "",
+    }));
 
-  const validateTenantForm = () => {
-    const e = {};
-    e.firstName = validate.name(form.firstName);
-    e.lastName = validate.name(form.lastName);
-    e.mobileNumber = validate.mobile(form.mobileNumber);
-    e.aadhaarLastFour = validate.aadhaar(form.aadhaarLastFour);
-    e.wingName = validate.wing(form.wingName);
-    e.flatNumber = validate.flat(form.flatNumber);
-    e.landlordName = validate.name(form.landlordName);
-    e.landlordWingName = validate.wing(form.landlordWingName);
-    e.landlordMobileNumber = validate.mobile(form.landlordMobileNumber);
-    if (!form.landlordFlatNumber) e.landlordFlatNumber = "Required";
-    setErrors(e);
-    return Object.values(e).every((v) => !v);
-  };
+    try {
+      const res = await axiosInstance.get(
+        "/api/registration/fetch-owner-by-flat",
+        { params: { flatNumber: fullFlat } },
+      );
 
-  // Mock OTP send
-  const handleSendOtp = () => {
-    setOtpLoading(true);
-    setOtpError("");
-    setTimeout(() => {
-      setOtpSent(true);
-      setOtpLoading(false);
-      // In dev mode show hint
-      console.log("Mock OTP: 123456");
-    }, 1000);
-  };
-
-  // Mock OTP verify
-  const handleVerifyOtp = () => {
-    if (otpValue === MOCK_OTP) {
-      setOtpVerified(true);
-      setOtpError("");
-    } else {
-      setOtpError("Incorrect OTP. Please try again.");
+      if (!res.data) {
+        setFetchError(
+          `No registered owner found for flat ${fullFlat}. This property is unregistered.`,
+        );
+        setFlatStatus("unregistered");
+      } else {
+        setTenantForm((prev) => ({
+          ...prev,
+          landlordName: res.data.landlordName,
+          landlordMobileNumber: res.data.landlordMobile,
+          landlordWingName: res.data.landlordWingName,
+          landlordFlatNumber: res.data.landlordFlatNumber,
+        }));
+        setOwnerFetched(true);
+        setFetchError("");
+      }
+    } catch {
+      setFetchError("Failed to fetch owner details. Please try again.");
+    } finally {
+      setFetchingOwner(false);
     }
+  }, []);
+
+  const checkFlatAvailability = useCallback(
+    async (wingName, flatNumber, residentType) => {
+      if (!wingName || !flatNumber || flatNumber.length < 1) return;
+      setFlatChecking(true);
+      setFlatStatus(null);
+      resetOwnerFields();
+
+      try {
+        // Check active residents
+        const res = await axiosInstance.get("/api/registration/check-flat", {
+          params: { wingName, flatNumber, residentType },
+        });
+
+        if (res.data) {
+          setFlatStatus("occupied");
+          setFlatChecking(false);
+          return;
+        }
+
+        // Check pending tenant request
+        if (residentType === "TENANT") {
+          const fullFlat = `${wingName}-${flatNumber}`;
+          const pendingRes = await axiosInstance.get(
+            "/api/registration/check-pending-tenant",
+            { params: { flatNumber: fullFlat } },
+          );
+
+          if (pendingRes.data) {
+            setFlatStatus("pending");
+            setFlatChecking(false);
+            return;
+          }
+        }
+
+        // Flat is available
+        setFlatStatus("available");
+        setFlatChecking(false);
+
+        // Auto-fetch owner for tenant
+        if (residentType === "TENANT") {
+          await autoFetchOwner(wingName, flatNumber);
+        }
+      } catch {
+        setFlatStatus(null);
+        setFlatChecking(false);
+      }
+    },
+    [autoFetchOwner],
+  );
+
+  const validate = (f) => {
+    const e = {};
+    const nameRx = /^[a-zA-Z\s]+$/;
+    if (!f.firstName || !nameRx.test(f.firstName))
+      e.firstName = "Only letters allowed";
+    if (!f.lastName || !nameRx.test(f.lastName))
+      e.lastName = "Only letters allowed";
+    if (!/^\d{10}$/.test(f.mobileNumber))
+      e.mobileNumber = "Must be exactly 10 digits";
+    if (!/^\d{4}$/.test(f.aadhaarLastFour))
+      e.aadhaarLastFour = "Must be exactly 4 digits";
+    if (!f.wingName) e.wingName = "Please select a wing";
+    if (!f.flatNumber || f.flatNumber.length < 1)
+      e.flatNumber = "Required (1-4 digits)";
+    else if (/^0+$/.test(f.flatNumber)) e.flatNumber = "Invalid flat number";
+    setErrors(e);
+    return Object.values(e).every((v) => !v);
   };
 
   const handleSubmit = async () => {
-    const isValid = tab === 0 ? validateOwnerForm() : validateTenantForm();
-    if (!isValid) return;
+    if (!validate(form)) return;
 
-    // Tenant needs OTP verification
+    if (flatStatus === "occupied") {
+      setError(
+        tab === 0
+          ? `An active owner already exists for flat ${form.wingName}-${form.flatNumber}.`
+          : `An active tenant already exists for flat ${form.wingName}-${form.flatNumber}.`,
+      );
+      return;
+    }
+
+    if (flatStatus === "pending") {
+      setError(
+        `A tenant registration request already exists for flat ${form.wingName}-${form.flatNumber}.`,
+      );
+      return;
+    }
+
+    if (flatStatus === "unregistered") {
+      setError("This flat has no registered owner. Registration not possible.");
+      return;
+    }
+
+    if (tab === 1 && !ownerFetched) {
+      setError(
+        "Please wait for owner details to be fetched before proceeding.",
+      );
+      return;
+    }
+
     if (tab === 1 && !otpVerified) {
       setOtpStep(true);
       return;
@@ -187,10 +309,10 @@ const ResidentRegisterPage = () => {
     try {
       const payload = {
         ...form,
-        landlordFlatNumber:
-          tab === 1
-            ? `${form.landlordWingName}-${form.landlordFlatNumber}`
-            : form.landlordFlatNumber,
+        flatNumber: `${form.wingName}-${form.flatNumber}`,
+        ...(form.residentType === "TENANT" && {
+          landlordFlatNumber: `${form.landlordWingName}-${form.landlordFlatNumber}`,
+        }),
       };
       await axiosInstance.post("/api/registration/resident", payload);
       setSuccess(true);
@@ -203,7 +325,22 @@ const ResidentRegisterPage = () => {
     }
   };
 
-  // ── Success screen ─────────────────────────────────────────────
+  const handleSendOtp = () => {
+    setOtpLoading(true);
+    setTimeout(() => {
+      setOtpSent(true);
+      setOtpLoading(false);
+    }, 1000);
+  };
+
+  const handleVerifyOtp = () => {
+    if (otpValue === MOCK_OTP) {
+      setOtpVerified(true);
+      setOtpError("");
+    } else setOtpError("Incorrect OTP. Please try again.");
+  };
+
+  // ── Success ────────────────────────────────────────────────────
   if (success)
     return (
       <Box
@@ -269,7 +406,7 @@ const ResidentRegisterPage = () => {
       </Box>
     );
 
-  // ── OTP Step (tenant only) ─────────────────────────────────────
+  // ── OTP Step ───────────────────────────────────────────────────
   if (otpStep && tab === 1)
     return (
       <Box
@@ -321,7 +458,6 @@ const ResidentRegisterPage = () => {
                 OTP will be sent to the owner's registered mobile
               </Typography>
             </Box>
-
             <Box
               sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}
             >
@@ -350,10 +486,9 @@ const ResidentRegisterPage = () => {
                     color: "#0891b2",
                   }}
                 >
-                  {form.landlordMobileNumber}
+                  {tenantForm.landlordMobileNumber}
                 </Typography>
               </Box>
-
               {otpError && (
                 <Alert
                   severity="error"
@@ -366,7 +501,6 @@ const ResidentRegisterPage = () => {
                   {otpError}
                 </Alert>
               )}
-
               {otpVerified && (
                 <Alert
                   severity="success"
@@ -379,7 +513,6 @@ const ResidentRegisterPage = () => {
                   OTP verified successfully!
                 </Alert>
               )}
-
               {!otpSent ? (
                 <Button
                   variant="contained"
@@ -431,12 +564,14 @@ const ResidentRegisterPage = () => {
                     }}
                     fullWidth
                     size="small"
-                    inputProps={{
-                      maxLength: 6,
-                      style: {
-                        letterSpacing: "0.3em",
-                        textAlign: "center",
-                        fontSize: "1.1rem",
+                    slotProps={{
+                      htmlInput: {
+                        maxLength: 6,
+                        style: {
+                          letterSpacing: "0.3em",
+                          textAlign: "center",
+                          fontSize: "1.1rem",
+                        },
                       },
                     }}
                     sx={fieldStyle}
@@ -483,7 +618,6 @@ const ResidentRegisterPage = () => {
                   {loading ? "Submitting..." : "Submit Registration"}
                 </Button>
               )}
-
               <Button
                 size="small"
                 startIcon={<ArrowBackIcon fontSize="small" />}
@@ -509,7 +643,149 @@ const ResidentRegisterPage = () => {
       </Box>
     );
 
-  // ── Main Form ─────────────────────────────────────────────────
+  // ── Status Indicators ──────────────────────────────────────────
+  const FlatStatusIndicator = () => {
+    if (flatChecking)
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.5,
+            py: 0.8,
+            bgcolor: "#f8fbff",
+            borderRadius: 1.5,
+            border: "1px solid #e0f2fe",
+          }}
+        >
+          <CircularProgress size={12} sx={{ color: "#0891b2" }} />
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.75rem",
+              color: "#64748b",
+            }}
+          >
+            Checking flat availability...
+          </Typography>
+        </Box>
+      );
+    if (flatStatus === "available" && !(tab === 1))
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.5,
+            py: 0.8,
+            bgcolor: "#f0fdf4",
+            borderRadius: 1.5,
+            border: "1px solid #bbf7d0",
+          }}
+        >
+          <CheckIcon sx={{ fontSize: 14, color: "#059669" }} />
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.75rem",
+              color: "#166534",
+              fontWeight: 600,
+            }}
+          >
+            Flat {form.wingName}-{form.flatNumber} is available
+          </Typography>
+        </Box>
+      );
+    if (flatStatus === "occupied")
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.5,
+            py: 0.8,
+            bgcolor: "#fef2f2",
+            borderRadius: 1.5,
+            border: "1px solid #fecaca",
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 14, color: "#dc2626" }} />
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.75rem",
+              color: "#991b1b",
+              fontWeight: 600,
+            }}
+          >
+            {tab === 0
+              ? `An active owner already exists for flat ${form.wingName}-${form.flatNumber}`
+              : `An active tenant already exists for flat ${form.wingName}-${form.flatNumber}. This flat is not available for rent.`}
+          </Typography>
+        </Box>
+      );
+    if (flatStatus === "pending")
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.5,
+            py: 0.8,
+            bgcolor: "#fef9c3",
+            borderRadius: 1.5,
+            border: "1px solid #fde68a",
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 14, color: "#d97706" }} />
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.75rem",
+              color: "#854d0e",
+              fontWeight: 600,
+            }}
+          >
+            A tenant registration request is already pending for flat{" "}
+            {form.wingName}-{form.flatNumber}.
+          </Typography>
+        </Box>
+      );
+    if (flatStatus === "unregistered")
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.5,
+            py: 0.8,
+            bgcolor: "#fef2f2",
+            borderRadius: 1.5,
+            border: "1px solid #fecaca",
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 14, color: "#dc2626" }} />
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.75rem",
+              color: "#991b1b",
+              fontWeight: 600,
+            }}
+          >
+            {fetchError}
+          </Typography>
+        </Box>
+      );
+    return null;
+  };
+
+  // ── Main Form ──────────────────────────────────────────────────
   return (
     <Box
       sx={{
@@ -634,7 +910,7 @@ const ResidentRegisterPage = () => {
                 onChange={handleChange}
                 size="small"
                 error={!!errors.firstName}
-                helperText={errors.firstName}
+                helperText={errors.firstName || "Letters only"}
                 sx={fieldStyle}
               />
               <TextField
@@ -644,7 +920,7 @@ const ResidentRegisterPage = () => {
                 onChange={handleChange}
                 size="small"
                 error={!!errors.lastName}
-                helperText={errors.lastName}
+                helperText={errors.lastName || "Letters only"}
                 sx={fieldStyle}
               />
             </Box>
@@ -658,7 +934,7 @@ const ResidentRegisterPage = () => {
                 value={form.mobileNumber}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 10 }}
+                inputprops={{ maxLength: 10 }}
                 error={!!errors.mobileNumber}
                 helperText={errors.mobileNumber}
                 sx={fieldStyle}
@@ -669,7 +945,7 @@ const ResidentRegisterPage = () => {
                 value={form.aadhaarLastFour}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 4 }}
+                inputprops={{ maxLength: 4 }}
                 error={!!errors.aadhaarLastFour}
                 helperText={errors.aadhaarLastFour}
                 sx={fieldStyle}
@@ -706,7 +982,17 @@ const ResidentRegisterPage = () => {
                 <Select
                   name="wingName"
                   value={form.wingName}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newWing = e.target.value;
+                    handleChange(e);
+                    if (form.flatNumber && form.flatNumber.length > 0) {
+                      checkFlatAvailability(
+                        newWing,
+                        form.flatNumber,
+                        form.residentType,
+                      );
+                    }
+                  }}
                   label="Wing *"
                   sx={{ fontFamily: "Inter, sans-serif" }}
                 >
@@ -734,20 +1020,67 @@ const ResidentRegisterPage = () => {
                   </Typography>
                 )}
               </FormControl>
+
               <TextField
                 label="Flat Number *"
                 name="flatNumber"
                 value={form.flatNumber}
                 onChange={handleChange}
-                placeholder="e.g. A-201"
+                onBlur={() => {
+                  if (form.wingName && form.flatNumber) {
+                    checkFlatAvailability(
+                      form.wingName,
+                      form.flatNumber,
+                      form.residentType,
+                    );
+                  }
+                }}
                 size="small"
+                inputprops={{ maxLength: 4 }}
                 error={!!errors.flatNumber}
-                helperText={errors.flatNumber || "Format: A-201"}
+                helperText={errors.flatNumber || "1-4 digits e.g. 101"}
                 sx={fieldStyle}
               />
             </Box>
 
-            {/* Tenant Extra Fields */}
+            <FlatStatusIndicator />
+
+            {form.wingName && form.flatNumber && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  bgcolor: "#f0f9ff",
+                  borderRadius: 1.5,
+                  px: 1.5,
+                  py: 0.8,
+                  border: "1px solid #e0f2fe",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.75rem",
+                    color: "#64748b",
+                  }}
+                >
+                  Flat will be saved as:
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    color: "#0891b2",
+                  }}
+                >
+                  {form.wingName}-{form.flatNumber}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Tenant Owner Details — auto shown after fetch */}
             {tab === 1 && (
               <>
                 <Divider sx={{ borderColor: "#e0f2fe" }} />
@@ -763,102 +1096,190 @@ const ResidentRegisterPage = () => {
                 >
                   Owner (Landlord) Details
                 </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
-                    color: "#64748b",
-                  }}
-                >
-                  Enter the details of the owner whose flat you are renting. An
-                  OTP will be sent to the owner's mobile for verification.
-                </Typography>
 
-                <TextField
-                  label="Owner Full Name *"
-                  name="landlordName"
-                  value={form.landlordName}
-                  onChange={handleChange}
-                  size="small"
-                  fullWidth
-                  error={!!errors.landlordName}
-                  helperText={errors.landlordName}
-                  sx={fieldStyle}
-                />
-
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 1.5,
-                  }}
-                >
-                  <FormControl
-                    size="small"
-                    error={!!errors.landlordWingName}
-                    sx={fieldStyle}
+                {/* Auto-fetching indicator */}
+                {fetchingOwner && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.8,
+                      bgcolor: "#f8fbff",
+                      borderRadius: 1.5,
+                      border: "1px solid #e0f2fe",
+                    }}
                   >
-                    <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
-                      Owner Wing *
-                    </InputLabel>
-                    <Select
-                      name="landlordWingName"
-                      value={form.landlordWingName}
-                      onChange={handleChange}
-                      label="Owner Wing *"
-                      sx={{ fontFamily: "Inter, sans-serif" }}
+                    <CircularProgress size={12} sx={{ color: "#0891b2" }} />
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.75rem",
+                        color: "#64748b",
+                      }}
                     >
-                      {wings.map((w) => (
-                        <MenuItem
-                          key={w}
-                          value={w}
-                          sx={{ fontFamily: "Inter, sans-serif" }}
-                        >
-                          Wing {w}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.landlordWingName && (
+                      Fetching owner details automatically...
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Fetch error */}
+                {/* {!fetchingOwner && fetchError && !ownerFetched && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.8,
+                      bgcolor: "#fef2f2",
+                      borderRadius: 1.5,
+                      border: "1px solid #fecaca",
+                    }}
+                  >
+                    <ErrorOutlineIcon
+                      sx={{ fontSize: 14, color: "#dc2626", flexShrink: 0 }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.75rem",
+                        color: "#991b1b",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {fetchError}
+                    </Typography>
+                  </Box>
+                )} */}
+
+                {/* No flat entered yet */}
+                {!fetchingOwner &&
+                  !fetchError &&
+                  !ownerFetched &&
+                  flatStatus === null && (
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.75rem",
+                        color: "#94a3b8",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      Enter your wing and flat number above — owner details will
+                      be fetched automatically.
+                    </Typography>
+                  )}
+
+                {/* Owner fetched success */}
+                {ownerFetched && (
+                  <>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 1.5,
+                        py: 0.8,
+                        bgcolor: "#f0fdf4",
+                        borderRadius: 1.5,
+                        border: "1px solid #bbf7d0",
+                      }}
+                    >
+                      <CheckIcon sx={{ fontSize: 14, color: "#059669" }} />
                       <Typography
                         sx={{
-                          color: "#d32f2f",
-                          fontSize: "0.72rem",
-                          mt: 0.5,
-                          ml: 1.5,
                           fontFamily: "Inter, sans-serif",
+                          fontSize: "0.75rem",
+                          color: "#166534",
+                          fontWeight: 600,
                         }}
                       >
-                        {errors.landlordWingName}
+                        ✓ Owner details fetched automatically
                       </Typography>
-                    )}
-                  </FormControl>
-                  <TextField
-                    label="Owner Flat Number *"
-                    name="landlordFlatNumber"
-                    value={form.landlordFlatNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 201"
-                    size="small"
-                    error={!!errors.landlordFlatNumber}
-                    helperText={
-                      errors.landlordFlatNumber || "Number only e.g. 201"
-                    }
-                    sx={fieldStyle}
-                  />
-                </Box>
+                    </Box>
 
-                <TextField
-                  label="Owner Mobile Number *"
-                  name="landlordMobileNumber"
-                  value={form.landlordMobileNumber}
-                  onChange={handleChange}
-                  size="small"
-                  fullWidth
-                  inputProps={{ maxLength: 10 }}
-                  error={!!errors.landlordMobileNumber}
-                  helperText={errors.landlordMobileNumber}
-                  sx={fieldStyle}
-                />
+                    <TextField
+                      label="Owner Full Name"
+                      value={tenantForm.landlordName}
+                      size="small"
+                      fullWidth
+                      disabled
+                      sx={disabledFieldStyle}
+                    />
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 1.5,
+                      }}
+                    >
+                      <TextField
+                        label="Owner Wing"
+                        value={
+                          tenantForm.landlordWingName
+                            ? `Wing ${tenantForm.landlordWingName}`
+                            : ""
+                        }
+                        size="small"
+                        disabled
+                        sx={disabledFieldStyle}
+                      />
+                      <TextField
+                        label="Owner Flat Number"
+                        value={tenantForm.landlordFlatNumber}
+                        size="small"
+                        disabled
+                        sx={disabledFieldStyle}
+                      />
+                    </Box>
+
+                    <TextField
+                      label="Owner Mobile Number"
+                      value={tenantForm.landlordMobileNumber}
+                      size="small"
+                      fullWidth
+                      disabled
+                      sx={disabledFieldStyle}
+                    />
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        bgcolor: "#f0fdf4",
+                        borderRadius: 1.5,
+                        px: 1.5,
+                        py: 0.8,
+                        border: "1px solid #bbf7d0",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "Inter, sans-serif",
+                          fontSize: "0.75rem",
+                          color: "#64748b",
+                        }}
+                      >
+                        Owner's registered living flat:
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "Inter, sans-serif",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          color: "#059669",
+                        }}
+                      >
+                        {tenantForm.landlordWingName}-
+                        {tenantForm.landlordFlatNumber}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
               </>
             )}
 
@@ -866,7 +1287,14 @@ const ResidentRegisterPage = () => {
               variant="contained"
               fullWidth
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={
+                loading ||
+                flatStatus === "occupied" ||
+                flatStatus === "pending" ||
+                flatStatus === "unregistered" ||
+                fetchingOwner ||
+                (tab === 1 && !ownerFetched)
+              }
               startIcon={
                 loading ? (
                   <CircularProgress size={16} color="inherit" />
@@ -886,6 +1314,13 @@ const ResidentRegisterPage = () => {
                 mt: 0.5,
                 boxShadow: "0 2px 8px rgba(8,145,178,0.25)",
                 "&:hover": { bgcolor: "#0e7490" },
+                "&.Mui-disabled": {
+                  bgcolor: ["occupied", "pending", "unregistered"].includes(
+                    flatStatus,
+                  )
+                    ? "#fee2e2"
+                    : undefined,
+                },
               }}
             >
               {loading

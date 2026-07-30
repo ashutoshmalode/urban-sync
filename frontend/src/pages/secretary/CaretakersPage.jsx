@@ -21,20 +21,25 @@ import {
   Tooltip,
   Avatar,
   Chip,
-  // Divider,
+  Tabs,
+  Tab,
+  InputAdornment,
 } from "@mui/material";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-// import BadgeIcon from "@mui/icons-material/Badge";
+import DeleteIcon from "@mui/icons-material/Delete";
+import HistoryIcon from "@mui/icons-material/History";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import BadgeIcon from "@mui/icons-material/Badge";
 import PhoneIcon from "@mui/icons-material/Phone";
 import HomeIcon from "@mui/icons-material/Home";
 import CakeIcon from "@mui/icons-material/Cake";
-import TagIcon from "@mui/icons-material/Tag";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
+import EventBusyIcon from "@mui/icons-material/EventBusy";
 import axiosInstance from "../../api/axiosInstance";
-
-// const fontStyle = { fontFamily: "Inter, sans-serif" };
+import { showSuccess, showError } from "../../utils/toast";
 
 const fieldStyle = {
   "& .MuiOutlinedInput-root": {
@@ -119,10 +124,11 @@ const InfoRow = ({ icon, label, value }) => (
 );
 
 const CaretakersPage = () => {
+  const [tab, setTab] = useState(0);
   const [caretakers, setCaretakers] = useState([]);
+  const [historyList, setHistoryList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showError, setshowError] = useState("");
+  const [search, setSearch] = useState("");
 
   // Detail modal
   const [detailOpen, setDetailOpen] = useState(false);
@@ -141,20 +147,30 @@ const CaretakersPage = () => {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  const loadCaretakers = async () => {
+  // Delete modal
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const loadData = async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get("/api/caretaker");
-      setCaretakers(res.data);
+      const [activeRes, historyRes] = await Promise.all([
+        axiosInstance.get("/api/caretaker"),
+        axiosInstance.get("/api/caretaker/history"),
+      ]);
+      setCaretakers(activeRes.data);
+      setHistoryList(historyRes.data);
     } catch {
-      setError("Failed to load caretakers");
+      showError("Failed to load caretakers");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCaretakers();
+    loadData();
   }, []);
 
   const handleChange = (e) => {
@@ -164,21 +180,24 @@ const CaretakersPage = () => {
     if (name === "aadhaarNumber" && (!/^\d*$/.test(value) || value.length > 12))
       return;
     if (name === "age" && (!/^\d*$/.test(value) || Number(value) > 99)) return;
+    if (
+      ["firstName", "lastName"].includes(name) &&
+      value &&
+      !/^[a-zA-Z\s]*$/.test(value)
+    )
+      return;
     setForm({ ...form, [name]: value });
     setFormErrors({ ...formErrors, [name]: "" });
   };
 
   const validateForm = () => {
     const e = {};
-    const nameRegex = /^[a-zA-Z\s]+$/;
-    if (!form.firstName || !nameRegex.test(form.firstName))
-      e.firstName = "Only letters and spaces";
-    if (!form.lastName || !nameRegex.test(form.lastName))
-      e.lastName = "Only letters and spaces";
+    if (!form.firstName.trim()) e.firstName = "Required";
+    if (!form.lastName.trim()) e.lastName = "Required";
     if (!/^\d{10}$/.test(form.mobileNumber))
       e.mobileNumber = "Must be exactly 10 digits";
     if (!form.age || Number(form.age) < 18 || Number(form.age) > 70)
-      e.age = "Age must be between 18 and 70";
+      e.age = "Age must be 18-70";
     if (!/^\d{12}$/.test(form.aadhaarNumber))
       e.aadhaarNumber = "Must be exactly 12 digits";
     if (!form.permanentAddress.trim())
@@ -195,7 +214,7 @@ const CaretakersPage = () => {
         ...form,
         age: Number(form.age),
       });
-      setshowError("Caretaker created successfully");
+      showSuccess("Caretaker created successfully");
       setCreateOpen(false);
       setForm({
         firstName: "",
@@ -206,26 +225,172 @@ const CaretakersPage = () => {
         permanentAddress: "",
       });
       setFormErrors({});
-      loadCaretakers();
+      loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create caretaker");
+      showError(err.response?.data?.message || "Failed to create caretaker");
     } finally {
       setCreating(false);
     }
   };
 
-  const handleCloseCreate = () => {
-    setCreateOpen(false);
-    setForm({
-      firstName: "",
-      lastName: "",
-      mobileNumber: "",
-      age: "",
-      aadhaarNumber: "",
-      permanentAddress: "",
-    });
-    setFormErrors({});
+  const handleDelete = async () => {
+    if (!deleteReason.trim()) return;
+    setDeleting(true);
+    try {
+      await axiosInstance.delete(`/api/caretaker/${deleteTarget.id}`, {
+        data: { reason: deleteReason },
+      });
+      showSuccess("Caretaker removed successfully");
+      setDeleteOpen(false);
+      setDeleteReason("");
+      setDeleteTarget(null);
+      loadData();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to remove caretaker");
+    } finally {
+      setDeleting(false);
+    }
   };
+
+  // Filter history by search
+  const filteredHistory = historyList
+    .filter((c) => {
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (
+        `${c.firstName} ${c.lastName}`.toLowerCase().includes(s) ||
+        c.mobileNumber?.includes(s) ||
+        c.aadhaarNumber?.includes(s) ||
+        c.permanentAddress?.toLowerCase().includes(s)
+      );
+    })
+    .sort((a, b) => {
+      // ACTIVE always on top
+      if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
+      if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
+      // Within same status — newest first
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+  const LoadingSkeleton = () => (
+    <Box sx={{ p: 3 }}>
+      {[...Array(4)].map((_, i) => (
+        <Skeleton
+          key={i}
+          variant="rounded"
+          height={48}
+          sx={{ mb: 1, borderRadius: 1.5 }}
+        />
+      ))}
+    </Box>
+  );
+
+  const CaretakerRow = ({ c, cellSx, headSx, onView }) => (
+    <TableRow hover sx={{ "&:hover": { bgcolor: "#f8fbff" } }}>
+      <TableCell sx={cellSx}>
+        <Chip
+          label={`#${c.serialNumber}`}
+          size="small"
+          sx={{
+            bgcolor: c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
+            color: c.status === "ACTIVE" ? "#0891b2" : "#64748b",
+            fontWeight: 700,
+            fontSize: "0.7rem",
+            fontFamily: "Inter, sans-serif",
+            height: 22,
+          }}
+        />
+      </TableCell>
+      <TableCell sx={cellSx}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {c.status === "ACTIVE" && (
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: "#22c55e",
+                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <Avatar
+            sx={{
+              width: 28,
+              height: 28,
+              bgcolor: c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
+              fontSize: "0.75rem",
+              color: c.status === "ACTIVE" ? "#0891b2" : "#64748b",
+              fontWeight: 700,
+            }}
+          >
+            {c.firstName?.[0]}
+          </Avatar>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.82rem",
+              fontWeight: c.status === "ACTIVE" ? 700 : 400,
+              color: c.status === "ACTIVE" ? "#1e293b" : "#64748b",
+            }}
+          >
+            {c.firstName} {c.lastName}
+          </Typography>
+        </Box>
+      </TableCell>
+      <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
+      <TableCell sx={cellSx}>{c.age} yrs</TableCell>
+      <TableCell sx={cellSx}>
+        {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : "—"}
+      </TableCell>
+      <TableCell sx={cellSx}>
+        {c.leftAt ? (
+          new Date(c.leftAt).toLocaleDateString("en-IN")
+        ) : (
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.78rem",
+              color: "#22c55e",
+              fontWeight: 600,
+            }}
+          >
+            Currently Active
+          </Typography>
+        )}
+      </TableCell>
+      <TableCell sx={{ ...cellSx, maxWidth: 120 }}>
+        <Typography
+          noWrap
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: "0.78rem",
+            color: "#94a3b8",
+          }}
+        >
+          {c.leavingReason || (c.status === "ACTIVE" ? "—" : "—")}
+        </Typography>
+      </TableCell>
+      <TableCell align="center" sx={{ py: 1 }}>
+        <Tooltip title="View Details">
+          <IconButton
+            size="small"
+            onClick={() => onView(c)}
+            sx={{
+              color: "#0891b2",
+              bgcolor: "#e0f2fe",
+              borderRadius: 1.5,
+              width: 28,
+              height: 28,
+            }}
+          >
+            <VisibilityIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <Box>
@@ -285,26 +450,6 @@ const CaretakersPage = () => {
         </Button>
       </Box>
 
-      {showError && (
-        <Alert
-          severity="success"
-          onClose={() => setshowError("")}
-          sx={{ mb: 2, borderRadius: 2, fontFamily: "Inter, sans-serif" }}
-        >
-          {showError}
-        </Alert>
-      )}
-      {error && (
-        <Alert
-          severity="error"
-          onClose={() => setError("")}
-          sx={{ mb: 2, borderRadius: 2, fontFamily: "Inter, sans-serif" }}
-        >
-          {error}
-        </Alert>
-      )}
-
-      {/* Table */}
       <Paper
         elevation={0}
         sx={{
@@ -314,166 +459,416 @@ const CaretakersPage = () => {
           boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
         }}
       >
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          sx={{
+            bgcolor: "#f8fbff",
+            borderBottom: "1px solid #e0f2fe",
+            "& .MuiTab-root": {
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: "0.8rem",
+              textTransform: "none",
+              minHeight: 44,
+            },
+            "& .Mui-selected": { color: "#0891b2" },
+            "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
+          }}
+        >
+          <Tab label={`Active Caretakers (${caretakers.length})`} />
+          <Tab
+            label={`History (${historyList.length})`}
+            icon={<HistoryIcon sx={{ fontSize: 16 }} />}
+            iconPosition="start"
+          />
+        </Tabs>
+
         {loading ? (
-          <Box sx={{ p: 3 }}>
-            {[...Array(4)].map((_, i) => (
-              <Skeleton
-                key={i}
-                variant="rounded"
-                height={48}
-                sx={{ mb: 1, borderRadius: 1.5 }}
-              />
-            ))}
-          </Box>
-        ) : caretakers.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 6 }}>
-            <EngineeringIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                color: "#94a3b8",
-                fontSize: "0.88rem",
-              }}
-            >
-              No caretakers registered yet
-            </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<AddIcon fontSize="small" />}
-              onClick={() => setCreateOpen(true)}
-              sx={{
-                mt: 2,
-                borderRadius: 2,
-                borderColor: "#0891b2",
-                color: "#0891b2",
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 600,
-                textTransform: "none",
-              }}
-            >
-              Add First Caretaker
-            </Button>
-          </Box>
-        ) : (
-          <TableContainer sx={{ overflowX: "auto" }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={headSx}>#</TableCell>
-                  <TableCell sx={headSx}>Name</TableCell>
-                  <TableCell sx={headSx}>Mobile</TableCell>
-                  <TableCell sx={headSx}>Age</TableCell>
-                  <TableCell sx={headSx}>Status</TableCell>
-                  <TableCell sx={headSx} align="center">
-                    Action
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {caretakers.map((c) => (
-                  <TableRow
-                    key={c.id}
-                    hover
-                    sx={{ "&:hover": { bgcolor: "#f8fbff" } }}
-                  >
-                    <TableCell sx={cellSx}>
-                      <Chip
-                        label={`#${c.serialNumber}`}
-                        size="small"
-                        sx={{
-                          bgcolor: "#e0f2fe",
-                          color: "#0891b2",
-                          fontWeight: 700,
-                          fontSize: "0.7rem",
-                          fontFamily: "Inter, sans-serif",
-                          height: 22,
-                        }}
-                      />
+          <LoadingSkeleton />
+        ) : tab === 0 ? (
+          caretakers.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6 }}>
+              <EngineeringIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  color: "#94a3b8",
+                  fontSize: "0.88rem",
+                  mb: 2,
+                }}
+              >
+                No active caretakers
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon fontSize="small" />}
+                onClick={() => setCreateOpen(true)}
+                sx={{
+                  borderRadius: 2,
+                  borderColor: "#0891b2",
+                  color: "#0891b2",
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 600,
+                  textTransform: "none",
+                }}
+              >
+                Add First Caretaker
+              </Button>
+            </Box>
+          ) : (
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={headSx}>#</TableCell>
+                    <TableCell sx={headSx}>Name</TableCell>
+                    <TableCell sx={headSx}>Mobile</TableCell>
+                    <TableCell sx={headSx}>Age</TableCell>
+                    <TableCell sx={headSx}>Status</TableCell>
+                    <TableCell sx={headSx} align="center">
+                      Actions
                     </TableCell>
-                    <TableCell sx={cellSx}>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Avatar
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {caretakers.map((c) => (
+                    <TableRow
+                      key={c.id}
+                      hover
+                      sx={{ "&:hover": { bgcolor: "#f8fbff" } }}
+                    >
+                      <TableCell sx={cellSx}>
+                        <Chip
+                          label={`#${c.serialNumber}`}
+                          size="small"
                           sx={{
-                            width: 30,
-                            height: 30,
                             bgcolor: "#e0f2fe",
-                            fontSize: "0.75rem",
                             color: "#0891b2",
                             fontWeight: 700,
+                            fontSize: "0.7rem",
+                            fontFamily: "Inter, sans-serif",
+                            height: 22,
                           }}
+                        />
+                      </TableCell>
+                      <TableCell sx={cellSx}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          {c.firstName?.[0]}
-                        </Avatar>
-                        <Box>
+                          {/* Green dot for active */}
+                          {c.status === "ACTIVE" && (
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                bgcolor: "#22c55e",
+                                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
+                          <Avatar
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              bgcolor:
+                                c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
+                              fontSize: "0.75rem",
+                              color:
+                                c.status === "ACTIVE" ? "#0891b2" : "#64748b",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {c.firstName?.[0]}
+                          </Avatar>
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
                               fontSize: "0.82rem",
-                              fontWeight: 600,
-                              color: "#1e293b",
-                              lineHeight: 1.2,
+                              fontWeight: c.status === "ACTIVE" ? 700 : 400,
+                              color:
+                                c.status === "ACTIVE" ? "#1e293b" : "#64748b",
                             }}
                           >
                             {c.firstName} {c.lastName}
                           </Typography>
                         </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
-                    <TableCell sx={cellSx}>{c.age} yrs</TableCell>
-                    <TableCell sx={cellSx}>
-                      <Chip
-                        label={c.status || "ACTIVE"}
-                        size="small"
-                        sx={{
-                          bgcolor:
-                            c.status === "ACTIVE" ? "#dcfce7" : "#fee2e2",
-                          color: c.status === "ACTIVE" ? "#166534" : "#991b1b",
-                          fontWeight: 700,
-                          fontSize: "0.7rem",
-                          fontFamily: "Inter, sans-serif",
-                          height: 22,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
-                      <Tooltip title="View Details">
-                        <IconButton
+                      </TableCell>
+                      <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
+                      <TableCell sx={cellSx}>{c.age} yrs</TableCell>
+                      <TableCell sx={cellSx}>
+                        <Chip
+                          label={c.status || "ACTIVE"}
                           size="small"
-                          onClick={() => {
+                          sx={{
+                            bgcolor: "#dcfce7",
+                            color: "#166534",
+                            fontWeight: 700,
+                            fontSize: "0.7rem",
+                            fontFamily: "Inter, sans-serif",
+                            height: 22,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Tooltip title="View Details">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSelected(c);
+                                setDetailOpen(true);
+                              }}
+                              sx={{
+                                color: "#0891b2",
+                                bgcolor: "#e0f2fe",
+                                borderRadius: 1.5,
+                                width: 28,
+                                height: 28,
+                              }}
+                            >
+                              <VisibilityIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Remove Caretaker">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setDeleteTarget(c);
+                                setDeleteOpen(true);
+                              }}
+                              sx={{
+                                color: "#dc2626",
+                                bgcolor: "#fee2e2",
+                                borderRadius: 1.5,
+                                width: 28,
+                                height: 28,
+                              }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )
+        ) : (
+          // History Tab
+          <Box>
+            {/* Search bar */}
+            <Box
+              sx={{
+                px: 2.5,
+                py: 1.5,
+                borderBottom: "1px solid #e0f2fe",
+                bgcolor: "#f8fbff",
+              }}
+            >
+              <TextField
+                placeholder="Search by name, mobile, Aadhaar or address..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                size="small"
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.82rem",
+                    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
+                  },
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: search ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setSearch("")}>
+                          <ClearIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  },
+                }}
+              />
+            </Box>
+
+            {filteredHistory.length === 0 ? (
+              <Box sx={{ textAlign: "center", py: 6 }}>
+                <HistoryIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    color: "#94a3b8",
+                    fontSize: "0.88rem",
+                  }}
+                >
+                  {search
+                    ? "No caretakers match your search"
+                    : "No caretaker history yet"}
+                </Typography>
+              </Box>
+            ) : (
+              <TableContainer sx={{ overflowX: "auto" }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={headSx}>#</TableCell>
+                      <TableCell sx={headSx}>Name</TableCell>
+                      <TableCell sx={headSx}>Mobile</TableCell>
+                      <TableCell sx={headSx}>Age</TableCell>
+                      <TableCell sx={headSx}>Joined</TableCell>
+                      <TableCell sx={headSx}>Left On</TableCell>
+                      <TableCell sx={headSx}>Reason</TableCell>
+                      <TableCell sx={headSx} align="center">
+                        Details
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredHistory.filter((c) => c.status === "ACTIVE")
+                      .length > 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          sx={{
+                            py: 0.8,
+                            px: 2,
+                            bgcolor: "#f0fdf4",
+                            borderBottom: "1px solid #bbf7d0",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                bgcolor: "#22c55e",
+                                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                fontFamily: "Inter, sans-serif",
+                                fontSize: "0.7rem",
+                                fontWeight: 700,
+                                color: "#166534",
+                                letterSpacing: "0.05em",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Currently On Job (
+                              {
+                                filteredHistory.filter(
+                                  (c) => c.status === "ACTIVE",
+                                ).length
+                              }
+                              )
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {filteredHistory
+                      .filter((c) => c.status === "ACTIVE")
+                      .map((c) => (
+                        <CaretakerRow
+                          key={`active-${c.id}`}
+                          c={c}
+                          cellSx={cellSx}
+                          onView={(c) => {
                             setSelected(c);
                             setDetailOpen(true);
                           }}
+                        />
+                      ))}
+
+                    {filteredHistory.filter((c) => c.status === "INACTIVE")
+                      .length > 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
                           sx={{
-                            color: "#0891b2",
-                            bgcolor: "#e0f2fe",
-                            borderRadius: 1.5,
-                            width: 28,
-                            height: 28,
+                            py: 0.8,
+                            px: 2,
+                            bgcolor: "#f8fafc",
+                            borderBottom: "1px solid #e2e8f0",
+                            borderTop: "2px solid #e0f2fe",
                           }}
                         >
-                          <VisibilityIcon sx={{ fontSize: 14 }} />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                          <Typography
+                            sx={{
+                              fontFamily: "Inter, sans-serif",
+                              fontSize: "0.7rem",
+                              fontWeight: 700,
+                              color: "#64748b",
+                              letterSpacing: "0.05em",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Previous Caretakers (
+                            {
+                              filteredHistory.filter(
+                                (c) => c.status === "INACTIVE",
+                              ).length
+                            }
+                            )
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {filteredHistory
+                      .filter((c) => c.status === "INACTIVE")
+                      .map((c) => (
+                        <CaretakerRow
+                          key={`inactive-${c.id}`}
+                          c={c}
+                          cellSx={cellSx}
+                          onView={(c) => {
+                            setSelected(c);
+                            setDetailOpen(true);
+                          }}
+                        />
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Box>
         )}
       </Paper>
 
-      {/* Detail Modal */}
+      {/* View Detail Modal */}
       <Dialog
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
       >
         <DialogTitle
           sx={{
@@ -507,7 +902,7 @@ const CaretakersPage = () => {
                 sx={{
                   width: 48,
                   height: 48,
-                  bgcolor: "#0891b2",
+                  bgcolor: selected.status === "ACTIVE" ? "#0891b2" : "#94a3b8",
                   fontSize: "1.2rem",
                   fontWeight: 700,
                   fontFamily: "Inter, sans-serif",
@@ -527,19 +922,34 @@ const CaretakersPage = () => {
                 >
                   {selected.firstName} {selected.lastName}
                 </Typography>
-                <Chip
-                  label={`Serial #${selected.serialNumber}`}
-                  size="small"
-                  sx={{
-                    bgcolor: "#e0f2fe",
-                    color: "#0891b2",
-                    fontWeight: 700,
-                    fontSize: "0.68rem",
-                    fontFamily: "Inter, sans-serif",
-                    height: 20,
-                    mt: 0.5,
-                  }}
-                />
+                <Box sx={{ display: "flex", gap: 0.5, mt: 0.3 }}>
+                  <Chip
+                    label={`Serial #${selected.serialNumber}`}
+                    size="small"
+                    sx={{
+                      bgcolor: "#e0f2fe",
+                      color: "#0891b2",
+                      fontWeight: 700,
+                      fontSize: "0.68rem",
+                      fontFamily: "Inter, sans-serif",
+                      height: 20,
+                    }}
+                  />
+                  <Chip
+                    label={selected.status || "ACTIVE"}
+                    size="small"
+                    sx={{
+                      bgcolor:
+                        selected.status === "ACTIVE" ? "#dcfce7" : "#fee2e2",
+                      color:
+                        selected.status === "ACTIVE" ? "#166534" : "#991b1b",
+                      fontWeight: 700,
+                      fontSize: "0.68rem",
+                      fontFamily: "Inter, sans-serif",
+                      height: 20,
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
             <InfoRow
@@ -563,10 +973,61 @@ const CaretakersPage = () => {
               value={selected.permanentAddress}
             />
             <InfoRow
-              icon={<TagIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
-              label="Status"
-              value={selected.status}
+              icon={<BadgeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+              label="Joined On"
+              value={
+                selected.createdAt
+                  ? new Date(selected.createdAt).toLocaleDateString("en-IN")
+                  : "—"
+              }
             />
+            {selected.status === "INACTIVE" && (
+              <>
+                <InfoRow
+                  icon={
+                    <EventBusyIcon sx={{ fontSize: 14, color: "#dc2626" }} />
+                  }
+                  label="Left On"
+                  value={
+                    selected.leftAt
+                      ? new Date(selected.leftAt).toLocaleDateString("en-IN")
+                      : "—"
+                  }
+                />
+                <Box
+                  sx={{
+                    mt: 1,
+                    p: 1.5,
+                    bgcolor: "#fef2f2",
+                    borderRadius: 2,
+                    border: "1px solid #fecaca",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      color: "#dc2626",
+                      mb: 0.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Leaving Reason
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.85rem",
+                      color: "#991b1b",
+                    }}
+                  >
+                    {selected.leavingReason || "—"}
+                  </Typography>
+                </Box>
+              </>
+            )}
           </DialogContent>
         )}
         <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
@@ -583,13 +1044,148 @@ const CaretakersPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Create Caretaker Modal */}
+      {/* Delete Modal */}
+      <Dialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setDeleteReason("");
+          setDeleteTarget(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "#1e293b",
+            borderBottom: "1px solid #e0f2fe",
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <DeleteIcon sx={{ color: "#dc2626", fontSize: 18 }} />
+          Remove Caretaker
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2.5 }}>
+          {deleteTarget && (
+            <Box
+              sx={{
+                p: 1.5,
+                bgcolor: "#f8fbff",
+                borderRadius: 2,
+                border: "1px solid #e0f2fe",
+                mb: 2,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.8rem",
+                  color: "#64748b",
+                }}
+              >
+                Removing caretaker:
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  color: "#1e293b",
+                }}
+              >
+                {deleteTarget.firstName} {deleteTarget.lastName} — #
+                {deleteTarget.serialNumber}
+              </Typography>
+            </Box>
+          )}
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.85rem",
+              color: "#64748b",
+              mb: 2,
+            }}
+          >
+            Please provide a reason for removing this caretaker. This will be
+            saved in history records.
+          </Typography>
+          <TextField
+            label="Reason for Removal *"
+            value={deleteReason}
+            onChange={(e) => setDeleteReason(e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            size="small"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                fontFamily: "Inter, sans-serif",
+                "&.Mui-focused fieldset": { borderColor: "#dc2626" },
+              },
+              "& .MuiInputLabel-root.Mui-focused": { color: "#dc2626" },
+              "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+          <Button
+            onClick={() => {
+              setDeleteOpen(false);
+              setDeleteReason("");
+              setDeleteTarget(null);
+            }}
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              color: "#64748b",
+              textTransform: "none",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleDelete}
+            disabled={!deleteReason.trim() || deleting}
+            startIcon={<DeleteIcon fontSize="small" />}
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              textTransform: "none",
+              bgcolor: "#dc2626",
+              "&:hover": { bgcolor: "#b91c1c" },
+              borderRadius: 2,
+            }}
+          >
+            {deleting ? "Removing..." : "Confirm Remove"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Modal */}
       <Dialog
         open={createOpen}
-        onClose={handleCloseCreate}
+        onClose={() => {
+          setCreateOpen(false);
+          setForm({
+            firstName: "",
+            lastName: "",
+            mobileNumber: "",
+            age: "",
+            aadhaarNumber: "",
+            permanentAddress: "",
+          });
+          setFormErrors({});
+        }}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
       >
         <DialogTitle
           sx={{
@@ -621,7 +1217,6 @@ const CaretakersPage = () => {
             >
               Personal Details
             </Typography>
-
             <Box
               sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
             >
@@ -646,7 +1241,6 @@ const CaretakersPage = () => {
                 sx={fieldStyle}
               />
             </Box>
-
             <Box
               sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
             >
@@ -656,7 +1250,7 @@ const CaretakersPage = () => {
                 value={form.mobileNumber}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 10 }}
+                inputprops={{ maxLength: 10 }}
                 error={!!formErrors.mobileNumber}
                 helperText={formErrors.mobileNumber}
                 sx={fieldStyle}
@@ -667,13 +1261,12 @@ const CaretakersPage = () => {
                 value={form.age}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 2 }}
+                inputprops={{ maxLength: 2 }}
                 error={!!formErrors.age}
                 helperText={formErrors.age}
                 sx={fieldStyle}
               />
             </Box>
-
             <TextField
               label="Aadhaar Number *"
               name="aadhaarNumber"
@@ -681,12 +1274,11 @@ const CaretakersPage = () => {
               onChange={handleChange}
               size="small"
               fullWidth
-              inputProps={{ maxLength: 12 }}
+              inputprops={{ maxLength: 12 }}
               error={!!formErrors.aadhaarNumber}
               helperText={formErrors.aadhaarNumber || "12 digit Aadhaar number"}
               sx={fieldStyle}
             />
-
             <TextField
               label="Permanent Address *"
               name="permanentAddress"
@@ -704,7 +1296,18 @@ const CaretakersPage = () => {
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
           <Button
-            onClick={handleCloseCreate}
+            onClick={() => {
+              setCreateOpen(false);
+              setForm({
+                firstName: "",
+                lastName: "",
+                mobileNumber: "",
+                age: "",
+                aadhaarNumber: "",
+                permanentAddress: "",
+              });
+              setFormErrors({});
+            }}
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
@@ -717,7 +1320,7 @@ const CaretakersPage = () => {
             variant="contained"
             onClick={handleCreate}
             disabled={creating}
-            startIcon={creating ? null : <AddIcon fontSize="small" />}
+            startIcon={<AddIcon fontSize="small" />}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",

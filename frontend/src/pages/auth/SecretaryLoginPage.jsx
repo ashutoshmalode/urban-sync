@@ -47,6 +47,7 @@ const SecretaryLoginPage = () => {
       return;
     }
     setLoading(true);
+    setError("");
     try {
       const res = await axiosInstance.post("/api/auth/login", form);
       dispatch(
@@ -58,7 +59,10 @@ const SecretaryLoginPage = () => {
       );
       navigate("/secretary/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      // Stay on login page — just show error
+      setError(
+        err.response?.data?.message || "Login failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -151,24 +155,42 @@ const SecretaryLoginPage = () => {
                 },
                 "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
               }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      size="small"
-                    >
-                      {showPassword ? (
-                        <VisibilityOff fontSize="small" />
-                      ) : (
-                        <Visibility fontSize="small" />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? (
+                          <VisibilityOff fontSize="small" />
+                        ) : (
+                          <Visibility fontSize="small" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
+
+            {/* Forgot Password */}
+            <Box sx={{ textAlign: "right", mt: -1 }}>
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.75rem",
+                  color: "#0891b2",
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+                onClick={() => {}}
+              >
+                Forgot Password?
+              </Typography>
+            </Box>
 
             <Button
               variant="contained"
