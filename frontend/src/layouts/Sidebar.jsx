@@ -93,6 +93,7 @@ const Sidebar = ({ open, onClose }) => {
             <ListItem key={item.path} disablePadding sx={{ mb: 0.3 }}>
               <ListItemButton
                 onClick={() => handleNavigate(item.path)}
+                onMouseDown={(e) => e.preventDefault()}
                 sx={{
                   borderRadius: 1.5,
                   py: 0.8,
@@ -145,6 +146,7 @@ const Sidebar = ({ open, onClose }) => {
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleLogout}
+            onMouseDown={(e) => e.preventDefault()}
             sx={{
               borderRadius: 1.5,
               py: 0.8,
@@ -169,11 +171,16 @@ const Sidebar = ({ open, onClose }) => {
   return (
     <>
       {/* Mobile Drawer */}
+      {/* Mobile Drawer */}
       <Drawer
         variant="temporary"
         open={open}
         onClose={onClose}
-        ModalProps={{ keepMounted: true }}
+        ModalProps={{
+          keepMounted: true,
+          disableEnforceFocus: true,
+          disableAutoFocus: true,
+        }}
         sx={{
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {

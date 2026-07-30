@@ -12,9 +12,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
   Skeleton,
-  Alert,
+  // Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -23,6 +22,8 @@ import {
   IconButton,
   Tooltip,
   Avatar,
+  Button,
+  // Divider,
 } from "@mui/material";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -30,10 +31,9 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import HistoryIcon from "@mui/icons-material/History";
 import PersonIcon from "@mui/icons-material/Person";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
-
-// const fontStyle = { fontFamily: "Inter, sans-serif" };
 
 const StatusChip = ({ status }) => {
   const map = {
@@ -91,22 +91,65 @@ const headSx = {
   py: 1.2,
 };
 
+// Reusable detail row
+const DetailRow = ({ label, value }) => (
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-between",
+      py: 1,
+      borderBottom: "1px solid #f1f5f9",
+      alignItems: "center",
+    }}
+  >
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: "0.8rem",
+        color: "#64748b",
+        fontWeight: 500,
+      }}
+    >
+      {label}
+    </Typography>
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: "0.85rem",
+        color: "#1e293b",
+        fontWeight: 600,
+        textAlign: "right",
+        maxWidth: "60%",
+      }}
+    >
+      {value || "—"}
+    </Typography>
+  </Box>
+);
+
 const RegistrationsPage = () => {
   const [tab, setTab] = useState(0);
   const [pending, setPending] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, showError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Detail modal
+  // Pending detail modal
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  // History detail modal (issue 4)
+  const [historyDetailOpen, setHistoryDetailOpen] = useState(false);
+  const [historySelected, setHistorySelected] = useState(null);
 
   // Reject modal
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
+
+  // Reason modal (issue 3)
+  const [reasonOpen, setReasonOpen] = useState(false);
+  const [fullReason, setFullReason] = useState("");
 
   const loadData = async () => {
     setLoading(true);
@@ -168,9 +211,17 @@ const RegistrationsPage = () => {
     setRejectId(id);
     setRejectOpen(true);
   };
+  const openReason = (reason) => {
+    setFullReason(reason);
+    setReasonOpen(true);
+  };
+  const openHistoryDetail = (row) => {
+    setHistorySelected(row);
+    setHistoryDetailOpen(true);
+  };
 
   const LoadingSkeleton = () => (
-    <Box>
+    <Box sx={{ p: 3 }}>
       {[...Array(4)].map((_, i) => (
         <Skeleton
           key={i}
@@ -248,16 +299,6 @@ const RegistrationsPage = () => {
         />
       </Box>
 
-      {error && (
-        <Alert
-          severity="error"
-          onClose={() => showError("")}
-          sx={{ mb: 2, borderRadius: 2, fontFamily: "Inter, sans-serif" }}
-        >
-          {error}
-        </Alert>
-      )}
-
       <Paper
         elevation={0}
         sx={{
@@ -293,9 +334,7 @@ const RegistrationsPage = () => {
         </Tabs>
 
         {loading ? (
-          <Box sx={{ p: 3 }}>
-            <LoadingSkeleton />
-          </Box>
+          <LoadingSkeleton />
         ) : tab === 0 ? (
           pending.length === 0 ? (
             <EmptyState message="No pending registration requests" />
@@ -426,6 +465,10 @@ const RegistrationsPage = () => {
                   <TableCell sx={headSx}>Status</TableCell>
                   <TableCell sx={headSx}>Reason</TableCell>
                   <TableCell sx={headSx}>Date</TableCell>
+                  {/* Issue 4: Added Actions column */}
+                  <TableCell sx={headSx} align="center">
+                    Details
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -462,22 +505,79 @@ const RegistrationsPage = () => {
                     <TableCell sx={cellSx}>
                       <StatusChip status={row.status} />
                     </TableCell>
-                    <TableCell
-                      sx={{ ...cellSx, color: "#94a3b8", maxWidth: 150 }}
-                    >
-                      <Typography
-                        noWrap
-                        sx={{
-                          fontFamily: "Inter, sans-serif",
-                          fontSize: "0.8rem",
-                          color: "#94a3b8",
-                        }}
-                      >
-                        {row.rejectionReason || "—"}
-                      </Typography>
+
+                    {/* Issue 3: Reason with eye icon */}
+                    <TableCell sx={{ ...cellSx, maxWidth: 120 }}>
+                      {row.rejectionReason ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
+                          <Typography
+                            noWrap
+                            sx={{
+                              fontFamily: "Inter, sans-serif",
+                              fontSize: "0.78rem",
+                              color: "#94a3b8",
+                              maxWidth: 80,
+                            }}
+                          >
+                            {row.rejectionReason}
+                          </Typography>
+                          <Tooltip title="View full reason">
+                            <IconButton
+                              size="small"
+                              onClick={() => openReason(row.rejectionReason)}
+                              sx={{
+                                color: "#0891b2",
+                                bgcolor: "#e0f2fe",
+                                borderRadius: 1,
+                                width: 22,
+                                height: 22,
+                                flexShrink: 0,
+                              }}
+                            >
+                              <InfoOutlinedIcon sx={{ fontSize: 12 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      ) : (
+                        <Typography
+                          sx={{
+                            fontFamily: "Inter, sans-serif",
+                            fontSize: "0.78rem",
+                            color: "#cbd5e1",
+                          }}
+                        >
+                          —
+                        </Typography>
+                      )}
                     </TableCell>
+
                     <TableCell sx={cellSx}>
                       {new Date(row.createdAt).toLocaleDateString("en-IN")}
+                    </TableCell>
+
+                    {/* Issue 4: View full details */}
+                    <TableCell align="center" sx={{ py: 1 }}>
+                      <Tooltip title="View Full Details">
+                        <IconButton
+                          size="small"
+                          onClick={() => openHistoryDetail(row)}
+                          sx={{
+                            color: "#0891b2",
+                            bgcolor: "#e0f2fe",
+                            borderRadius: 1.5,
+                            width: 28,
+                            height: 28,
+                          }}
+                        >
+                          <VisibilityIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -487,15 +587,13 @@ const RegistrationsPage = () => {
         )}
       </Paper>
 
-      {/* Detail Modal */}
+      {/* Pending Detail Modal */}
       <Dialog
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3, fontFamily: "Inter, sans-serif" },
-        }}
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
       >
         <DialogTitle
           sx={{
@@ -511,57 +609,52 @@ const RegistrationsPage = () => {
         </DialogTitle>
         {selected && (
           <DialogContent sx={{ pt: 2 }}>
-            {[
-              ["Full Name", `${selected.firstName} ${selected.lastName}`],
-              ["Mobile Number", selected.mobileNumber],
-              ["Aadhaar Last 4", selected.aadhaarLastFour],
-              ["Resident Type", selected.residentType],
-              ["Wing", selected.wingName || "—"],
-              ["Flat Number", selected.flatNumber],
-              ...(selected.residentType === "TENANT"
-                ? [
-                    ["Landlord Name", selected.landlordName],
-                    ["Landlord Flat", selected.landlordFlatNumber],
-                    ["Landlord Mobile", selected.landlordMobileNumber],
-                  ]
-                : []),
-              [
-                "Submitted On",
-                new Date(selected.createdAt).toLocaleString("en-IN"),
-              ],
-            ].map(([label, value]) => (
-              <Box
-                key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: "#1e293b",
-                    fontWeight: 600,
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
-            ))}
+            <DetailRow
+              label="Full Name"
+              value={`${selected.firstName} ${selected.lastName}`}
+            />
+            <DetailRow label="Mobile Number" value={selected.mobileNumber} />
+            <DetailRow
+              label="Aadhaar Last 4"
+              value={selected.aadhaarLastFour}
+            />
+            <DetailRow label="Resident Type" value={selected.residentType} />
+            <DetailRow label="Wing" value={selected.wingName || "—"} />
+            <DetailRow label="Flat Number" value={selected.flatNumber} />
+            {selected.residentType === "TENANT" && (
+              <>
+                <Box sx={{ mt: 1.5, mb: 0.5 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      color: "#0891b2",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Landlord Details
+                  </Typography>
+                </Box>
+                <DetailRow
+                  label="Landlord Name"
+                  value={selected.landlordName}
+                />
+                <DetailRow
+                  label="Landlord Flat"
+                  value={selected.landlordFlatNumber}
+                />
+                <DetailRow
+                  label="Landlord Mobile"
+                  value={selected.landlordMobileNumber}
+                />
+              </>
+            )}
+            <DetailRow
+              label="Submitted On"
+              value={new Date(selected.createdAt).toLocaleString("en-IN")}
+            />
           </DialogContent>
         )}
         <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
@@ -586,7 +679,7 @@ const RegistrationsPage = () => {
               textTransform: "none",
               borderColor: "#dc2626",
               color: "#dc2626",
-              "&:hover": { bgcolor: "#fee2e2", borderColor: "#dc2626" },
+              "&:hover": { bgcolor: "#fee2e2" },
             }}
           >
             Reject
@@ -607,6 +700,196 @@ const RegistrationsPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* History Detail Modal (Issue 4) */}
+      <Dialog
+        open={historyDetailOpen}
+        onClose={() => setHistoryDetailOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "#1e293b",
+            borderBottom: "1px solid #e0f2fe",
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <VisibilityIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          Request Details
+          {historySelected && <StatusChip status={historySelected.status} />}
+        </DialogTitle>
+        {historySelected && (
+          <DialogContent sx={{ pt: 2 }}>
+            <DetailRow
+              label="Full Name"
+              value={`${historySelected.firstName} ${historySelected.lastName}`}
+            />
+            <DetailRow
+              label="Mobile Number"
+              value={historySelected.mobileNumber}
+            />
+            <DetailRow
+              label="Aadhaar Last 4"
+              value={historySelected.aadhaarLastFour}
+            />
+            <DetailRow
+              label="Resident Type"
+              value={historySelected.residentType}
+            />
+            <DetailRow label="Wing" value={historySelected.wingName || "—"} />
+            <DetailRow label="Flat Number" value={historySelected.flatNumber} />
+
+            {historySelected.residentType === "TENANT" && (
+              <>
+                <Box sx={{ mt: 1.5, mb: 0.5 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      color: "#0891b2",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Landlord Details
+                  </Typography>
+                </Box>
+                <DetailRow
+                  label="Landlord Name"
+                  value={historySelected.landlordName}
+                />
+                <DetailRow
+                  label="Landlord Flat"
+                  value={historySelected.landlordFlatNumber}
+                />
+                <DetailRow
+                  label="Landlord Mobile"
+                  value={historySelected.landlordMobileNumber}
+                />
+              </>
+            )}
+
+            <DetailRow
+              label="Submitted On"
+              value={new Date(historySelected.createdAt).toLocaleString(
+                "en-IN",
+              )}
+            />
+
+            {historySelected.status === "REJECTED" &&
+              historySelected.rejectionReason && (
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    p: 1.5,
+                    bgcolor: "#fef2f2",
+                    borderRadius: 2,
+                    border: "1px solid #fecaca",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      color: "#dc2626",
+                      mb: 0.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Rejection Reason
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.85rem",
+                      color: "#991b1b",
+                    }}
+                  >
+                    {historySelected.rejectionReason}
+                  </Typography>
+                </Box>
+              )}
+          </DialogContent>
+        )}
+        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+          <Button
+            onClick={() => setHistoryDetailOpen(false)}
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              color: "#64748b",
+              textTransform: "none",
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Full Reason Modal (Issue 3) */}
+      <Dialog
+        open={reasonOpen}
+        onClose={() => setReasonOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "#1e293b",
+            borderBottom: "1px solid #e0f2fe",
+            py: 2,
+          }}
+        >
+          Rejection Reason
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: "#fef2f2",
+              borderRadius: 2,
+              border: "1px solid #fecaca",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "0.88rem",
+                color: "#991b1b",
+                lineHeight: 1.6,
+              }}
+            >
+              {fullReason}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+          <Button
+            onClick={() => setReasonOpen(false)}
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              color: "#64748b",
+              textTransform: "none",
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Reject Modal */}
       <Dialog
         open={rejectOpen}
@@ -616,7 +899,7 @@ const RegistrationsPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
       >
         <DialogTitle
           sx={{

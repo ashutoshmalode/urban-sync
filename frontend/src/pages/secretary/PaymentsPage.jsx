@@ -313,7 +313,7 @@ const PaymentsPage = () => {
                 "&.Mui-focused fieldset": { borderColor: "#0891b2" },
               },
             }}
-            InputProps={{
+            inputprops={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
