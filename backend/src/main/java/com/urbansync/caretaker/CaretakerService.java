@@ -9,5 +9,8 @@ public interface CaretakerService {
     List<CaretakerDTO> getAllCaretakers();
 
     CaretakerDTO getById(Long id);
+    
+    List<CaretakerDTO> getAllCaretakersHistory();
+    CaretakerDTO deleteCaretaker(Long id, DeleteCaretakerRequest request);
 
 }

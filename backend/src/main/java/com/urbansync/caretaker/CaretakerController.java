@@ -39,5 +39,21 @@ public class CaretakerController {
         return ResponseEntity.ok(
                 caretakerService.getById(id));
     }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CaretakerDTO> deleteCaretaker(
+            @PathVariable Long id,
+            @Valid @RequestBody DeleteCaretakerRequest request) {
+
+        return ResponseEntity.ok(
+                caretakerService.deleteCaretaker(id, request));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<CaretakerDTO>> getHistory() {
+
+        return ResponseEntity.ok(
+                caretakerService.getAllCaretakersHistory());
+    }
 
 }
