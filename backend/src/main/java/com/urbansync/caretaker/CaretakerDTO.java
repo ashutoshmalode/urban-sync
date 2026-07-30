@@ -19,6 +19,8 @@ public class CaretakerDTO {
     private String permanentAddress;
     private Integer serialNumber;
     private String status;
+    private String leavingReason;
+    private LocalDateTime leftAt;
     private LocalDateTime createdAt;
 
 }

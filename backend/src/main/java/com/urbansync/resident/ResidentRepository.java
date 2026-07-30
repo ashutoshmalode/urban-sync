@@ -19,5 +19,7 @@ public interface ResidentRepository
     boolean existsByFlatNumber(String flatNumber);
 
     boolean existsByMobileNumber(String mobileNumber);
+    
+    List<ResidentProfile> findByAadhaarLastFour(String aadhaarLastFour);
 
 }

@@ -12,6 +12,8 @@ public interface RegistrationRequestRepository
 
     List<RegistrationRequest> findByStatus(String status);
 
+    List<RegistrationRequest> findByStatusNot(String status);
+
     Optional<RegistrationRequest> findByMobileNumber(String mobileNumber);
 
     boolean existsByMobileNumberAndStatus(
