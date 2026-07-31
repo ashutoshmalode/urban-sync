@@ -2,43 +2,38 @@ package com.urbansync.complaint;
 
 import java.time.LocalDateTime;
 
-import com.urbansync.resident.ResidentProfile;
+import com.urbansync.caretaker.CaretakerProfile;
+import com.urbansync.secretary.SecretaryProfile;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "complaints")
+@Table(name = "caretaker_issues")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Complaint {
+public class CaretakerIssue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "raised_by_id")
-    private ResidentProfile raisedBy;
+    @JoinColumn(name = "assigned_to_id", nullable = false)
+    private CaretakerProfile assignedTo;
 
-    @Column(name = "subject", nullable = false, length = 255)
-    private String subject;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_by_id")
+    private SecretaryProfile assignedBy;
+
+    @Column(name = "title", nullable = false, length = 255)
+    private String title;
 
     @Column(name = "description", nullable = false)
     private String description;
-
-    @Column(name = "photo_url")
-    private String photoUrl;
-
-    @Column(name = "target_type", length = 20)
-    private String targetType;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_resident_id")
-    private ResidentProfile targetResident;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
