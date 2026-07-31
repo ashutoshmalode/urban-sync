@@ -65,15 +65,17 @@ public class SecurityConfig {
             		        "/api/registration/fetch-owner-by-flat",
             		        "/api/registration/check-pending-tenant"
             		).permitAll()
-                    .requestMatchers(
-                            "/api/secretary/**",
-                            "/api/registration/**",
-                            "/api/caretaker/**",
-                            "/api/payment/**",
-                            "/api/registration/check-flat",
-                            "/api/flat/**",
-                            "/api/property/**"
-                    ).hasRole("SECRETARY")
+            		.requestMatchers(
+            		        "/api/secretary/**",
+            		        "/api/registration/**",
+            		        "/api/caretaker/**",
+            		        "/api/payment/**",
+            		        "/api/registration/check-flat",
+            		        "/api/flat/**",
+            		        "/api/property/**",
+            		        "/api/complaint/**",
+            		        "/api/caretaker-issue/**"
+            		).hasRole("SECRETARY")
                     .anyRequest().authenticated())
             .addFilterBefore(
                     jwtAuthenticationFilter,
