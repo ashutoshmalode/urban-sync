@@ -70,7 +70,9 @@ public class SecurityConfig {
                             "/api/registration/**",
                             "/api/caretaker/**",
                             "/api/payment/**",
-                            "/api/registration/check-flat"
+                            "/api/registration/check-flat",
+                            "/api/flat/**",
+                            "/api/property/**"
                     ).hasRole("SECRETARY")
                     .anyRequest().authenticated())
             .addFilterBefore(
