@@ -4,6 +4,7 @@ import ProfilePage from "./ProfilePage";
 import RegistrationsPage from "./RegistrationsPage";
 import CaretakersPage from "./CaretakersPage";
 import PaymentsPage from "./PaymentsPage";
+import PropertyPage from './PropertyPage';
 
 const SecretaryDashboard = () => {
   return (
@@ -13,6 +14,7 @@ const SecretaryDashboard = () => {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="registrations" element={<RegistrationsPage />} />
         <Route path="caretakers" element={<CaretakersPage />} />
+        <Route path="property" element={<PropertyPage />} />
         <Route path="payments" element={<PaymentsPage />} />
       </Routes>
     </AppLayout>

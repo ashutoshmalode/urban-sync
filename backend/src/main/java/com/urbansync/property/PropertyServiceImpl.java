@@ -38,17 +38,19 @@ public class PropertyServiceImpl implements PropertyService {
     @Transactional
     public FlatDTO createFlat(CreateFlatRequest request) {
 
-        if (flatRepository.existsByFlatNumber(request.getFlatNumber())) {
-            throw new BadRequestException(
-                    "Flat " + request.getFlatNumber() + " already exists.");
-        }
-
         Wing wing = wingRepository.findById(request.getWingId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Wing not found."));
 
+        String fullFlatNumber = wing.getWingName() + "-" + request.getFlatNumber();
+
+        if (flatRepository.existsByFlatNumber(fullFlatNumber)) {
+            throw new BadRequestException(
+                    "Flat " + fullFlatNumber + " already exists.");
+        }
+
         Flat flat = Flat.builder()
-                .flatNumber(request.getFlatNumber())
+                .flatNumber(fullFlatNumber)
                 .wing(wing)
                 .createdAt(LocalDateTime.now())
                 .build();
