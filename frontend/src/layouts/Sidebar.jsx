@@ -18,30 +18,37 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import PaymentIcon from "@mui/icons-material/Payment";
 import LogoutIcon from "@mui/icons-material/Logout";
+import ApartmentIcon from '@mui/icons-material/Apartment';
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
 
 const menuItems = [
   {
-    label: "My Profile",
+    label: 'My Profile',
     icon: <AccountCircleIcon fontSize="small" />,
-    path: "/secretary/dashboard/profile",
+    path: '/secretary/dashboard/profile',
   },
   {
-    label: "Registrations",
+    label: 'Registrations',
     icon: <HowToRegIcon fontSize="small" />,
-    path: "/secretary/dashboard/registrations",
+    path: '/secretary/dashboard/registrations',
   },
   {
-    label: "Caretakers",
+    label: 'Caretakers',
     icon: <EngineeringIcon fontSize="small" />,
-    path: "/secretary/dashboard/caretakers",
+    path: '/secretary/dashboard/caretakers',
+  },
+  // ADD THIS
+  {
+    label: 'Property',
+    icon: <ApartmentIcon fontSize="small" />,
+    path: '/secretary/dashboard/property',
   },
   {
-    label: "Payments",
+    label: 'Payments',
     icon: <PaymentIcon fontSize="small" />,
-    path: "/secretary/dashboard/payments",
+    path: '/secretary/dashboard/payments',
   },
 ];
 
