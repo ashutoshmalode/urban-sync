@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.validation.Valid;
 
@@ -12,9 +13,13 @@ import jakarta.validation.Valid;
 public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
+    private final com.urbansync.property.FlatRepository flatRepository;
 
-    public MaintenanceController(MaintenanceService maintenanceService) {
+    public MaintenanceController(
+            MaintenanceService maintenanceService,
+            com.urbansync.property.FlatRepository flatRepository) {
         this.maintenanceService = maintenanceService;
+        this.flatRepository = flatRepository;
     }
 
     @GetMapping("/settings")
@@ -70,6 +75,43 @@ public class MaintenanceController {
             @PathVariable Long billId) {
         return ResponseEntity.ok(
                 maintenanceService.markAsPaid(billId));
+    }
+    
+    @GetMapping("/bills/flat-info")
+    @Transactional
+    public ResponseEntity<?> getFlatInfo(
+            @RequestParam String wingName,
+            @RequestParam String flatNumber) {
+
+        String fullFlatNumber = wingName + "-" + flatNumber;
+
+        return flatRepository.findByFlatNumber(fullFlatNumber)
+                .map(flat -> {
+                    java.util.Map<String, Object> info = new java.util.LinkedHashMap<>();
+                    info.put("flatId", flat.getId());
+                    info.put("flatNumber", flat.getFlatNumber());
+
+                    if (flat.getCurrentTenant() != null) {
+                        info.put("residentId", flat.getCurrentTenant().getId());
+                        info.put("residentName",
+                                flat.getCurrentTenant().getFirstName() + " "
+                                + flat.getCurrentTenant().getLastName());
+                        info.put("residentType", "TENANT");
+                    } else if (flat.getOwner() != null) {
+                        info.put("residentId", flat.getOwner().getId());
+                        info.put("residentName",
+                                flat.getOwner().getFirstName() + " "
+                                + flat.getOwner().getLastName());
+                        info.put("residentType", "OWNER");
+                    } else {
+                        info.put("residentId", null);
+                        info.put("residentName", null);
+                        info.put("residentType", null);
+                    }
+
+                    return ResponseEntity.ok(info);
+                })
+                .orElse(ResponseEntity.ok(null));
     }
 
 }
