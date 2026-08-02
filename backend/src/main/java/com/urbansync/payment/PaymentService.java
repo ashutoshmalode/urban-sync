@@ -13,5 +13,11 @@ public interface PaymentService {
     List<PaymentTransactionDTO> getAllTransactions();
 
     List<PaymentTransactionDTO> getTransactionsByBillId(Long billId);
+    
+    List<PaymentTransactionDTO> getTransactionsByResident(Long residentId);
+
+    PaymentTransactionDTO getTransactionById(Long id);
+
+    List<PaymentTransactionDTO> getSuccessfulTransactions();
 
 }
