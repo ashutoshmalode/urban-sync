@@ -75,7 +75,9 @@ public class SecurityConfig {
             		        "/api/property/**",
             		        "/api/complaint/**",
             		        "/api/caretaker-issue/**",
-            		        "/api/maintenance/**"
+            		        "/api/maintenance/**",
+            		        "/api/permission/**",
+            		        "/api/announcement/**"
             		).hasRole("SECRETARY")
                     .anyRequest().authenticated())
             .addFilterBefore(
