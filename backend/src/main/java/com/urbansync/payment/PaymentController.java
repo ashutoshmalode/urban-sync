@@ -55,5 +55,26 @@ public class PaymentController {
         return ResponseEntity.ok(
                 paymentService.getTransactionsByBillId(billId));
     }
+    
+    @GetMapping("/transactions/resident/{residentId}")
+    public ResponseEntity<List<PaymentTransactionDTO>>
+            getByResident(@PathVariable Long residentId) {
+        return ResponseEntity.ok(
+                paymentService.getTransactionsByResident(residentId));
+    }
+
+    @GetMapping("/transactions/{id}")
+    public ResponseEntity<PaymentTransactionDTO>
+            getById(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                paymentService.getTransactionById(id));
+    }
+
+    @GetMapping("/transactions/successful")
+    public ResponseEntity<List<PaymentTransactionDTO>>
+            getSuccessful() {
+        return ResponseEntity.ok(
+                paymentService.getSuccessfulTransactions());
+    }
 
 }

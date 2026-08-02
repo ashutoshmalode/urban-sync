@@ -204,5 +204,36 @@ public class PaymentServiceImpl implements PaymentService {
                     "Signature generation failed.");
         }
     }
+    
+    @Override
+    public List<PaymentTransactionDTO> getTransactionsByResident(
+            Long residentId) {
+        return transactionRepository.findAll()
+                .stream()
+                .filter(t -> t.getBill() != null
+                        && t.getBill().getResident() != null
+                        && t.getBill().getResident().getId()
+                                .equals(residentId))
+                .map(PaymentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public PaymentTransactionDTO getTransactionById(Long id) {
+        return transactionRepository.findById(id)
+                .map(PaymentMapper::toDTO)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Transaction not found."));
+    }
+
+    @Override
+    public List<PaymentTransactionDTO> getSuccessfulTransactions() {
+        return transactionRepository.findAll()
+                .stream()
+                .filter(t -> t.getStatus().equals("SUCCESS"))
+                .map(PaymentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
 }
