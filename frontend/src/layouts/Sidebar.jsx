@@ -20,6 +20,7 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
@@ -46,6 +47,11 @@ const menuItems = [
     icon: <ApartmentIcon fontSize="small" />,
     path: "/secretary/dashboard/property",
   },
+  {
+  label: 'Maintenance',
+  icon: <ReceiptIcon fontSize="small" />,
+  path: '/secretary/dashboard/maintenance',
+},
   {
     label: "Payments",
     icon: <PaymentIcon fontSize="small" />,
