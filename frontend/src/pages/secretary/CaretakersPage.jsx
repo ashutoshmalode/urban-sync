@@ -5,7 +5,6 @@ import {
   Paper,
   Button,
   Skeleton,
-  Alert,
   Table,
   TableBody,
   TableCell,
@@ -24,6 +23,7 @@ import {
   Tabs,
   Tab,
   InputAdornment,
+  Divider,
 } from "@mui/material";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import AddIcon from "@mui/icons-material/Add";
@@ -38,8 +38,11 @@ import HomeIcon from "@mui/icons-material/Home";
 import CakeIcon from "@mui/icons-material/Cake";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import EventBusyIcon from "@mui/icons-material/EventBusy";
+import PersonIcon from "@mui/icons-material/Person";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const fieldStyle = {
   "& .MuiOutlinedInput-root": {
@@ -129,6 +132,13 @@ const CaretakersPage = () => {
   const [historyList, setHistoryList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [fullImageOpen, setFullImageOpen] = useState(false);
+  const [fullImageUrl, setFullImageUrl] = useState("");
+
+  // Photo states
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState("");
 
   // Detail modal
   const [detailOpen, setDetailOpen] = useState(false);
@@ -173,6 +183,22 @@ const CaretakersPage = () => {
     loadData();
   }, []);
 
+  const resetCreateModal = () => {
+    setCreateOpen(false);
+    setForm({
+      firstName: "",
+      lastName: "",
+      mobileNumber: "",
+      age: "",
+      aadhaarNumber: "",
+      permanentAddress: "",
+    });
+    setFormErrors({});
+    setPhotoPreview(null);
+    setUploadedPhotoUrl("");
+    setPhotoUploading(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "mobileNumber" && (!/^\d*$/.test(value) || value.length > 10))
@@ -192,6 +218,10 @@ const CaretakersPage = () => {
 
   const validateForm = () => {
     const e = {};
+    if (!uploadedPhotoUrl) {
+      showError("Please upload caretaker photo before submitting");
+      return false;
+    }
     if (!form.firstName.trim()) e.firstName = "Required";
     if (!form.lastName.trim()) e.lastName = "Required";
     if (!/^\d{10}$/.test(form.mobileNumber))
@@ -206,6 +236,28 @@ const CaretakersPage = () => {
     return Object.values(e).every((v) => !v);
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showError("File size must be less than 5MB");
+      return;
+    }
+    setPhotoPreview(URL.createObjectURL(file));
+    setPhotoUploading(true);
+    try {
+      const url = await uploadToCloudinary(file, "urbansync/caretakers");
+      setUploadedPhotoUrl(url);
+      showSuccess("Photo uploaded successfully");
+    } catch {
+      showError("Photo upload failed. Please try again.");
+      setPhotoPreview(null);
+      setUploadedPhotoUrl("");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   const handleCreate = async () => {
     if (!validateForm()) return;
     setCreating(true);
@@ -213,18 +265,10 @@ const CaretakersPage = () => {
       await axiosInstance.post("/api/caretaker", {
         ...form,
         age: Number(form.age),
+        photoUrl: uploadedPhotoUrl || null,
       });
       showSuccess("Caretaker created successfully");
-      setCreateOpen(false);
-      setForm({
-        firstName: "",
-        lastName: "",
-        mobileNumber: "",
-        age: "",
-        aadhaarNumber: "",
-        permanentAddress: "",
-      });
-      setFormErrors({});
+      resetCreateModal();
       loadData();
     } catch (err) {
       showError(err.response?.data?.message || "Failed to create caretaker");
@@ -252,7 +296,6 @@ const CaretakersPage = () => {
     }
   };
 
-  // Filter history by search
   const filteredHistory = historyList
     .filter((c) => {
       if (!search) return true;
@@ -265,10 +308,8 @@ const CaretakersPage = () => {
       );
     })
     .sort((a, b) => {
-      // ACTIVE always on top
       if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
       if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
-      // Within same status — newest first
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
@@ -285,7 +326,7 @@ const CaretakersPage = () => {
     </Box>
   );
 
-  const CaretakerRow = ({ c, cellSx, headSx, onView }) => (
+  const CaretakerRow = ({ c, onView }) => (
     <TableRow hover sx={{ "&:hover": { bgcolor: "#f8fbff" } }}>
       <TableCell sx={cellSx}>
         <Chip
@@ -316,16 +357,21 @@ const CaretakersPage = () => {
             />
           )}
           <Avatar
+            src={c.photoUrl || undefined}
             sx={{
               width: 28,
               height: 28,
-              bgcolor: c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
+              bgcolor: c.photoUrl
+                ? "transparent"
+                : c.status === "ACTIVE"
+                  ? "#e0f2fe"
+                  : "#f1f5f9",
               fontSize: "0.75rem",
               color: c.status === "ACTIVE" ? "#0891b2" : "#64748b",
               fontWeight: 700,
             }}
           >
-            {c.firstName?.[0]}
+            {!c.photoUrl && c.firstName?.[0]}
           </Avatar>
           <Typography
             sx={{
@@ -369,7 +415,7 @@ const CaretakersPage = () => {
             color: "#94a3b8",
           }}
         >
-          {c.leavingReason || (c.status === "ACTIVE" ? "—" : "—")}
+          {c.leavingReason || "—"}
         </Typography>
       </TableCell>
       <TableCell align="center" sx={{ py: 1 }}>
@@ -557,40 +603,35 @@ const CaretakersPage = () => {
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          {/* Green dot for active */}
-                          {c.status === "ACTIVE" && (
-                            <Box
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: "50%",
-                                bgcolor: "#22c55e",
-                                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
-                          <Avatar
+                          <Box
                             sx={{
-                              width: 28,
-                              height: 28,
-                              bgcolor:
-                                c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
+                              width: 8,
+                              height: 8,
+                              borderRadius: "50%",
+                              bgcolor: "#22c55e",
+                              boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Avatar
+                            src={c.photoUrl || undefined}
+                            sx={{
+                              width: 30,
+                              height: 30,
+                              bgcolor: c.photoUrl ? "transparent" : "#e0f2fe",
                               fontSize: "0.75rem",
-                              color:
-                                c.status === "ACTIVE" ? "#0891b2" : "#64748b",
+                              color: "#0891b2",
                               fontWeight: 700,
                             }}
                           >
-                            {c.firstName?.[0]}
+                            {!c.photoUrl && c.firstName?.[0]}
                           </Avatar>
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
                               fontSize: "0.82rem",
-                              fontWeight: c.status === "ACTIVE" ? 700 : 400,
-                              color:
-                                c.status === "ACTIVE" ? "#1e293b" : "#64748b",
+                              fontWeight: 600,
+                              color: "#1e293b",
                             }}
                           >
                             {c.firstName} {c.lastName}
@@ -601,7 +642,7 @@ const CaretakersPage = () => {
                       <TableCell sx={cellSx}>{c.age} yrs</TableCell>
                       <TableCell sx={cellSx}>
                         <Chip
-                          label={c.status || "ACTIVE"}
+                          label="ACTIVE"
                           size="small"
                           sx={{
                             bgcolor: "#dcfce7",
@@ -666,9 +707,7 @@ const CaretakersPage = () => {
             </TableContainer>
           )
         ) : (
-          // History Tab
           <Box>
-            {/* Search bar */}
             <Box
               sx={{
                 px: 2.5,
@@ -799,14 +838,12 @@ const CaretakersPage = () => {
                         <CaretakerRow
                           key={`active-${c.id}`}
                           c={c}
-                          cellSx={cellSx}
                           onView={(c) => {
                             setSelected(c);
                             setDetailOpen(true);
                           }}
                         />
                       ))}
-
                     {filteredHistory.filter((c) => c.status === "INACTIVE")
                       .length > 0 && (
                       <TableRow>
@@ -847,7 +884,6 @@ const CaretakersPage = () => {
                         <CaretakerRow
                           key={`inactive-${c.id}`}
                           c={c}
-                          cellSx={cellSx}
                           onView={(c) => {
                             setSelected(c);
                             setDetailOpen(true);
@@ -898,19 +934,61 @@ const CaretakersPage = () => {
                 borderBottom: "1px solid #e0f2fe",
               }}
             >
-              <Avatar
+              {/* Left side — photo + hint */}
+              <Box
                 sx={{
-                  width: 48,
-                  height: 48,
-                  bgcolor: selected.status === "ACTIVE" ? "#0891b2" : "#94a3b8",
-                  fontSize: "1.2rem",
-                  fontWeight: 700,
-                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 0.3,
                 }}
               >
-                {selected.firstName?.[0]}
-                {selected.lastName?.[0]}
-              </Avatar>
+                <Avatar
+                  src={selected.photoUrl || undefined}
+                  onClick={() => {
+                    if (selected.photoUrl) {
+                      setFullImageUrl(selected.photoUrl);
+                      setFullImageOpen(true);
+                    }
+                  }}
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    bgcolor: selected.photoUrl
+                      ? "transparent"
+                      : selected.status === "ACTIVE"
+                        ? "#0891b2"
+                        : "#94a3b8",
+                    fontSize: "1.4rem",
+                    fontWeight: 700,
+                    cursor: selected.photoUrl ? "pointer" : "default",
+                    transition: "transform 0.2s",
+                    "&:hover": selected.photoUrl
+                      ? {
+                          transform: "scale(1.05)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                        }
+                      : {},
+                  }}
+                >
+                  {!selected.photoUrl && selected.firstName?.[0]}
+                  {!selected.photoUrl && selected.lastName?.[0]}
+                </Avatar>
+                {selected.photoUrl && (
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.62rem",
+                      color: "#94a3b8",
+                      textAlign: "center",
+                    }}
+                  >
+                    tap to view
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Right side — name + chips */}
               <Box>
                 <Typography
                   sx={{
@@ -1113,8 +1191,7 @@ const CaretakersPage = () => {
               mb: 2,
             }}
           >
-            Please provide a reason for removing this caretaker. This will be
-            saved in history records.
+            Please provide a reason for removing this caretaker.
           </Typography>
           <TextField
             label="Reason for Removal *"
@@ -1171,18 +1248,7 @@ const CaretakersPage = () => {
       {/* Create Modal */}
       <Dialog
         open={createOpen}
-        onClose={() => {
-          setCreateOpen(false);
-          setForm({
-            firstName: "",
-            lastName: "",
-            mobileNumber: "",
-            age: "",
-            aadhaarNumber: "",
-            permanentAddress: "",
-          });
-          setFormErrors({});
-        }}
+        onClose={resetCreateModal}
         maxWidth="sm"
         fullWidth
         slotProps={{ paper: { sx: { borderRadius: 3 } } }}
@@ -1205,6 +1271,112 @@ const CaretakersPage = () => {
         </DialogTitle>
         <DialogContent sx={{ pt: 2.5 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {/* Photo Upload Section */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                p: 2,
+                bgcolor: "#f8fbff",
+                borderRadius: 2,
+                border: "1px solid #e0f2fe",
+              }}
+            >
+              <Box sx={{ position: "relative" }}>
+                <Avatar
+                  src={photoPreview || undefined}
+                  sx={{
+                    width: 72,
+                    height: 72,
+                    bgcolor: photoPreview ? "transparent" : "#e0f2fe",
+                    color: "#0891b2",
+                    fontSize: "1.8rem",
+                  }}
+                >
+                  {!photoPreview && <PersonIcon sx={{ fontSize: 32 }} />}
+                </Avatar>
+                {photoUploading && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(0,0,0,0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "white",
+                        fontSize: "0.6rem",
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      ...
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.82rem",
+                    color: "#1e293b",
+                    mb: 0.5,
+                  }}
+                >
+                  Caretaker Photo
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  component="label"
+                  disabled={photoUploading}
+                  startIcon={<CameraAltIcon fontSize="small" />}
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: "#0891b2",
+                    color: "#0891b2",
+                    fontFamily: "Inter, sans-serif",
+                    textTransform: "none",
+                    fontSize: "0.78rem",
+                    mb: 0.5,
+                  }}
+                >
+                  {photoUploading
+                    ? "Uploading..."
+                    : uploadedPhotoUrl
+                      ? "Change Photo"
+                      : "Upload Photo"}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                  />
+                </Button>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.68rem",
+                    color: uploadedPhotoUrl ? "#059669" : "#94a3b8",
+                    display: "block",
+                  }}
+                >
+                  {uploadedPhotoUrl
+                    ? "✓ Photo uploaded successfully"
+                    : "JPG, PNG — Max 5MB (required)"}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Divider sx={{ borderColor: "#e0f2fe" }} />
+
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
@@ -1217,6 +1389,7 @@ const CaretakersPage = () => {
             >
               Personal Details
             </Typography>
+
             <Box
               sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
             >
@@ -1250,7 +1423,7 @@ const CaretakersPage = () => {
                 value={form.mobileNumber}
                 onChange={handleChange}
                 size="small"
-                inputprops={{ maxLength: 10 }}
+                inputProps={{ maxLength: 10 }}
                 error={!!formErrors.mobileNumber}
                 helperText={formErrors.mobileNumber}
                 sx={fieldStyle}
@@ -1261,7 +1434,7 @@ const CaretakersPage = () => {
                 value={form.age}
                 onChange={handleChange}
                 size="small"
-                inputprops={{ maxLength: 2 }}
+                inputProps={{ maxLength: 2 }}
                 error={!!formErrors.age}
                 helperText={formErrors.age}
                 sx={fieldStyle}
@@ -1274,7 +1447,7 @@ const CaretakersPage = () => {
               onChange={handleChange}
               size="small"
               fullWidth
-              inputprops={{ maxLength: 12 }}
+              inputProps={{ maxLength: 12 }}
               error={!!formErrors.aadhaarNumber}
               helperText={formErrors.aadhaarNumber || "12 digit Aadhaar number"}
               sx={fieldStyle}
@@ -1296,18 +1469,7 @@ const CaretakersPage = () => {
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
           <Button
-            onClick={() => {
-              setCreateOpen(false);
-              setForm({
-                firstName: "",
-                lastName: "",
-                mobileNumber: "",
-                age: "",
-                aadhaarNumber: "",
-                permanentAddress: "",
-              });
-              setFormErrors({});
-            }}
+            onClick={resetCreateModal}
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
@@ -1319,7 +1481,7 @@ const CaretakersPage = () => {
           <Button
             variant="contained"
             onClick={handleCreate}
-            disabled={creating}
+            disabled={creating || photoUploading}
             startIcon={<AddIcon fontSize="small" />}
             sx={{
               fontFamily: "Inter, sans-serif",
@@ -1333,6 +1495,53 @@ const CaretakersPage = () => {
             {creating ? "Creating..." : "Create Caretaker"}
           </Button>
         </DialogActions>
+      </Dialog>
+      {/* Full Image View Modal */}
+      <Dialog
+        open={fullImageOpen}
+        onClose={() => setFullImageOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "0.9rem",
+            color: "white",
+            borderBottom: "1px solid #1e293b",
+            py: 1.5,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Caretaker Photo
+          <IconButton
+            size="small"
+            onClick={() => setFullImageOpen(false)}
+            sx={{ color: "white" }}
+          >
+            <ClearIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            p: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: 300,
+          }}
+        >
+          <Box
+            component="img"
+            src={fullImageUrl}
+            alt="Caretaker Photo"
+            sx={{ width: "100%", maxHeight: 500, objectFit: "contain" }}
+          />
+        </DialogContent>
       </Dialog>
     </Box>
   );

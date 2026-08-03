@@ -25,81 +25,83 @@ public class CaretakerServiceImpl implements CaretakerService {
         this.credentialRepository = credentialRepository;
     }
 
-@Override
-@Transactional
-public CaretakerDTO create(CaretakerCreateRequest request) {
+    @Override
+    @Transactional
+    public CaretakerDTO create(CaretakerCreateRequest request) {
 
-    // Check if caretaker exists with this mobile
-    CaretakerProfile existing = caretakerRepository
-            .findByMobileNumber(request.getMobileNumber())
-            .orElse(null);
+        // Check if caretaker exists with this mobile
+        CaretakerProfile existing = caretakerRepository
+                .findByMobileNumber(request.getMobileNumber())
+                .orElse(null);
 
-    if (existing != null) {
-        // If ACTIVE — block
-        if (existing.getStatus().equals("ACTIVE")) {
-            throw new BadRequestException(
-                    "An active caretaker already exists "
-                    + "with this mobile number.");
+        if (existing != null) {
+            // If ACTIVE — block
+            if (existing.getStatus().equals("ACTIVE")) {
+                throw new BadRequestException(
+                        "An active caretaker already exists "
+                        + "with this mobile number.");
+            }
+
+            // If INACTIVE — reactivate (rejoin)
+            existing.setFirstName(request.getFirstName());
+            existing.setLastName(request.getLastName());
+            existing.setAge(request.getAge());
+            existing.setAadhaarNumber(request.getAadhaarNumber());
+            existing.setPermanentAddress(request.getPermanentAddress());
+            existing.setStatus("ACTIVE");
+            existing.setLeavingReason(null);
+            existing.setLeftAt(null);
+            existing.setCreatedAt(LocalDateTime.now());
+            existing.setPhotoUrl(request.getPhotoUrl());
+
+            return CaretakerMapper.toDTO(
+                    caretakerRepository.save(existing));
         }
 
-        // If INACTIVE — reactivate (rejoin)
-        existing.setFirstName(request.getFirstName());
-        existing.setLastName(request.getLastName());
-        existing.setAge(request.getAge());
-        existing.setAadhaarNumber(request.getAadhaarNumber());
-        existing.setPermanentAddress(request.getPermanentAddress());
-        existing.setStatus("ACTIVE");
-        existing.setLeavingReason(null);
-        existing.setLeftAt(null);
-        existing.setCreatedAt(LocalDateTime.now());
+        // Check aadhaar uniqueness for new caretakers only
+        caretakerRepository.findByAadhaarNumber(request.getAadhaarNumber())
+                .ifPresent(c -> {
+                    if (c.getStatus().equals("ACTIVE")) {
+                        throw new BadRequestException(
+                                "An active caretaker already exists "
+                                + "with this Aadhaar number.");
+                    }
+                });
+
+        // New caretaker — create fresh
+        int serialNumber = caretakerRepository.findMaxSerialNumber() + 1;
+
+        Credential credential = credentialRepository
+                .findByLoginIdentifier(request.getMobileNumber())
+                .orElseGet(() -> {
+                    Credential newCred = Credential.builder()
+                            .loginIdentifier(request.getMobileNumber())
+                            .passwordHash(null)
+                            .role("CARETAKER")
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    return credentialRepository.save(newCred);
+                });
+
+        CaretakerProfile caretaker = CaretakerProfile.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .mobileNumber(request.getMobileNumber())
+                .age(request.getAge())
+                .aadhaarNumber(request.getAadhaarNumber())
+                .permanentAddress(request.getPermanentAddress())
+                .serialNumber(serialNumber)
+                .status("ACTIVE")
+                .credential(credential)
+                .createdAt(LocalDateTime.now())
+                .photoUrl(request.getPhotoUrl())
+                .build();
 
         return CaretakerMapper.toDTO(
-                caretakerRepository.save(existing));
+                caretakerRepository.save(caretaker));
     }
 
-    // Check aadhaar uniqueness for new caretakers only
-    caretakerRepository.findByAadhaarNumber(request.getAadhaarNumber())
-            .ifPresent(c -> {
-                if (c.getStatus().equals("ACTIVE")) {
-                    throw new BadRequestException(
-                            "An active caretaker already exists "
-                            + "with this Aadhaar number.");
-                }
-            });
-
-    // New caretaker — create fresh
-    int serialNumber = caretakerRepository.findMaxSerialNumber() + 1;
-
-    Credential credential = credentialRepository
-            .findByLoginIdentifier(request.getMobileNumber())
-            .orElseGet(() -> {
-                Credential newCred = Credential.builder()
-                        .loginIdentifier(request.getMobileNumber())
-                        .passwordHash(null)
-                        .role("CARETAKER")
-                        .createdAt(LocalDateTime.now())
-                        .build();
-                return credentialRepository.save(newCred);
-            });
-
-    CaretakerProfile caretaker = CaretakerProfile.builder()
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .mobileNumber(request.getMobileNumber())
-            .age(request.getAge())
-            .aadhaarNumber(request.getAadhaarNumber())
-            .permanentAddress(request.getPermanentAddress())
-            .serialNumber(serialNumber)
-            .status("ACTIVE")
-            .credential(credential)
-            .createdAt(LocalDateTime.now())
-            .build();
-
-    return CaretakerMapper.toDTO(
-            caretakerRepository.save(caretaker));
-}    
-
-@Override
+    @Override
     public List<CaretakerDTO> getAllCaretakers() {
         return caretakerRepository
                 .findAllByOrderBySerialNumberAsc()

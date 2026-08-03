@@ -56,5 +56,8 @@ public class CaretakerProfile {
 
     @Column(name = "left_at")
     private LocalDateTime leftAt;
+    
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
 
 }
