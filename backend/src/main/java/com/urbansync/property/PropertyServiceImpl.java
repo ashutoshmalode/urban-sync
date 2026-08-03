@@ -21,17 +21,20 @@ public class PropertyServiceImpl implements PropertyService {
     private final PropertyPostRepository postRepository;
     private final ResidentRepository residentRepository;
     private final WingRepository wingRepository;
+    private final PropertyPostImageRepository imageRepository;
 
     public PropertyServiceImpl(
             FlatRepository flatRepository,
             PropertyPostRepository postRepository,
             ResidentRepository residentRepository,
-            WingRepository wingRepository) {
+            WingRepository wingRepository,
+            PropertyPostImageRepository imageRepository) {
 
         this.flatRepository = flatRepository;
         this.postRepository = postRepository;
         this.residentRepository = residentRepository;
         this.wingRepository = wingRepository;
+        this.imageRepository = imageRepository;
     }
 
     @Override
@@ -110,8 +113,7 @@ public class PropertyServiceImpl implements PropertyService {
                         new ResourceNotFoundException("Flat not found."));
 
         if (flat.getCurrentTenant() != null) {
-            throw new BadRequestException(
-                    "Flat already has a tenant.");
+            throw new BadRequestException("Flat already has a tenant.");
         }
 
         ResidentProfile tenant = residentRepository
@@ -137,8 +139,7 @@ public class PropertyServiceImpl implements PropertyService {
                         new ResourceNotFoundException("Flat not found."));
 
         if (flat.getCurrentTenant() == null) {
-            throw new BadRequestException(
-                    "Flat has no tenant to remove.");
+            throw new BadRequestException("Flat has no tenant to remove.");
         }
 
         flat.setCurrentTenant(null);
@@ -189,7 +190,8 @@ public class PropertyServiceImpl implements PropertyService {
 
         PropertyPost post = postRepository.findById(postId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Property post not found."));
+                        new ResourceNotFoundException(
+                                "Property post not found."));
 
         if (!post.getIsActive()) {
             throw new BadRequestException(
@@ -205,6 +207,48 @@ public class PropertyServiceImpl implements PropertyService {
         return postRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(PropertyMapper::toPostDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<PropertyPostImageDTO> addImages(
+            AddPropertyImagesRequest request) {
+
+        PropertyPost post = postRepository.findById(request.getPostId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Property post not found."));
+
+        int existing = imageRepository.countByPostId(request.getPostId());
+        int total = existing + request.getImageUrls().size();
+
+        if (total > 10) {
+            throw new BadRequestException(
+                    "Maximum 10 images allowed per property post. "
+                    + "Currently has " + existing + " images.");
+        }
+
+        List<PropertyPostImage> images = request.getImageUrls()
+                .stream()
+                .map(url -> PropertyPostImage.builder()
+                        .post(post)
+                        .imageUrl(url)
+                        .createdAt(LocalDateTime.now())
+                        .build())
+                .collect(Collectors.toList());
+
+        return imageRepository.saveAll(images)
+                .stream()
+                .map(PropertyMapper::toImageDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PropertyPostImageDTO> getImagesByPostId(Long postId) {
+        return imageRepository.findByPostId(postId)
+                .stream()
+                .map(PropertyMapper::toImageDTO)
                 .collect(Collectors.toList());
     }
 

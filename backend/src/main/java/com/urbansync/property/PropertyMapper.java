@@ -50,5 +50,16 @@ public class PropertyMapper {
                 .createdAt(post.getCreatedAt())
                 .build();
     }
+    
+    public static PropertyPostImageDTO toImageDTO(
+            PropertyPostImage image) {
+        return PropertyPostImageDTO.builder()
+                .id(image.getId())
+                .postId(image.getPost() != null
+                        ? image.getPost().getId() : null)
+                .imageUrl(image.getImageUrl())
+                .createdAt(image.getCreatedAt())
+                .build();
+    }
 
 }
