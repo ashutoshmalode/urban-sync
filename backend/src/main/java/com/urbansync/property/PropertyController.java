@@ -86,5 +86,19 @@ public class PropertyController {
     public ResponseEntity<List<PropertyPostDTO>> getPostHistory() {
         return ResponseEntity.ok(propertyService.getPostHistory());
     }
+    
+    @PostMapping("/property/post/images")
+    public ResponseEntity<List<PropertyPostImageDTO>> addImages(
+            @Valid @RequestBody AddPropertyImagesRequest request) {
+        return ResponseEntity.ok(
+                propertyService.addImages(request));
+    }
+
+    @GetMapping("/property/post/{postId}/images")
+    public ResponseEntity<List<PropertyPostImageDTO>> getImages(
+            @PathVariable Long postId) {
+        return ResponseEntity.ok(
+                propertyService.getImagesByPostId(postId));
+    }
 
 }

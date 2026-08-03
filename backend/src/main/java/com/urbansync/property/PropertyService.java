@@ -25,5 +25,9 @@ public interface PropertyService {
     PropertyPostDTO markRented(Long postId);
 
     List<PropertyPostDTO> getPostHistory();
+    
+    List<PropertyPostImageDTO> addImages(AddPropertyImagesRequest request);
+
+    List<PropertyPostImageDTO> getImagesByPostId(Long postId);
 
 }
