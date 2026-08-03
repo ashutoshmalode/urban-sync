@@ -29,4 +29,6 @@ public class CaretakerCreateRequest {
     @NotBlank(message = "Permanent address is required")
     private String permanentAddress;
 
-}
+    private String photoUrl;
+
+}	

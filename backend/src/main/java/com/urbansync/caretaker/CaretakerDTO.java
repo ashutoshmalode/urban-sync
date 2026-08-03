@@ -22,5 +22,6 @@ public class CaretakerDTO {
     private String leavingReason;
     private LocalDateTime leftAt;
     private LocalDateTime createdAt;
+    private String photoUrl;
 
 }

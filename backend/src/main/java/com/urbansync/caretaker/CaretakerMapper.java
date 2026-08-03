@@ -18,6 +18,7 @@ public class CaretakerMapper {
                 .leavingReason(profile.getLeavingReason())
                 .leftAt(profile.getLeftAt())
                 .createdAt(profile.getCreatedAt())
+                .photoUrl(profile.getPhotoUrl())
                 .build();
     }
 
