@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface ComplaintRepository
         extends JpaRepository<Complaint, Long> {
 
+	long countByStatus(String status);
     @Query("""
         SELECT c FROM Complaint c
         LEFT JOIN FETCH c.raisedBy

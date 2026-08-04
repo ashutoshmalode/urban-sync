@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CaretakerRepository
         extends JpaRepository<CaretakerProfile, Long> {
+	
+	long countByStatus(String status);
 
     Optional<CaretakerProfile> findByMobileNumber(String mobileNumber);
 

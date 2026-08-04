@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FlatRepository extends JpaRepository<Flat, Long> {
+	long countByOwnerIsNotNull();
+	long countByOwnerIsNull();
 
 	@Query("""
 		    SELECT f FROM Flat f

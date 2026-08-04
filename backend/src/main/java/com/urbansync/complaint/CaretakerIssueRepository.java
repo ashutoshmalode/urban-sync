@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CaretakerIssueRepository
         extends JpaRepository<CaretakerIssue, Long> {
+	long countByStatus(String status);
 
     @Query("""
         SELECT i FROM CaretakerIssue i

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PropertyPostRepository extends JpaRepository<PropertyPost, Long> {
+	
+	long countByIsActiveTrue();
 
     @Query("""
         SELECT p
