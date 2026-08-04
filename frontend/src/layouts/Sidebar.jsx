@@ -20,7 +20,9 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
-import ReceiptIcon from '@mui/icons-material/Receipt';
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
@@ -48,10 +50,10 @@ const menuItems = [
     path: "/secretary/dashboard/property",
   },
   {
-  label: 'Maintenance',
-  icon: <ReceiptIcon fontSize="small" />,
-  path: '/secretary/dashboard/maintenance',
-},
+    label: "Maintenance",
+    icon: <ReceiptIcon fontSize="small" />,
+    path: "/secretary/dashboard/maintenance",
+  },
   {
     label: "Payments",
     icon: <PaymentIcon fontSize="small" />,
@@ -61,6 +63,16 @@ const menuItems = [
     label: "Complaints",
     icon: <ReportProblemIcon fontSize="small" />,
     path: "/secretary/dashboard/complaints",
+  },
+  {
+    label: "Permissions",
+    icon: <LockOpenIcon fontSize="small" />,
+    path: "/secretary/dashboard/permissions",
+  },
+  {
+    label: "Announcements",
+    icon: <CampaignIcon fontSize="small" />,
+    path: "/secretary/dashboard/announcements",
   },
 ];
 
