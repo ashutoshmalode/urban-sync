@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ResidentRepository
         extends JpaRepository<ResidentProfile, Long> {
+	long countByStatus(String status);
+	long countByResidentTypeAndStatus(String residentType, String status);
 
     Optional<ResidentProfile> findByMobileNumber(String mobileNumber);
 

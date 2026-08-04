@@ -1,6 +1,7 @@
 package com.urbansync.communication;
 
 import java.util.List;
+import com.urbansync.communication.PermissionRequestRepository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface PermissionRequestRepository
         extends JpaRepository<PermissionRequest, Long> {
 
+	long countByStatus(String status);
     @Query("""
         SELECT p FROM PermissionRequest p
         LEFT JOIN FETCH p.raisedBy

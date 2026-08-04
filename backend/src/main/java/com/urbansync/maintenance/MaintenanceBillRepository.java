@@ -2,14 +2,20 @@ package com.urbansync.maintenance;
 
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
+import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MaintenanceBillRepository
         extends JpaRepository<MaintenanceBill, Long> {
+	
+	long countByStatus(String status);
+
+	@Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM MaintenanceBill b WHERE b.status = :status")
+	BigDecimal sumAmountByStatus(String status);
 
     @Query("""
         SELECT b FROM MaintenanceBill b
