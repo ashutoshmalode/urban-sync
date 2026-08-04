@@ -26,5 +26,9 @@ public interface ComplaintService {
     List<ComplaintMediaDTO> addMedia(AddComplaintMediaRequest request);
 
     List<ComplaintMediaDTO> getMediaByComplaintId(Long complaintId);
+    
+    List<CaretakerIssueMediaDTO> addIssueMedia(AddIssueMediaRequest request);
+
+    List<CaretakerIssueMediaDTO> getIssueMedia(Long issueId);
 
 }
