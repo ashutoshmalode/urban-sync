@@ -51,5 +51,16 @@ public class ComplaintMapper {
                 .createdAt(issue.getCreatedAt())
                 .build();
     }
+    
+    public static ComplaintMediaDTO toMediaDTO(ComplaintMedia media) {
+        return ComplaintMediaDTO.builder()
+                .id(media.getId())
+                .complaintId(media.getComplaint() != null
+                        ? media.getComplaint().getId() : null)
+                .mediaUrl(media.getMediaUrl())
+                .mediaType(media.getMediaType())
+                .createdAt(media.getCreatedAt())
+                .build();
+    }
 
 }

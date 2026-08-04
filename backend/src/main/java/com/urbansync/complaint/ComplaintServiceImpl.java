@@ -24,19 +24,22 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final ResidentRepository residentRepository;
     private final CaretakerRepository caretakerRepository;
     private final SecretaryRepository secretaryRepository;
+    private final ComplaintMediaRepository mediaRepository;
 
     public ComplaintServiceImpl(
             ComplaintRepository complaintRepository,
             CaretakerIssueRepository issueRepository,
             ResidentRepository residentRepository,
             CaretakerRepository caretakerRepository,
-            SecretaryRepository secretaryRepository) {
+            SecretaryRepository secretaryRepository,
+            ComplaintMediaRepository mediaRepository) {
 
         this.complaintRepository = complaintRepository;
         this.issueRepository = issueRepository;
         this.residentRepository = residentRepository;
         this.caretakerRepository = caretakerRepository;
         this.secretaryRepository = secretaryRepository;
+        this.mediaRepository = mediaRepository;
     }
 
     @Override
@@ -198,6 +201,48 @@ public class ComplaintServiceImpl implements ComplaintService {
                 .findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(ComplaintMapper::toIssueDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<ComplaintMediaDTO> addMedia(
+            AddComplaintMediaRequest request) {
+
+        Complaint complaint = complaintRepository
+                .findById(request.getComplaintId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Complaint not found."));
+
+        List<String> validTypes = List.of("IMAGE", "VIDEO");
+        if (!validTypes.contains(request.getMediaType())) {
+            throw new BadRequestException(
+                    "Invalid media type. Must be IMAGE or VIDEO.");
+        }
+
+        List<ComplaintMedia> mediaList = request.getMediaUrls()
+                .stream()
+                .map(url -> ComplaintMedia.builder()
+                        .complaint(complaint)
+                        .mediaUrl(url)
+                        .mediaType(request.getMediaType())
+                        .createdAt(LocalDateTime.now())
+                        .build())
+                .collect(Collectors.toList());
+
+        return mediaRepository.saveAll(mediaList)
+                .stream()
+                .map(ComplaintMapper::toMediaDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ComplaintMediaDTO> getMediaByComplaintId(
+            Long complaintId) {
+        return mediaRepository.findByComplaintId(complaintId)
+                .stream()
+                .map(ComplaintMapper::toMediaDTO)
                 .collect(Collectors.toList());
     }
 

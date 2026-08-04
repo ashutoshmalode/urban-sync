@@ -22,5 +22,9 @@ public interface ComplaintService {
             UpdateIssueStatusRequest request);
 
     List<CaretakerIssueDTO> getAllIssues();
+    
+    List<ComplaintMediaDTO> addMedia(AddComplaintMediaRequest request);
+
+    List<ComplaintMediaDTO> getMediaByComplaintId(Long complaintId);
 
 }
