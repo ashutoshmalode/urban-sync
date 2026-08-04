@@ -5,8 +5,10 @@ import RegistrationsPage from "./RegistrationsPage";
 import CaretakersPage from "./CaretakersPage";
 import PaymentsPage from "./PaymentsPage";
 import PropertyPage from "./PropertyPage";
-import MaintenancePage from './MaintenancePage';
+import MaintenancePage from "./MaintenancePage";
 import ComplaintsPage from "./ComplaintsPage";
+import PermissionsPage from "./PermissionsPage";
+import AnnouncementsPage from "./AnnouncementsPage";
 
 const SecretaryDashboard = () => {
   return (
@@ -20,6 +22,8 @@ const SecretaryDashboard = () => {
         <Route path="maintenance" element={<MaintenancePage />} />
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="complaints" element={<ComplaintsPage />} />
+        <Route path="permissions" element={<PermissionsPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
       </Routes>
     </AppLayout>
   );
