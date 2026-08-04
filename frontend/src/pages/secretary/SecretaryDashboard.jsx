@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "../../layouts/AppLayout";
+import DashboardHome from "./DashboardHome";
 import ProfilePage from "./ProfilePage";
 import RegistrationsPage from "./RegistrationsPage";
 import CaretakersPage from "./CaretakersPage";
@@ -14,7 +15,8 @@ const SecretaryDashboard = () => {
   return (
     <AppLayout>
       <Routes>
-        <Route index element={<Navigate to="profile" replace />} />
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<DashboardHome />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="registrations" element={<RegistrationsPage />} />
         <Route path="caretakers" element={<CaretakersPage />} />
