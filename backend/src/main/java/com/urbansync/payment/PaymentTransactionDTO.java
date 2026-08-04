@@ -18,5 +18,9 @@ public class PaymentTransactionDTO {
     private BigDecimal amountPaid;
     private String status;
     private LocalDateTime createdAt;
+    private String residentName;
+    private String flatNumber;
+    private Integer billMonth;
+    private Integer billYear;
 
 }
