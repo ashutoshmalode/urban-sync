@@ -17,8 +17,6 @@ public class ComplaintController {
         this.complaintService = complaintService;
     }
 
-    // ── Complaint APIs ─────────────────────────────────────────
-
     @PostMapping("/complaint/raise")
     public ResponseEntity<ComplaintDTO> raiseComplaint(
             @Valid @RequestBody RaiseComplaintRequest request) {
@@ -31,6 +29,24 @@ public class ComplaintController {
         return ResponseEntity.ok(
                 complaintService.getAllComplaints());
     }
+
+    // ── Media endpoints BEFORE /{id} ──────────────────────────
+
+    @PostMapping("/complaint/media")
+    public ResponseEntity<List<ComplaintMediaDTO>> addMedia(
+            @Valid @RequestBody AddComplaintMediaRequest request) {
+        return ResponseEntity.ok(
+                complaintService.addMedia(request));
+    }
+
+    @GetMapping("/complaint/{complaintId}/media")
+    public ResponseEntity<List<ComplaintMediaDTO>> getMedia(
+            @PathVariable Long complaintId) {
+        return ResponseEntity.ok(
+                complaintService.getMediaByComplaintId(complaintId));
+    }
+
+    // ── /{id} endpoints AFTER media ───────────────────────────
 
     @GetMapping("/complaint/{id}")
     public ResponseEntity<ComplaintDTO> getComplaintById(
@@ -52,8 +68,6 @@ public class ComplaintController {
         return ResponseEntity.ok(
                 complaintService.getComplaintsByResident(residentId));
     }
-
-    // ── Caretaker Issue APIs ───────────────────────────────────
 
     @PostMapping("/caretaker-issue/create")
     public ResponseEntity<CaretakerIssueDTO> createIssue(
