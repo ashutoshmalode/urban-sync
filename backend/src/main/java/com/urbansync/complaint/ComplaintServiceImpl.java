@@ -25,6 +25,7 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final CaretakerRepository caretakerRepository;
     private final SecretaryRepository secretaryRepository;
     private final ComplaintMediaRepository mediaRepository;
+    private final CaretakerIssueMediaRepository issueMediaRepository;
 
     public ComplaintServiceImpl(
             ComplaintRepository complaintRepository,
@@ -32,7 +33,8 @@ public class ComplaintServiceImpl implements ComplaintService {
             ResidentRepository residentRepository,
             CaretakerRepository caretakerRepository,
             SecretaryRepository secretaryRepository,
-            ComplaintMediaRepository mediaRepository) {
+            ComplaintMediaRepository mediaRepository,
+            CaretakerIssueMediaRepository issueMediaRepository) {
 
         this.complaintRepository = complaintRepository;
         this.issueRepository = issueRepository;
@@ -40,6 +42,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         this.caretakerRepository = caretakerRepository;
         this.secretaryRepository = secretaryRepository;
         this.mediaRepository = mediaRepository;
+        this.issueMediaRepository = issueMediaRepository;
     }
 
     @Override
@@ -49,8 +52,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         ResidentProfile raisedBy = residentRepository
                 .findById(request.getRaisedById())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Resident not found."));
+                        new ResourceNotFoundException("Resident not found."));
 
         ResidentProfile targetResident = null;
         if (request.getTargetResidentId() != null) {
@@ -90,8 +92,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         return complaintRepository.findById(id)
                 .map(ComplaintMapper::toDTO)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Complaint not found."));
+                        new ResourceNotFoundException("Complaint not found."));
     }
 
     @Override
@@ -100,12 +101,10 @@ public class ComplaintServiceImpl implements ComplaintService {
 
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Complaint not found."));
+                        new ResourceNotFoundException("Complaint not found."));
 
         if (complaint.getStatus().equals("RESOLVED")) {
-            throw new BadRequestException(
-                    "Complaint is already resolved.");
+            throw new BadRequestException("Complaint is already resolved.");
         }
 
         complaint.setStatus("RESOLVED");
@@ -131,8 +130,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         CaretakerProfile caretaker = caretakerRepository
                 .findById(request.getAssignedToId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Caretaker not found."));
+                        new ResourceNotFoundException("Caretaker not found."));
 
         if (!caretaker.getStatus().equals("ACTIVE")) {
             throw new BadRequestException(
@@ -142,8 +140,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         SecretaryProfile secretary = secretaryRepository
                 .findById(request.getAssignedById())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Secretary not found."));
+                        new ResourceNotFoundException("Secretary not found."));
 
         CaretakerIssue issue = CaretakerIssue.builder()
                 .assignedTo(caretaker)
@@ -174,8 +171,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
         CaretakerIssue issue = issueRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Issue not found."));
+                        new ResourceNotFoundException("Issue not found."));
 
         List<String> validStatuses = List.of(
                 "PENDING", "PROCESSING", "RESOLVED");
@@ -212,8 +208,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         Complaint complaint = complaintRepository
                 .findById(request.getComplaintId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Complaint not found."));
+                        new ResourceNotFoundException("Complaint not found."));
 
         List<String> validTypes = List.of("IMAGE", "VIDEO");
         if (!validTypes.contains(request.getMediaType())) {
@@ -238,11 +233,57 @@ public class ComplaintServiceImpl implements ComplaintService {
     }
 
     @Override
-    public List<ComplaintMediaDTO> getMediaByComplaintId(
-            Long complaintId) {
+    public List<ComplaintMediaDTO> getMediaByComplaintId(Long complaintId) {
         return mediaRepository.findByComplaintId(complaintId)
                 .stream()
                 .map(ComplaintMapper::toMediaDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<CaretakerIssueMediaDTO> addIssueMedia(
+            AddIssueMediaRequest request) {
+
+        CaretakerIssue issue = issueRepository
+                .findById(request.getIssueId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Issue not found."));
+
+        List<String> validTypes = List.of("IMAGE", "VIDEO");
+        if (!validTypes.contains(request.getMediaType())) {
+            throw new BadRequestException(
+                    "Invalid media type. Must be IMAGE or VIDEO.");
+        }
+
+        List<String> validUploaders = List.of("SECRETARY", "CARETAKER");
+        if (!validUploaders.contains(request.getUploadedBy())) {
+            throw new BadRequestException(
+                    "Invalid uploader. Must be SECRETARY or CARETAKER.");
+        }
+
+        List<CaretakerIssueMedia> mediaList = request.getMediaUrls()
+                .stream()
+                .map(url -> CaretakerIssueMedia.builder()
+                        .issue(issue)
+                        .mediaUrl(url)
+                        .mediaType(request.getMediaType())
+                        .uploadedBy(request.getUploadedBy())
+                        .createdAt(LocalDateTime.now())
+                        .build())
+                .collect(Collectors.toList());
+
+        return issueMediaRepository.saveAll(mediaList)
+                .stream()
+                .map(ComplaintMapper::toIssueMediaDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CaretakerIssueMediaDTO> getIssueMedia(Long issueId) {
+        return issueMediaRepository.findByIssueId(issueId)
+                .stream()
+                .map(ComplaintMapper::toIssueMediaDTO)
                 .collect(Collectors.toList());
     }
 

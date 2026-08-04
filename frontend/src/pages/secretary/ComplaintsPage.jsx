@@ -123,7 +123,7 @@ const ComplaintsPage = () => {
   const [updateIssueId, setUpdateIssueId] = useState(null);
   const [newStatus, setNewStatus] = useState("PROCESSING");
 
-  // Media upload states
+  // Complaint media upload states
   const [mediaUploadOpen, setMediaUploadOpen] = useState(false);
   const [mediaUploadComplaintId, setMediaUploadComplaintId] = useState(null);
   const [selectedMediaFiles, setSelectedMediaFiles] = useState([]);
@@ -131,12 +131,30 @@ const ComplaintsPage = () => {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaType, setMediaType] = useState("IMAGE");
 
-  // Media gallery states
+  // Complaint media gallery states
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
   const [galleryMedia, setGalleryMedia] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [galleryComplaintTitle, setGalleryComplaintTitle] = useState("");
+
+  // Issue media upload states
+  const [issueMediaUploadOpen, setIssueMediaUploadOpen] = useState(false);
+  const [issueMediaUploadId, setIssueMediaUploadId] = useState(null);
+  const [selectedIssueMediaFiles, setSelectedIssueMediaFiles] = useState([]);
+  const [issueMediaPreviews, setIssueMediaPreviews] = useState([]);
+  const [uploadingIssueMedia, setUploadingIssueMedia] = useState(false);
+  const [issueMediaType, setIssueMediaType] = useState("IMAGE");
+  const [issueMediaUploadedBy, setIssueMediaUploadedBy] = useState("SECRETARY");
+
+  // Issue media gallery states
+  const [issueGalleryOpen, setIssueGalleryOpen] = useState(false);
+  const [issueGalleryMedia, setIssueGalleryMedia] = useState([]);
+  const [issueGalleryIndex, setIssueGalleryIndex] = useState(0);
+  const [loadingIssueMedia, setLoadingIssueMedia] = useState(false);
+  const [issueGalleryTitle, setIssueGalleryTitle] = useState("");
+  const [issueGalleryFilter, setIssueGalleryFilter] = useState("SECRETARY");
+  const [issueGalleryLocalIndex, setIssueGalleryLocalIndex] = useState(0);
 
   const loadData = async () => {
     setLoading(true);
@@ -220,22 +238,18 @@ const ComplaintsPage = () => {
     }
   };
 
+  // Complaint media handlers
   const handleMediaFileSelect = (e, type) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-
-    // Validate file sizes
     if (type === "IMAGE") {
       const oversized = files.filter((f) => f.size > 5 * 1024 * 1024);
       if (oversized.length > 0) {
-        showError(
-          `${oversized.length} image(s) exceed 5MB limit. Please select smaller files.`,
-        );
+        showError(`${oversized.length} image(s) exceed 5MB limit.`);
         e.target.value = "";
         return;
       }
     }
-
     if (type === "VIDEO") {
       if (files.length > 1) {
         showError("Only 1 video allowed per upload.");
@@ -248,7 +262,6 @@ const ComplaintsPage = () => {
         return;
       }
     }
-
     setMediaType(type);
     setSelectedMediaFiles(files);
     setMediaPreviews(files.map((f) => ({ url: URL.createObjectURL(f), type })));
@@ -301,6 +314,87 @@ const ComplaintsPage = () => {
     }
   };
 
+  // Issue media handlers
+  const handleIssueMediaFileSelect = (e, type) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    if (type === "IMAGE") {
+      const oversized = files.filter((f) => f.size > 5 * 1024 * 1024);
+      if (oversized.length > 0) {
+        showError(`${oversized.length} image(s) exceed 5MB limit.`);
+        e.target.value = "";
+        return;
+      }
+    }
+    if (type === "VIDEO") {
+      if (files.length > 1) {
+        showError("Only 1 video allowed per upload.");
+        e.target.value = "";
+        return;
+      }
+      if (files[0].size > 50 * 1024 * 1024) {
+        showError("Video size must be less than 50MB.");
+        e.target.value = "";
+        return;
+      }
+    }
+    setIssueMediaType(type);
+    setSelectedIssueMediaFiles(files);
+    setIssueMediaPreviews(
+      files.map((f) => ({ url: URL.createObjectURL(f), type })),
+    );
+  };
+
+  const handleUploadIssueMedia = async () => {
+    if (selectedIssueMediaFiles.length === 0) {
+      showError("Please select files to upload");
+      return;
+    }
+    setUploadingIssueMedia(true);
+    try {
+      const urls = await uploadMultipleToCloudinary(
+        selectedIssueMediaFiles,
+        "urbansync/issues",
+      );
+      await axiosInstance.post("/api/caretaker-issue/media", {
+        issueId: issueMediaUploadId,
+        mediaUrls: urls,
+        mediaType: issueMediaType,
+        uploadedBy: issueMediaUploadedBy,
+      });
+      showSuccess(
+        `${urls.length} ${issueMediaType.toLowerCase()}(s) uploaded successfully`,
+      );
+      setIssueMediaUploadOpen(false);
+      setSelectedIssueMediaFiles([]);
+      setIssueMediaPreviews([]);
+      setIssueMediaUploadId(null);
+    } catch (err) {
+      showError(err.response?.data?.message || "Media upload failed");
+    } finally {
+      setUploadingIssueMedia(false);
+    }
+  };
+
+  const openIssueGallery = async (issue) => {
+    setIssueGalleryTitle(issue.title);
+    setIssueGalleryIndex(0);
+    setIssueGalleryFilter("SECRETARY");
+    setIssueGalleryLocalIndex(0);
+    setIssueGalleryOpen(true);
+    setLoadingIssueMedia(true);
+    try {
+      const res = await axiosInstance.get(
+        `/api/caretaker-issue/${issue.id}/media`,
+      );
+      setIssueGalleryMedia(res.data);
+    } catch {
+      showError("Failed to load issue media");
+    } finally {
+      setLoadingIssueMedia(false);
+    }
+  };
+
   const pendingComplaints = complaints.filter((c) => c.status === "PENDING");
   const resolvedComplaints = complaints.filter((c) => c.status === "RESOLVED");
 
@@ -335,7 +429,6 @@ const ComplaintsPage = () => {
 
   const ComplaintActionsCell = ({ c }) => (
     <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-start" }}>
-      {/* View Details — always active */}
       <Tooltip title="View Details">
         <IconButton
           size="small"
@@ -354,8 +447,6 @@ const ComplaintsPage = () => {
           <VisibilityIcon sx={{ fontSize: 14 }} />
         </IconButton>
       </Tooltip>
-
-      {/* Mark Resolved — only if PENDING, else grey */}
       {c.status === "PENDING" ? (
         <Tooltip title="Mark Resolved">
           <IconButton
@@ -391,8 +482,6 @@ const ComplaintsPage = () => {
           </IconButton>
         </Tooltip>
       )}
-
-      {/* Upload Media — always active */}
       <Tooltip title="Upload Media">
         <IconButton
           size="small"
@@ -411,12 +500,105 @@ const ComplaintsPage = () => {
           <CloudUploadIcon sx={{ fontSize: 14 }} />
         </IconButton>
       </Tooltip>
-
-      {/* View Media — always active */}
       <Tooltip title="View Media">
         <IconButton
           size="small"
           onClick={() => openMediaGallery(c)}
+          sx={{
+            color: "#d97706",
+            bgcolor: "#fef3c7",
+            borderRadius: 1.5,
+            width: 28,
+            height: 28,
+          }}
+        >
+          <ImageIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+
+  const IssueActionsCell = ({ issue }) => (
+    <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-start" }}>
+      <Tooltip title="View Details">
+        <IconButton
+          size="small"
+          onClick={() => {
+            setSelectedIssue(issue);
+            setIssueDetailOpen(true);
+          }}
+          sx={{
+            color: "#0891b2",
+            bgcolor: "#e0f2fe",
+            borderRadius: 1.5,
+            width: 28,
+            height: 28,
+          }}
+        >
+          <VisibilityIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Tooltip>
+      {issue.status !== "RESOLVED" ? (
+        <Tooltip title="Update Status">
+          <IconButton
+            size="small"
+            onClick={() => {
+              setUpdateIssueId(issue.id);
+              setNewStatus("PROCESSING");
+              setUpdateStatusOpen(true);
+            }}
+            sx={{
+              color: "#7c3aed",
+              bgcolor: "#f3e8ff",
+              borderRadius: 1.5,
+              width: 28,
+              height: 28,
+            }}
+          >
+            <CheckCircleIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Tooltip title="Already Resolved">
+          <IconButton
+            size="small"
+            disableRipple
+            sx={{
+              color: "#cbd5e1",
+              bgcolor: "#f1f5f9",
+              borderRadius: 1.5,
+              width: 28,
+              height: 28,
+              cursor: "default",
+            }}
+          >
+            <CheckCircleIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      <Tooltip title="Upload Issue Media">
+        <IconButton
+          size="small"
+          onClick={() => {
+            setIssueMediaUploadId(issue.id);
+            setIssueMediaUploadedBy("SECRETARY");
+            setIssueMediaUploadOpen(true);
+          }}
+          sx={{
+            color: "#7c3aed",
+            bgcolor: "#f3e8ff",
+            borderRadius: 1.5,
+            width: 28,
+            height: 28,
+          }}
+        >
+          <CloudUploadIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="View Issue Media">
+        <IconButton
+          size="small"
+          onClick={() => openIssueGallery(issue)}
           sx={{
             color: "#d97706",
             bgcolor: "#fef3c7",
@@ -790,54 +972,8 @@ const ComplaintsPage = () => {
                                 )
                               : "—"}
                           </TableCell>
-                          <TableCell align="center" sx={{ py: 1 }}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 0.5,
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Tooltip title="View Details">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    setSelectedIssue(issue);
-                                    setIssueDetailOpen(true);
-                                  }}
-                                  sx={{
-                                    color: "#0891b2",
-                                    bgcolor: "#e0f2fe",
-                                    borderRadius: 1.5,
-                                    width: 28,
-                                    height: 28,
-                                  }}
-                                >
-                                  <VisibilityIcon sx={{ fontSize: 14 }} />
-                                </IconButton>
-                              </Tooltip>
-                              {issue.status !== "RESOLVED" && (
-                                <Tooltip title="Update Status">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                      setUpdateIssueId(issue.id);
-                                      setNewStatus("PROCESSING");
-                                      setUpdateStatusOpen(true);
-                                    }}
-                                    sx={{
-                                      color: "#7c3aed",
-                                      bgcolor: "#f3e8ff",
-                                      borderRadius: 1.5,
-                                      width: 28,
-                                      height: 28,
-                                    }}
-                                  >
-                                    <CheckCircleIcon sx={{ fontSize: 14 }} />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </Box>
+                          <TableCell sx={{ py: 1 }}>
+                            <IssueActionsCell issue={issue} />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1386,7 +1522,7 @@ const ComplaintsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Media Upload Modal */}
+      {/* Complaint Media Upload Modal */}
       <Dialog
         open={mediaUploadOpen}
         onClose={() => {
@@ -1442,7 +1578,7 @@ const ComplaintsPage = () => {
                   color: "#94a3b8",
                 }}
               >
-                Images: JPG, PNG (multiple). Video: MP4 (1 file).
+                Images: JPG, PNG max 5MB each. Video: MP4 max 50MB (1 file).
               </Typography>
             </Box>
             <Box
@@ -1595,7 +1731,7 @@ const ComplaintsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Media Gallery Modal */}
+      {/* Complaint Media Gallery Modal */}
       <Dialog
         open={mediaGalleryOpen}
         onClose={() => {
@@ -1756,6 +1892,493 @@ const ComplaintsPage = () => {
                 {galleryIndex + 1} / {galleryMedia.length} —{" "}
                 {galleryMedia[galleryIndex]?.mediaType}
               </Typography>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Issue Media Upload Modal */}
+      <Dialog
+        open={issueMediaUploadOpen}
+        onClose={() => {
+          setIssueMediaUploadOpen(false);
+          setSelectedIssueMediaFiles([]);
+          setIssueMediaPreviews([]);
+        }}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "#1e293b",
+            borderBottom: "1px solid #e0f2fe",
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <CloudUploadIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          Upload Issue Media
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2.5 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box
+              sx={{
+                p: 2,
+                bgcolor: "#f0f9ff",
+                borderRadius: 2,
+                border: "1px dashed #0891b2",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.82rem",
+                  color: "#0891b2",
+                  fontWeight: 600,
+                  mb: 0.5,
+                }}
+              >
+                Upload media related to this caretaker issue
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.72rem",
+                  color: "#94a3b8",
+                }}
+              >
+                Images: JPG, PNG max 5MB each. Video: MP4 max 50MB (1 file).
+              </Typography>
+            </Box>
+
+            {/* Uploaded by selector */}
+            <FormControl size="small" sx={fieldStyle}>
+              <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+                Uploaded By
+              </InputLabel>
+              <Select
+                value={issueMediaUploadedBy}
+                onChange={(e) => setIssueMediaUploadedBy(e.target.value)}
+                label="Uploaded By"
+                sx={{ fontFamily: "Inter, sans-serif" }}
+              >
+                <MenuItem
+                  value="SECRETARY"
+                  sx={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  Secretary
+                </MenuItem>
+                <MenuItem
+                  value="CARETAKER"
+                  sx={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  Caretaker
+                </MenuItem>
+              </Select>
+            </FormControl>
+
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+            >
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                startIcon={<ImageIcon />}
+                sx={{
+                  borderRadius: 2,
+                  borderColor: "#0891b2",
+                  color: "#0891b2",
+                  fontFamily: "Inter, sans-serif",
+                  textTransform: "none",
+                  py: 1.2,
+                }}
+              >
+                Upload Images
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleIssueMediaFileSelect(e, "IMAGE")}
+                />
+              </Button>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                startIcon={<PlayCircleIcon />}
+                sx={{
+                  borderRadius: 2,
+                  borderColor: "#d97706",
+                  color: "#d97706",
+                  fontFamily: "Inter, sans-serif",
+                  textTransform: "none",
+                  py: 1.2,
+                }}
+              >
+                Upload Video
+                <input
+                  type="file"
+                  hidden
+                  accept="video/*"
+                  onChange={(e) => handleIssueMediaFileSelect(e, "VIDEO")}
+                />
+              </Button>
+            </Box>
+
+            {issueMediaPreviews.length > 0 && (
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    mb: 1,
+                  }}
+                >
+                  Selected ({issueMediaPreviews.length}{" "}
+                  {issueMediaType.toLowerCase()}(s)):
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  {issueMediaPreviews.map((item, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 1.5,
+                        overflow: "hidden",
+                        border: "2px solid #e0f2fe",
+                      }}
+                    >
+                      {item.type === "IMAGE" ? (
+                        <Box
+                          component="img"
+                          src={item.url}
+                          alt={`preview-${i}`}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            bgcolor: "#1e293b",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <PlayCircleIcon
+                            sx={{ color: "#d97706", fontSize: 32 }}
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+          <Button
+            onClick={() => {
+              setIssueMediaUploadOpen(false);
+              setSelectedIssueMediaFiles([]);
+              setIssueMediaPreviews([]);
+            }}
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              color: "#64748b",
+              textTransform: "none",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleUploadIssueMedia}
+            disabled={
+              uploadingIssueMedia || selectedIssueMediaFiles.length === 0
+            }
+            startIcon={
+              uploadingIssueMedia ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : (
+                <CloudUploadIcon fontSize="small" />
+              )
+            }
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              textTransform: "none",
+              bgcolor: "#0891b2",
+              borderRadius: 2,
+              "&:hover": { bgcolor: "#0e7490" },
+            }}
+          >
+            {uploadingIssueMedia
+              ? "Uploading..."
+              : `Upload ${selectedIssueMediaFiles.length} File(s)`}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Issue Media Gallery Modal */}
+      <Dialog
+        open={issueGalleryOpen}
+        onClose={() => {
+          setIssueGalleryOpen(false);
+          setIssueGalleryMedia([]);
+        }}
+        maxWidth="md"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 700,
+            fontSize: "0.9rem",
+            color: "white",
+            borderBottom: "1px solid #1e293b",
+            py: 1.5,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+            <Typography
+              noWrap
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "0.85rem",
+                color: "white",
+                fontWeight: 600,
+              }}
+            >
+              {issueGalleryTitle}
+            </Typography>
+            {issueGalleryMedia.length > 0 && (
+              <Chip
+                label={`${issueGalleryMedia.length} files`}
+                size="small"
+                sx={{
+                  bgcolor: "#1e293b",
+                  color: "#94a3b8",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.68rem",
+                  height: 20,
+                }}
+              />
+            )}
+          </Box>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setIssueGalleryOpen(false);
+              setIssueGalleryMedia([]);
+            }}
+            sx={{ color: "white" }}
+          >
+            <CancelIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 2, bgcolor: "#0f172a" }}>
+          {loadingIssueMedia ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+              <CircularProgress sx={{ color: "#0891b2" }} />
+            </Box>
+          ) : issueGalleryMedia.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6 }}>
+              <EngineeringIcon sx={{ fontSize: 48, color: "#334155", mb: 1 }} />
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  color: "#64748b",
+                  fontSize: "0.88rem",
+                }}
+              >
+                No media uploaded for this issue
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {/* Filter Toggle */}
+              <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                {[
+                  {
+                    key: "SECRETARY",
+                    label: `Secretary (${issueGalleryMedia.filter((m) => m.uploadedBy === "SECRETARY").length})`,
+                    color: "#0891b2",
+                  },
+                  {
+                    key: "CARETAKER",
+                    label: `Caretaker (${issueGalleryMedia.filter((m) => m.uploadedBy === "CARETAKER").length})`,
+                    color: "#059669",
+                  },
+                ].map((f) => (
+                  <Button
+                    key={f.key}
+                    size="small"
+                    onClick={() => {
+                      setIssueGalleryFilter(f.key);
+                      setIssueGalleryLocalIndex(0);
+                    }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      textTransform: "none",
+                      fontSize: "0.78rem",
+                      borderRadius: 2,
+                      px: 2,
+                      bgcolor:
+                        issueGalleryFilter === f.key ? f.color : "#1e293b",
+                      color: issueGalleryFilter === f.key ? "white" : "#64748b",
+                      border: `1px solid ${issueGalleryFilter === f.key ? f.color : "#334155"}`,
+                      "&:hover": {
+                        bgcolor:
+                          issueGalleryFilter === f.key ? f.color : "#334155",
+                      },
+                    }}
+                  >
+                    {f.label}
+                  </Button>
+                ))}
+              </Box>
+
+              {/* Filtered content */}
+              {(() => {
+                const filtered = issueGalleryMedia.filter(
+                  (m) => m.uploadedBy === issueGalleryFilter,
+                );
+                const safeIdx = Math.min(
+                  issueGalleryLocalIndex,
+                  filtered.length - 1,
+                );
+                if (filtered.length === 0)
+                  return (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: "Inter, sans-serif",
+                          color: "#64748b",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        No media uploaded by{" "}
+                        {issueGalleryFilter === "SECRETARY"
+                          ? "Secretary"
+                          : "Caretaker"}{" "}
+                        yet
+                      </Typography>
+                    </Box>
+                  );
+                return (
+                  <>
+                    <Box
+                      sx={{
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        bgcolor: "#1e293b",
+                        minHeight: 300,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {filtered[safeIdx]?.mediaType === "IMAGE" ? (
+                        <Box
+                          component="img"
+                          src={filtered[safeIdx]?.mediaUrl}
+                          alt="issue media"
+                          sx={{
+                            width: "100%",
+                            maxHeight: 400,
+                            objectFit: "contain",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          component="video"
+                          src={filtered[safeIdx]?.mediaUrl}
+                          controls
+                          sx={{ width: "100%", maxHeight: 400 }}
+                        />
+                      )}
+                    </Box>
+                    <Box
+                      sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1 }}
+                    >
+                      {filtered.map((item, i) => (
+                        <Box
+                          key={item.id}
+                          onClick={() => setIssueGalleryLocalIndex(i)}
+                          sx={{
+                            width: 64,
+                            height: 64,
+                            flexShrink: 0,
+                            borderRadius: 1.5,
+                            overflow: "hidden",
+                            border:
+                              i === safeIdx
+                                ? "2px solid #0891b2"
+                                : "2px solid #1e293b",
+                            cursor: "pointer",
+                            opacity: i === safeIdx ? 1 : 0.6,
+                            transition: "all 0.2s",
+                            bgcolor: "#0f172a",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {item.mediaType === "IMAGE" ? (
+                            <Box
+                              component="img"
+                              src={item.mediaUrl}
+                              alt={`thumb-${i}`}
+                              sx={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <PlayCircleIcon
+                              sx={{ color: "#d97706", fontSize: 28 }}
+                            />
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.72rem",
+                        color: "#64748b",
+                        textAlign: "center",
+                      }}
+                    >
+                      {safeIdx + 1} / {filtered.length} —{" "}
+                      {filtered[safeIdx]?.mediaType}
+                    </Typography>
+                  </>
+                );
+              })()}
             </Box>
           )}
         </DialogContent>

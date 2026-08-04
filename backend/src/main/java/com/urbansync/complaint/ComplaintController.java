@@ -96,5 +96,19 @@ public class ComplaintController {
         return ResponseEntity.ok(
                 complaintService.updateIssueStatus(id, request));
     }
+    
+    @PostMapping("/caretaker-issue/media")
+    public ResponseEntity<List<CaretakerIssueMediaDTO>> addIssueMedia(
+            @Valid @RequestBody AddIssueMediaRequest request) {
+        return ResponseEntity.ok(
+                complaintService.addIssueMedia(request));
+    }
+
+    @GetMapping("/caretaker-issue/{issueId}/media")
+    public ResponseEntity<List<CaretakerIssueMediaDTO>> getIssueMedia(
+            @PathVariable Long issueId) {
+        return ResponseEntity.ok(
+                complaintService.getIssueMedia(issueId));
+    }
 
 }

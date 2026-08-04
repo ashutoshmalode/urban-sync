@@ -62,5 +62,18 @@ public class ComplaintMapper {
                 .createdAt(media.getCreatedAt())
                 .build();
     }
+    
+    public static CaretakerIssueMediaDTO toIssueMediaDTO(
+            CaretakerIssueMedia media) {
+        return CaretakerIssueMediaDTO.builder()
+                .id(media.getId())
+                .issueId(media.getIssue() != null
+                        ? media.getIssue().getId() : null)
+                .mediaUrl(media.getMediaUrl())
+                .mediaType(media.getMediaType())
+                .uploadedBy(media.getUploadedBy())
+                .createdAt(media.getCreatedAt())
+                .build();
+    }
 
 }
