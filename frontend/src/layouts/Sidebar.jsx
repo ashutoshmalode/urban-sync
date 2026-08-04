@@ -23,11 +23,17 @@ import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import CampaignIcon from "@mui/icons-material/Campaign";
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
 
 const menuItems = [
+  {
+  label: 'Dashboard',
+  icon: <DashboardIcon fontSize="small" />,
+  path: '/secretary/dashboard/home',
+},
   {
     label: "My Profile",
     icon: <AccountCircleIcon fontSize="small" />,
@@ -74,6 +80,7 @@ const menuItems = [
     icon: <CampaignIcon fontSize="small" />,
     path: "/secretary/dashboard/announcements",
   },
+  
 ];
 
 const Sidebar = ({ open, onClose }) => {
