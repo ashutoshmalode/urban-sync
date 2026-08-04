@@ -1,8 +1,9 @@
 -- ============================================================
--- UrbanSync Database Schema — Phase 0-9.5 Complete
+-- UrbanSync Database Schema — Phase 0-10.6 Complete
 -- Compatible with: PostgreSQL 16/17/18
 -- Run on: urbansync_db
 -- Secretary login: secretary@urbansync.com / #UrbanSync@1234
+-- Tables: 19 total
 -- ============================================================
 
 -- STEP 1: Permissions
@@ -14,7 +15,9 @@ DROP TABLE IF EXISTS payment_transactions CASCADE;
 DROP TABLE IF EXISTS society_funds CASCADE;
 DROP TABLE IF EXISTS maintenance_bills CASCADE;
 DROP TABLE IF EXISTS global_maintenance_settings CASCADE;
+DROP TABLE IF EXISTS caretaker_issue_media CASCADE;
 DROP TABLE IF EXISTS caretaker_issues CASCADE;
+DROP TABLE IF EXISTS complaint_media CASCADE;
 DROP TABLE IF EXISTS complaints CASCADE;
 DROP TABLE IF EXISTS property_post_images CASCADE;
 DROP TABLE IF EXISTS property_posts CASCADE;
@@ -147,6 +150,14 @@ CREATE TABLE complaints (
     created_at         TIMESTAMP    DEFAULT NOW()
 );
 
+CREATE TABLE complaint_media (
+    id           BIGSERIAL PRIMARY KEY,
+    complaint_id BIGINT NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
+    media_url    VARCHAR(500) NOT NULL,
+    media_type   VARCHAR(10)  NOT NULL,
+    created_at   TIMESTAMP    DEFAULT NOW()
+);
+
 CREATE TABLE caretaker_issues (
     id             BIGSERIAL PRIMARY KEY,
     assigned_to_id BIGINT       NOT NULL REFERENCES caretaker_profiles(id),
@@ -156,6 +167,15 @@ CREATE TABLE caretaker_issues (
     status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
     resolved_at    TIMESTAMP,
     created_at     TIMESTAMP    DEFAULT NOW()
+);
+
+CREATE TABLE caretaker_issue_media (
+    id          BIGSERIAL PRIMARY KEY,
+    issue_id    BIGINT NOT NULL REFERENCES caretaker_issues(id) ON DELETE CASCADE,
+    media_url   VARCHAR(500) NOT NULL,
+    media_type  VARCHAR(10)  NOT NULL,
+    uploaded_by VARCHAR(20)  NOT NULL,
+    created_at  TIMESTAMP    DEFAULT NOW()
 );
 
 CREATE TABLE announcements (
@@ -219,21 +239,23 @@ CREATE TABLE payment_transactions (
 );
 
 -- STEP 4: Indexes
-CREATE INDEX idx_credentials_login       ON credentials(login_identifier);
-CREATE INDEX idx_resident_mobile         ON resident_profiles(mobile_number);
-CREATE INDEX idx_resident_flat           ON resident_profiles(flat_number);
-CREATE INDEX idx_resident_status         ON resident_profiles(status);
-CREATE INDEX idx_caretaker_mobile        ON caretaker_profiles(mobile_number);
-CREATE INDEX idx_caretaker_serial        ON caretaker_profiles(serial_number);
-CREATE INDEX idx_registration_status     ON registration_requests(status);
-CREATE INDEX idx_registration_mobile     ON registration_requests(mobile_number);
-CREATE INDEX idx_flats_flat_number       ON flats(flat_number);
-CREATE INDEX idx_maintenance_status      ON maintenance_bills(status);
-CREATE INDEX idx_maintenance_resident    ON maintenance_bills(resident_id);
-CREATE INDEX idx_payment_bill            ON payment_transactions(bill_id);
-CREATE INDEX idx_complaints_status       ON complaints(status);
-CREATE INDEX idx_permission_status       ON permission_requests(status);
-CREATE INDEX idx_property_post_images    ON property_post_images(post_id);
+CREATE INDEX idx_credentials_login          ON credentials(login_identifier);
+CREATE INDEX idx_resident_mobile            ON resident_profiles(mobile_number);
+CREATE INDEX idx_resident_flat              ON resident_profiles(flat_number);
+CREATE INDEX idx_resident_status            ON resident_profiles(status);
+CREATE INDEX idx_caretaker_mobile           ON caretaker_profiles(mobile_number);
+CREATE INDEX idx_caretaker_serial           ON caretaker_profiles(serial_number);
+CREATE INDEX idx_registration_status        ON registration_requests(status);
+CREATE INDEX idx_registration_mobile        ON registration_requests(mobile_number);
+CREATE INDEX idx_flats_flat_number          ON flats(flat_number);
+CREATE INDEX idx_maintenance_status         ON maintenance_bills(status);
+CREATE INDEX idx_maintenance_resident       ON maintenance_bills(resident_id);
+CREATE INDEX idx_payment_bill               ON payment_transactions(bill_id);
+CREATE INDEX idx_complaints_status          ON complaints(status);
+CREATE INDEX idx_permission_status          ON permission_requests(status);
+CREATE INDEX idx_property_post_images       ON property_post_images(post_id);
+CREATE INDEX idx_complaint_media            ON complaint_media(complaint_id);
+CREATE INDEX idx_caretaker_issue_media      ON caretaker_issue_media(issue_id);
 
 -- ============================================================
 -- STEP 5: Seed Data
@@ -341,29 +363,29 @@ INSERT INTO caretaker_issues (assigned_to_id, assigned_by_id, title, description
 
 -- Announcements
 INSERT INTO announcements (created_by_id, type, title, message, created_at) VALUES
-(1, 'ALERT',        'Water Supply Cut',           'Water supply will be cut from 10AM to 2PM on 5 Aug for maintenance work.',              NOW()),
-(1, 'NOTIFICATION', 'Lift Maintenance',           'Lift 1 in Wing A will be under maintenance on 6 Aug. Please use Lift 2.',              NOW()),
-(1, 'ALERT',        'Power Cut Notice',           'Electricity will be cut from 6PM to 8PM on 7 Aug due to transformer maintenance.',     NOW()),
-(1, 'NOTIFICATION', 'Society Meeting',            'Monthly society meeting on 10 Aug at 7PM in community hall. All residents please attend.', NOW()),
-(1, 'NOTIFICATION', 'New Watchman Joining',       'New security watchman Mr. Ganesh will join duty from 1 Aug 2026.',                    NOW()),
-(1, 'ALERT',        'Heavy Rain Warning',         'IMD has issued heavy rain warning for next 48 hours. Please take necessary precautions.', NOW()),
-(1, 'NOTIFICATION', 'Pest Control Scheduled',    'Society-wide pest control on 12 Aug. Keep windows closed between 10AM to 12PM.',       NOW()),
-(1, 'ALERT',        'Gate Timing Change',         'Society main gate will close at 11PM instead of 12AM starting from 1 Aug.',           NOW()),
-(1, 'NOTIFICATION', 'Maintenance Due Reminder',  'July maintenance bills are due by 10 Aug. Please pay to avoid fine of Rs.50 per day.', NOW()),
-(1, 'NOTIFICATION', 'Parking Allotment Meeting', 'Parking slot allotment meeting on 15 Aug at 6PM. All owners must attend.',            NOW());
+(1, 'ALERT',        'Water Supply Cut',           'Water supply will be cut from 10AM to 2PM on 5 Aug for maintenance.',        NOW()),
+(1, 'NOTIFICATION', 'Lift Maintenance',           'Lift 1 in Wing A will be under maintenance on 6 Aug. Please use Lift 2.',   NOW()),
+(1, 'ALERT',        'Power Cut Notice',           'Electricity will be cut from 6PM to 8PM on 7 Aug due to maintenance.',      NOW()),
+(1, 'NOTIFICATION', 'Society Meeting',            'Monthly society meeting on 10 Aug at 7PM in community hall.',               NOW()),
+(1, 'NOTIFICATION', 'New Watchman Joining',       'New security watchman Mr. Ganesh will join duty from 1 Aug 2026.',         NOW()),
+(1, 'ALERT',        'Heavy Rain Warning',         'IMD has issued heavy rain warning for next 48 hours.',                      NOW()),
+(1, 'NOTIFICATION', 'Pest Control Scheduled',    'Society-wide pest control on 12 Aug. Keep windows closed 10AM to 12PM.',   NOW()),
+(1, 'ALERT',        'Gate Timing Change',         'Society main gate will close at 11PM instead of 12AM from 1 Aug.',         NOW()),
+(1, 'NOTIFICATION', 'Maintenance Due Reminder',  'July maintenance bills due by 10 Aug. Fine Rs.50 per day after that.',     NOW()),
+(1, 'NOTIFICATION', 'Parking Allotment Meeting', 'Parking slot allotment meeting on 15 Aug at 6PM. All owners must attend.', NOW());
 
 -- Permission requests
 INSERT INTO permission_requests (raised_by_id, subject, description, request_date, status, rejection_reason, created_at) VALUES
-(1,  'Guest Entry for Parents',    'My parents are visiting from 5-8 Aug. Request entry permission for their stay.',       '2026-08-05', 'APPROVED', NULL,                        NOW()),
-(2,  'Furniture Delivery',         'Expecting furniture delivery on 6 Aug between 11AM to 1PM. Large vehicle entry needed.','2026-08-06', 'PENDING',  NULL,                        NOW()),
-(3,  'Vehicle Entry for Relative', 'My relative will park their car in visitor parking for 2 days on 7-8 Aug.',           '2026-08-07', 'REJECTED', 'Visitor parking is full',   NOW()),
-(4,  'Maid Permanent Entry',       'New maid starting from 8 Aug. Request permanent daily entry permission.',              '2026-08-08', 'PENDING',  NULL,                        NOW()),
-(5,  'Guest Entry for Friends',    'College friends visiting for get-together on 9 Aug evening.',                          '2026-08-09', 'APPROVED', NULL,                        NOW()),
-(6,  'AC Installation Work',       'AC technician needs entry on 10 Aug for installation in flat A-202.',                  '2026-08-10', 'PENDING',  NULL,                        NOW()),
-(7,  'Packers and Movers Entry',   'Moving some furniture out on 11 Aug. Packers and movers need entry from 9AM to 1PM.', '2026-08-11', 'APPROVED', NULL,                        NOW()),
-(8,  'Plumber Work Permission',    'Plumber needed for bathroom repair on 12 Aug. Request entry permission.',              '2026-08-12', 'PENDING',  NULL,                        NOW()),
-(9,  'Birthday Party Guests',      'Hosting birthday party on 13 Aug. Around 20 guests expected between 6PM to 10PM.',    '2026-08-13', 'REJECTED', 'Exceeds guest limit of 10', NOW()),
-(10, 'Internet Cable Work',        'Internet service technician needs building access on 14 Aug for cable installation.',  '2026-08-14', 'PENDING',  NULL,                        NOW());
+(1,  'Guest Entry for Parents',    'My parents are visiting from 5-8 Aug.',          '2026-08-05', 'APPROVED', NULL,                        NOW()),
+(2,  'Furniture Delivery',         'Furniture delivery on 6 Aug 11AM to 1PM.',       '2026-08-06', 'PENDING',  NULL,                        NOW()),
+(3,  'Vehicle Entry for Relative', 'Relative parking car in visitor slot 7-8 Aug.',  '2026-08-07', 'REJECTED', 'Visitor parking is full',   NOW()),
+(4,  'Maid Permanent Entry',       'New maid starting from 8 Aug daily entry.',      '2026-08-08', 'PENDING',  NULL,                        NOW()),
+(5,  'Guest Entry for Friends',    'College friends visiting on 9 Aug evening.',     '2026-08-09', 'APPROVED', NULL,                        NOW()),
+(6,  'AC Installation Work',       'AC technician needs entry on 10 Aug.',           '2026-08-10', 'PENDING',  NULL,                        NOW()),
+(7,  'Packers and Movers Entry',   'Moving furniture out on 11 Aug 9AM to 1PM.',    '2026-08-11', 'APPROVED', NULL,                        NOW()),
+(8,  'Plumber Work Permission',    'Plumber needed for bathroom repair on 12 Aug.',  '2026-08-12', 'PENDING',  NULL,                        NOW()),
+(9,  'Birthday Party Guests',      'Birthday party on 13 Aug, 20 guests 6-10PM.',   '2026-08-13', 'REJECTED', 'Exceeds guest limit of 10', NOW()),
+(10, 'Internet Cable Work',        'Internet technician needs access on 14 Aug.',    '2026-08-14', 'PENDING',  NULL,                        NOW());
 
 -- Registration requests
 INSERT INTO registration_requests (first_name, last_name, mobile_number, aadhaar_last_four, resident_type, wing_name, flat_number, status, created_at) VALUES
@@ -425,6 +447,6 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO urbansync_user;
 -- VERIFY:
 -- SELECT table_name FROM information_schema.tables
 -- WHERE table_schema = 'public' ORDER BY table_name;
--- Expected: 17 tables (including property_post_images)
+-- Expected: 19 tables
 -- Login: secretary@urbansync.com / #UrbanSync@1234
 -- ============================================================
