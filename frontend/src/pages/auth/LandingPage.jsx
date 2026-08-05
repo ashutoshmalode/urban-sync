@@ -29,6 +29,14 @@ const LandingPage = () => {
       navigate("/secretary/dashboard");
       return;
     }
+    if (isAuthenticated && role === "RESIDENT") {
+      navigate("/resident/dashboard");
+      return;
+    }
+    if (isAuthenticated && role === "CARETAKER") {
+      navigate("/caretaker/dashboard");
+      return;
+    }
     axiosInstance
       .get("/api/secretary/is-registered")
       .then((res) => setIsSecretaryRegistered(res.data))
@@ -227,32 +235,24 @@ const LandingPage = () => {
             </Button>
 
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
               fullWidth
-              disabled
+              disabled={!isSecretaryRegistered}
+              onClick={() => navigate("/resident/login")}
               startIcon={<HomeIcon fontSize="small" />}
-              endIcon={
-                <Chip
-                  label="Soon"
-                  size="small"
-                  sx={{
-                    height: 16,
-                    fontSize: "0.6rem",
-                    bgcolor: "#e0f2fe",
-                    color: "#0891b2",
-                  }}
-                />
-              }
               sx={{
                 py: 0.9,
                 borderRadius: 1.5,
                 fontWeight: 600,
                 fontSize: "0.8rem",
                 justifyContent: "flex-start",
-                borderColor: "#e2e8f0",
-                color: "#94a3b8",
-                "&.Mui-disabled": { borderColor: "#e2e8f0", color: "#94a3b8" },
+                bgcolor: "#0891b2",
+                "&:hover": { bgcolor: "#0e7490" },
+                "&.Mui-disabled": { bgcolor: "#e0f2fe", color: "#7dd3fc" },
+                boxShadow: isSecretaryRegistered
+                  ? "0 2px 6px rgba(8,145,178,0.2)"
+                  : "none",
               }}
             >
               Login as Resident
@@ -270,32 +270,24 @@ const LandingPage = () => {
             </Typography>
 
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
               fullWidth
-              disabled
+              disabled={!isSecretaryRegistered}
+              onClick={() => navigate("/caretaker/login")}
               startIcon={<EngineeringIcon fontSize="small" />}
-              endIcon={
-                <Chip
-                  label="Soon"
-                  size="small"
-                  sx={{
-                    height: 16,
-                    fontSize: "0.6rem",
-                    bgcolor: "#e0f2fe",
-                    color: "#0891b2",
-                  }}
-                />
-              }
               sx={{
                 py: 0.9,
                 borderRadius: 1.5,
                 fontWeight: 600,
                 fontSize: "0.8rem",
                 justifyContent: "flex-start",
-                borderColor: "#e2e8f0",
-                color: "#94a3b8",
-                "&.Mui-disabled": { borderColor: "#e2e8f0", color: "#94a3b8" },
+                bgcolor: "#059669",
+                "&:hover": { bgcolor: "#047857" },
+                "&.Mui-disabled": { bgcolor: "#dcfce7", color: "#86efac" },
+                boxShadow: isSecretaryRegistered
+                  ? "0 2px 6px rgba(5,150,105,0.2)"
+                  : "none",
               }}
             >
               Login as Caretaker
