@@ -10,6 +10,7 @@ import MaintenancePage from "./MaintenancePage";
 import ComplaintsPage from "./ComplaintsPage";
 import PermissionsPage from "./PermissionsPage";
 import AnnouncementsPage from "./AnnouncementsPage";
+import SchedulerPage from "./SchedulerPage";
 
 const SecretaryDashboard = () => {
   return (
@@ -26,6 +27,7 @@ const SecretaryDashboard = () => {
         <Route path="complaints" element={<ComplaintsPage />} />
         <Route path="permissions" element={<PermissionsPage />} />
         <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="scheduler" element={<SchedulerPage />} />
       </Routes>
     </AppLayout>
   );
