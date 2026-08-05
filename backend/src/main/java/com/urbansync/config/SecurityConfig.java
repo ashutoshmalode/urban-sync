@@ -63,7 +63,8 @@ public class SecurityConfig {
             		        "/api/registration/check-flat",
             		        "/api/registration/verify-owner",
             		        "/api/registration/fetch-owner-by-flat",
-            		        "/api/registration/check-pending-tenant"
+            		        "/api/registration/check-pending-tenant",
+            		        "/api/auth/otp-login"
             		).permitAll()
             		.requestMatchers(
             		        "/api/secretary/**",

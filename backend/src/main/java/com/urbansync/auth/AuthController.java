@@ -42,6 +42,13 @@ public class AuthController {
         authService.changePassword(userDetails.getUsername(), request);
         return ResponseEntity.ok("Password changed successfully");
     }
+    
+    @PostMapping("/otp-login")
+    public ResponseEntity<LoginResponse> otpLogin(
+            @Valid @RequestBody OtpLoginRequest request) {
+        return ResponseEntity.ok(
+                authService.verifyOtpAndLogin(request));
+    }
 }
 
 
