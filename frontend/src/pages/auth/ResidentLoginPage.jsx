@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -19,8 +19,6 @@ import {
 } from "@mui/material";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import HomeIcon from "@mui/icons-material/Home";
-import { auth } from "../../config/firebase";
-import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
@@ -40,7 +38,6 @@ const wings = ["A", "B", "C", "D", "E"];
 const ResidentLoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const recaptchaRef = useRef(null);
 
   const [step, setStep] = useState(0);
   const [mobile, setMobile] = useState("");
@@ -48,8 +45,8 @@ const ResidentLoginPage = () => {
   const [flatNumber, setFlatNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState(null);
   const [timer, setTimer] = useState(0);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (timer > 0) {
@@ -58,78 +55,54 @@ const ResidentLoginPage = () => {
     }
   }, [timer]);
 
-  const getRecaptcha = async () => {
-    if (!recaptchaRef.current) {
-      recaptchaRef.current = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container-resident",
-        { size: "invisible" },
-      );
-      await recaptchaRef.current.render();
-    }
-    return recaptchaRef.current;
-  };
-
-  const clearRecaptcha = () => {
-    try {
-      if (recaptchaRef.current) {
-        recaptchaRef.current.clear();
-        recaptchaRef.current = null;
-      }
-    } catch (e) {}
+  const validateStep0 = () => {
+    const e = {};
+    if (!/^\d{10}$/.test(mobile))
+      e.mobile = "Mobile number must be exactly 10 digits";
+    if (!wingName) e.wingName = "Please select a wing";
+    if (!/^\d{3,4}$/.test(flatNumber))
+      e.flatNumber = "Flat number must be 3 or 4 digits";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSendOTP = async () => {
-    if (!/^\d{10}$/.test(mobile)) {
-      showError("Enter valid 10 digit mobile number");
-      return;
-    }
-    if (!wingName) {
-      showError("Please select wing");
-      return;
-    }
-    if (!flatNumber.trim()) {
-      showError("Please enter flat number");
-      return;
-    }
+    if (!validateStep0()) return;
     setLoading(true);
     try {
-      clearRecaptcha(); // always start clean
-      const appVerifier = await getRecaptcha();
-      const result = await signInWithPhoneNumber(
-        auth,
-        `+91${mobile}`,
-        appVerifier,
-      );
-      setConfirmationResult(result);
+      await axiosInstance.post("/api/auth/send-otp", {
+        mobile,
+        role: "RESIDENT",
+        wingName,
+        flatNumber,
+      });
       setStep(1);
       setTimer(30);
-      showSuccess(`OTP sent to +91${mobile}`);
+      setOtp("");
+      showSuccess("OTP sent! Use 123456 to login");
     } catch (err) {
-      showError("Failed to send OTP: " + err.message);
-      clearRecaptcha();
+      showError(
+        err.response?.data?.message || "Resident not found with these details",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyOTP = async () => {
-    if (!/^\d{6}$/.test(otp)) {
+    if (otp.length !== 6) {
       showError("Enter valid 6 digit OTP");
       return;
     }
     setLoading(true);
     try {
-      const result = await confirmationResult.confirm(otp);
-      const firebaseToken = await result.user.getIdToken();
-
-      const res = await axiosInstance.post("/api/auth/otp-login", {
-        firebaseToken,
+      const res = await axiosInstance.post("/api/auth/verify-otp", {
+        mobile,
+        otp,
         role: "RESIDENT",
         wingName,
         flatNumber,
       });
-
       dispatch(
         setCredentials({
           token: res.data.token,
@@ -137,7 +110,6 @@ const ResidentLoginPage = () => {
           loginIdentifier: res.data.loginIdentifier,
         }),
       );
-
       showSuccess("Login successful!");
       navigate("/resident/dashboard");
     } catch (err) {
@@ -145,12 +117,6 @@ const ResidentLoginPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleResendOTP = async () => {
-    setOtp("");
-    clearRecaptcha();
-    await handleSendOTP();
   };
 
   return (
@@ -174,7 +140,6 @@ const ResidentLoginPage = () => {
             boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
@@ -219,23 +184,33 @@ const ResidentLoginPage = () => {
                   label="Mobile Number *"
                   value={mobile}
                   onChange={(e) => {
-                    if (
-                      /^\d*$/.test(e.target.value) &&
-                      e.target.value.length <= 10
-                    )
-                      setMobile(e.target.value);
+                    const v = e.target.value;
+                    if (/^\d*$/.test(v) && v.length <= 10) {
+                      setMobile(v);
+                      setErrors((prev) => ({ ...prev, mobile: "" }));
+                    }
                   }}
                   size="small"
                   fullWidth
                   placeholder="10 digit mobile number"
+                  error={!!errors.mobile}
+                  helperText={errors.mobile}
                   sx={fieldStyle}
+                  inputProps={{ maxLength: 10 }}
                 />
 
-                <FormControl size="small" sx={fieldStyle}>
+                <FormControl
+                  size="small"
+                  error={!!errors.wingName}
+                  sx={fieldStyle}
+                >
                   <InputLabel>Wing *</InputLabel>
                   <Select
                     value={wingName}
-                    onChange={(e) => setWingName(e.target.value)}
+                    onChange={(e) => {
+                      setWingName(e.target.value);
+                      setErrors((prev) => ({ ...prev, wingName: "" }));
+                    }}
                     label="Wing *"
                   >
                     {wings.map((w) => (
@@ -248,20 +223,41 @@ const ResidentLoginPage = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors.wingName && (
+                    <Typography
+                      sx={{
+                        color: "#d32f2f",
+                        fontSize: "0.72rem",
+                        mt: 0.5,
+                        ml: 1.5,
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      {errors.wingName}
+                    </Typography>
+                  )}
                 </FormControl>
 
                 <TextField
                   label="Flat Number *"
                   value={flatNumber}
-                  onChange={(e) => setFlatNumber(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (/^\d*$/.test(v) && v.length <= 4) {
+                      setFlatNumber(v);
+                      setErrors((prev) => ({ ...prev, flatNumber: "" }));
+                    }
+                  }}
                   size="small"
                   fullWidth
-                  placeholder="e.g. 201"
+                  placeholder="3 or 4 digit flat number e.g. 150"
+                  error={!!errors.flatNumber}
+                  helperText={
+                    errors.flatNumber || "Enter 3-4 digit flat number"
+                  }
                   sx={fieldStyle}
+                  inputProps={{ maxLength: 4 }}
                 />
-
-                {/* Invisible recaptcha container */}
-                <div id="recaptcha-container-resident"></div>
 
                 <Button
                   variant="contained"
@@ -284,7 +280,7 @@ const ResidentLoginPage = () => {
                     "&:hover": { bgcolor: "#0e7490" },
                   }}
                 >
-                  {loading ? "Sending OTP..." : "Send OTP"}
+                  {loading ? "Verifying..." : "Send OTP"}
                 </Button>
               </Box>
             ) : (
@@ -317,20 +313,35 @@ const ResidentLoginPage = () => {
                   >
                     Wing {wingName} — Flat {flatNumber}
                   </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.72rem",
+                      color: "#059669",
+                      fontWeight: 700,
+                      mt: 0.5,
+                    }}
+                  >
+                    Your OTP: 123456
+                  </Typography>
                 </Box>
 
                 <TextField
                   label="Enter 6-digit OTP *"
                   value={otp}
                   onChange={(e) => {
-                    if (
-                      /^\d*$/.test(e.target.value) &&
-                      e.target.value.length <= 6
-                    )
-                      setOtp(e.target.value);
+                    const v = e.target.value;
+                    if (/^\d*$/.test(v) && v.length <= 6) setOtp(v);
                   }}
                   size="small"
                   fullWidth
+                  placeholder="Enter 6 digit OTP"
+                  helperText={
+                    otp.length > 0 && otp.length < 6
+                      ? `${6 - otp.length} more digits needed`
+                      : ""
+                  }
+                  inputProps={{ maxLength: 6 }}
                   sx={fieldStyle}
                 />
 
@@ -368,7 +379,7 @@ const ResidentLoginPage = () => {
                     onClick={() => {
                       setStep(0);
                       setOtp("");
-                      clearRecaptcha();
+                      setErrors({});
                     }}
                     sx={{
                       fontFamily: "Inter, sans-serif",
@@ -381,7 +392,10 @@ const ResidentLoginPage = () => {
                   </Button>
                   <Button
                     size="small"
-                    onClick={handleResendOTP}
+                    onClick={() => {
+                      setOtp("");
+                      handleSendOTP();
+                    }}
                     disabled={timer > 0 || loading}
                     sx={{
                       fontFamily: "Inter, sans-serif",

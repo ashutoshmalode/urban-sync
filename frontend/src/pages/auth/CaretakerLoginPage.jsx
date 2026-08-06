@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -15,8 +15,6 @@ import {
 } from "@mui/material";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import EngineeringIcon from "@mui/icons-material/Engineering";
-import { auth } from "../../config/firebase";
-import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
@@ -25,23 +23,22 @@ const fieldStyle = {
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
-    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
+    "&.Mui-focused fieldset": { borderColor: "#059669" },
   },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#059669" },
   "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
 };
 
 const CaretakerLoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const recaptchaRef = useRef(null);
 
   const [step, setStep] = useState(0);
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState(null);
   const [timer, setTimer] = useState(0);
+  const [mobileError, setMobileError] = useState("");
 
   useEffect(() => {
     if (timer > 0) {
@@ -50,73 +47,44 @@ const CaretakerLoginPage = () => {
     }
   }, [timer]);
 
-  const getRecaptcha = async () => {
-    if (!recaptchaRef.current) {
-      recaptchaRef.current = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container-caretaker",
-        { size: "invisible" },
-      );
-      await recaptchaRef.current.render();
-    }
-    return recaptchaRef.current;
-  };
-
-  const clearRecaptcha = () => {
-    try {
-      if (recaptchaRef.current) {
-        recaptchaRef.current.clear();
-        recaptchaRef.current = null;
-      }
-    } catch (e) {}
-  };
-
   const handleSendOTP = async () => {
     if (!/^\d{10}$/.test(mobile)) {
-      showError("Enter valid 10 digit mobile number");
+      setMobileError("Mobile number must be exactly 10 digits");
       return;
     }
+    setMobileError("");
     setLoading(true);
     try {
-      clearRecaptcha();
-      const appVerifier = await getRecaptcha();
-      const result = await signInWithPhoneNumber(
-        auth,
-        `+91${mobile}`,
-        appVerifier,
-      );
-      setConfirmationResult(result);
+      await axiosInstance.post("/api/auth/send-otp", {
+        mobile,
+        role: "CARETAKER",
+      });
       setStep(1);
       setTimer(30);
-      showSuccess(`OTP sent to +91${mobile}`);
+      setOtp("");
+      showSuccess("OTP sent! Use 654321 to login");
     } catch (err) {
-      showError("Failed to send OTP: " + err.message);
-      clearRecaptcha();
+      showError(
+        err.response?.data?.message ||
+          "Caretaker not found with this mobile number",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyOTP = async () => {
-    if (!/^\d{6}$/.test(otp)) {
+    if (otp.length !== 6) {
       showError("Enter valid 6 digit OTP");
       return;
     }
     setLoading(true);
     try {
-      const result = await confirmationResult.confirm(otp);
-      const firebaseToken = await result.user.getIdToken();
-
-      const res = await axiosInstance.post("/api/auth/otp-login", {
-        firebaseToken,
+      const res = await axiosInstance.post("/api/auth/verify-otp", {
+        mobile,
+        otp,
         role: "CARETAKER",
       });
-
-      // Save to localStorage manually first
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("loginIdentifier", res.data.loginIdentifier);
-
       dispatch(
         setCredentials({
           token: res.data.token,
@@ -124,26 +92,13 @@ const CaretakerLoginPage = () => {
           loginIdentifier: res.data.loginIdentifier,
         }),
       );
-
       showSuccess("Login successful!");
-
-      // Small delay to ensure Redux state updates
-      setTimeout(() => {
-        console.log("Token:", res.data.token);
-        console.log("Role:", res.data.role);
-        navigate("/caretaker/dashboard");
-      }, 300);
+      navigate("/caretaker/dashboard");
     } catch (err) {
       showError(err.response?.data?.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleResendOTP = async () => {
-    setOtp("");
-    clearRecaptcha();
-    await handleSendOTP();
   };
 
   return (
@@ -167,7 +122,6 @@ const CaretakerLoginPage = () => {
             boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
@@ -212,20 +166,22 @@ const CaretakerLoginPage = () => {
                   label="Mobile Number *"
                   value={mobile}
                   onChange={(e) => {
-                    if (
-                      /^\d*$/.test(e.target.value) &&
-                      e.target.value.length <= 10
-                    )
-                      setMobile(e.target.value);
+                    const v = e.target.value;
+                    if (/^\d*$/.test(v) && v.length <= 10) {
+                      setMobile(v);
+                      setMobileError("");
+                    }
                   }}
                   size="small"
                   fullWidth
                   placeholder="10 digit mobile number"
+                  error={!!mobileError}
+                  helperText={
+                    mobileError || "Enter your registered mobile number"
+                  }
+                  inputProps={{ maxLength: 10 }}
                   sx={fieldStyle}
                 />
-
-                {/* Invisible recaptcha container */}
-                <div id="recaptcha-container-caretaker"></div>
 
                 <Button
                   variant="contained"
@@ -248,7 +204,7 @@ const CaretakerLoginPage = () => {
                     "&:hover": { bgcolor: "#047857" },
                   }}
                 >
-                  {loading ? "Sending OTP..." : "Send OTP"}
+                  {loading ? "Verifying..." : "Send OTP"}
                 </Button>
               </Box>
             ) : (
@@ -272,20 +228,35 @@ const CaretakerLoginPage = () => {
                   >
                     OTP sent to +91{mobile}
                   </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.72rem",
+                      color: "#059669",
+                      fontWeight: 700,
+                      mt: 0.5,
+                    }}
+                  >
+                    Your OTP: 654321
+                  </Typography>
                 </Box>
 
                 <TextField
                   label="Enter 6-digit OTP *"
                   value={otp}
                   onChange={(e) => {
-                    if (
-                      /^\d*$/.test(e.target.value) &&
-                      e.target.value.length <= 6
-                    )
-                      setOtp(e.target.value);
+                    const v = e.target.value;
+                    if (/^\d*$/.test(v) && v.length <= 6) setOtp(v);
                   }}
                   size="small"
                   fullWidth
+                  placeholder="Enter 6 digit OTP"
+                  helperText={
+                    otp.length > 0 && otp.length < 6
+                      ? `${6 - otp.length} more digits needed`
+                      : ""
+                  }
+                  inputProps={{ maxLength: 6 }}
                   sx={fieldStyle}
                 />
 
@@ -323,7 +294,7 @@ const CaretakerLoginPage = () => {
                     onClick={() => {
                       setStep(0);
                       setOtp("");
-                      clearRecaptcha();
+                      setMobileError("");
                     }}
                     sx={{
                       fontFamily: "Inter, sans-serif",
@@ -336,7 +307,10 @@ const CaretakerLoginPage = () => {
                   </Button>
                   <Button
                     size="small"
-                    onClick={handleResendOTP}
+                    onClick={() => {
+                      setOtp("");
+                      handleSendOTP();
+                    }}
                     disabled={timer > 0 || loading}
                     sx={{
                       fontFamily: "Inter, sans-serif",
