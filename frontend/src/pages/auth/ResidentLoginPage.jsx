@@ -108,6 +108,7 @@ const ResidentLoginPage = () => {
           token: res.data.token,
           role: res.data.role,
           loginIdentifier: res.data.loginIdentifier,
+          flatNumber: wingName.toUpperCase() + "-" + flatNumber,
         }),
       );
       showSuccess("Login successful!");
@@ -196,7 +197,7 @@ const ResidentLoginPage = () => {
                   error={!!errors.mobile}
                   helperText={errors.mobile}
                   sx={fieldStyle}
-                  inputProps={{ maxLength: 10 }}
+                  inputprops={{ maxLength: 10 }}
                 />
 
                 <FormControl
@@ -256,7 +257,7 @@ const ResidentLoginPage = () => {
                     errors.flatNumber || "Enter 3-4 digit flat number"
                   }
                   sx={fieldStyle}
-                  inputProps={{ maxLength: 4 }}
+                  inputprops={{ maxLength: 4 }}
                 />
 
                 <Button
@@ -341,7 +342,7 @@ const ResidentLoginPage = () => {
                       ? `${6 - otp.length} more digits needed`
                       : ""
                   }
-                  inputProps={{ maxLength: 6 }}
+                  inputprops={{ maxLength: 6 }}
                   sx={fieldStyle}
                 />
 

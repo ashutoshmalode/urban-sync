@@ -1,5 +1,6 @@
 import axios from "axios";
 import { store } from "../app/store";
+import { logout } from "../features/auth/authSlice";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8080",
@@ -10,7 +11,6 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Try Redux store first, then localStorage as fallback
     const token = store.getState().auth.token || localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -25,8 +25,6 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const url = error.config?.url || "";
 
-    // Don't force-redirect on login/auth endpoints —
-    // let the page show the real error message
     const isAuthEndpoint =
       url.includes("/api/auth/otp-login") ||
       url.includes("/api/auth/login") ||
@@ -34,9 +32,13 @@ axiosInstance.interceptors.response.use(
       url.includes("/api/auth/verify-otp");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
+      // Log which URL caused the 401
+      console.error("401 on:", url);
+      store.dispatch(logout());
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("loginIdentifier");
+      localStorage.removeItem("flatNumber");
       window.location.href = "/";
     }
 

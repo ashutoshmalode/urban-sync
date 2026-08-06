@@ -179,7 +179,7 @@ const CaretakerLoginPage = () => {
                   helperText={
                     mobileError || "Enter your registered mobile number"
                   }
-                  inputProps={{ maxLength: 10 }}
+                  inputprops={{ maxLength: 10 }}
                   sx={fieldStyle}
                 />
 
@@ -256,7 +256,7 @@ const CaretakerLoginPage = () => {
                       ? `${6 - otp.length} more digits needed`
                       : ""
                   }
-                  inputProps={{ maxLength: 6 }}
+                  inputprops={{ maxLength: 6 }}
                   sx={fieldStyle}
                 />
 

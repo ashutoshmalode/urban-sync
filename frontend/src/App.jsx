@@ -9,6 +9,7 @@ import SecretaryDashboard from "./pages/secretary/SecretaryDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import AuthGuard from "./components/common/AuthGuard";
+import ResidentDashboard from "./pages/resident/ResidentDashboard";
 
 function App() {
   return (
@@ -33,15 +34,7 @@ function App() {
           path="/resident/dashboard/*"
           element={
             <ProtectedRoute allowedRole="RESIDENT">
-              <div
-                style={{
-                  padding: 40,
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "1.2rem",
-                }}
-              >
-                🏠 Resident Dashboard — Coming Soon
-              </div>
+              <ResidentDashboard />
             </ProtectedRoute>
           }
         />
