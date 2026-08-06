@@ -12,5 +12,7 @@ public interface CaretakerService {
     
     List<CaretakerDTO> getAllCaretakersHistory();
     CaretakerDTO deleteCaretaker(Long id, DeleteCaretakerRequest request);
+    
+    CaretakerDTO getByMobile(String mobile);
 
 }

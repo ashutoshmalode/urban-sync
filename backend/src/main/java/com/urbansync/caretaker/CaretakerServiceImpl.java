@@ -152,5 +152,15 @@ public class CaretakerServiceImpl implements CaretakerService {
         return CaretakerMapper.toDTO(
                 caretakerRepository.save(caretaker));
     }
+    
+    @Override
+    public CaretakerDTO getByMobile(String mobile) {
+        return caretakerRepository
+                .findByMobileNumber(mobile)
+                .map(CaretakerMapper::toDTO)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Caretaker profile not found."));
+    }
 
 }
