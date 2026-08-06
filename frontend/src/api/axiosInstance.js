@@ -23,14 +23,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only auto-logout on 401 for protected routes
-    // NOT for login/register endpoints
     const url = error.config?.url || "";
+
+    // Don't force-redirect on login/auth endpoints —
+    // let the page show the real error message
     const isAuthEndpoint =
-      url.includes("/api/auth/login") ||
-      url.includes("/api/secretary/register") ||
-      url.includes("/api/secretary/is-registered") ||
-      url.includes("/api/registration/resident");
+      url.includes("/api/auth/otp-login") || url.includes("/api/auth/login");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem("token");
@@ -38,6 +36,7 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("loginIdentifier");
       window.location.href = "/";
     }
+
     return Promise.reject(error);
   },
 );

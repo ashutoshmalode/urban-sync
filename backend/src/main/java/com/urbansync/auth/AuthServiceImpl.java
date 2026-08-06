@@ -11,6 +11,7 @@ import com.urbansync.exception.BadRequestException;
 import com.urbansync.exception.ResourceNotFoundException;
 import com.urbansync.exception.UnauthorizedException;
 
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -36,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
         this.caretakerRepository = caretakerRepository;
         this.residentRepository = residentRepository;
     }
-
+    
     @Override
     public CredentialDTO getCredentialByLoginIdentifier(
             String loginIdentifier) {

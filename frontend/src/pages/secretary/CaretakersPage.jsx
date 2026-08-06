@@ -1423,7 +1423,7 @@ const CaretakersPage = () => {
                 value={form.mobileNumber}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 10 }}
+                inputprops={{ maxLength: 10 }}
                 error={!!formErrors.mobileNumber}
                 helperText={formErrors.mobileNumber}
                 sx={fieldStyle}
@@ -1434,7 +1434,7 @@ const CaretakersPage = () => {
                 value={form.age}
                 onChange={handleChange}
                 size="small"
-                inputProps={{ maxLength: 2 }}
+                inputprops={{ maxLength: 2 }}
                 error={!!formErrors.age}
                 helperText={formErrors.age}
                 sx={fieldStyle}
@@ -1447,7 +1447,7 @@ const CaretakersPage = () => {
               onChange={handleChange}
               size="small"
               fullWidth
-              inputProps={{ maxLength: 12 }}
+              inputprops={{ maxLength: 12 }}
               error={!!formErrors.aadhaarNumber}
               helperText={formErrors.aadhaarNumber || "12 digit Aadhaar number"}
               sx={fieldStyle}
