@@ -198,8 +198,7 @@ public class AuthServiceImpl implements AuthService {
 
         if ("RESIDENT".equals(request.getRole())) {
 
-            if (request.getWingName() == null
-                    || request.getFlatNumber() == null) {
+            if (request.getWingName() == null || request.getFlatNumber() == null) {
                 throw new BadRequestException(
                         "Wing and flat number are required for resident login.");
             }
@@ -207,6 +206,7 @@ public class AuthServiceImpl implements AuthService {
             String fullFlat = request.getWingName().toUpperCase()
                     + "-" + request.getFlatNumber();
 
+            // Find resident by mobile AND flat number both must match
             com.urbansync.resident.ResidentProfile resident =
                     residentRepository
                     .findByMobileNumberAndFlatNumber(mobile, fullFlat)
@@ -246,7 +246,7 @@ public class AuthServiceImpl implements AuthService {
                     "Invalid role. Must be RESIDENT or CARETAKER.");
         }
     }
-
+    
     @Override
     public LoginResponse verifyOtp(VerifyOtpRequest request) {
 
