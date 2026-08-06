@@ -1,10 +1,12 @@
 package com.urbansync.resident;
 
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.urbansync.config.security.CustomUserDetails;
+
 
 
 @RestController
@@ -23,6 +25,15 @@ public class ResidentController {
         return ResponseEntity.ok(
                 residentService.getByMobile(
                         userDetails.getUsername()));
+    }
+    
+    @GetMapping("/resident/profile")
+    public ResponseEntity<ResidentDTO> getMyResidentProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam String flatNumber) {
+        return ResponseEntity.ok(
+                residentService.getByMobileAndFlat(
+                        userDetails.getUsername(), flatNumber));
     }
 
 }

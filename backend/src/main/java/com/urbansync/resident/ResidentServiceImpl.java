@@ -22,4 +22,13 @@ public class ResidentServiceImpl implements ResidentService {
         return ResidentMapper.toDTO(resident);
     }
 
+    @Override
+    public ResidentDTO getByMobileAndFlat(String mobile, String flatNumber) {
+        ResidentProfile resident = residentRepository
+                .findByMobileNumberAndFlatNumber(mobile, flatNumber)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Resident profile not found."));
+        return ResidentMapper.toDTO(resident);
+    }
 }
