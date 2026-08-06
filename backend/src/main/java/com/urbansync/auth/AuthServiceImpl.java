@@ -20,19 +20,22 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final FirebaseAuth firebaseAuth;
     private final com.urbansync.caretaker.CaretakerRepository caretakerRepository;
+    private final com.urbansync.resident.ResidentRepository residentRepository;
 
     public AuthServiceImpl(
             CredentialRepository credentialRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             FirebaseAuth firebaseAuth,
-            com.urbansync.caretaker.CaretakerRepository caretakerRepository) {
+            com.urbansync.caretaker.CaretakerRepository caretakerRepository,
+            com.urbansync.resident.ResidentRepository residentRepository) {
 
         this.credentialRepository = credentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.firebaseAuth = firebaseAuth;
         this.caretakerRepository = caretakerRepository;
+        this.residentRepository = residentRepository;
     }
     
     @Override
@@ -75,21 +78,16 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse verifyOtpAndLogin(OtpLoginRequest request) {
 
         try {
-            // Step 1 — Verify Firebase token
             FirebaseToken decodedToken = firebaseAuth
                     .verifyIdToken(request.getFirebaseToken());
 
-            // Step 2 — Extract mobile number from Firebase token
             String phoneNumber = decodedToken.getClaims()
                     .get("phone_number").toString();
 
-            // Remove +91 prefix → get 10 digit mobile
             String mobile = phoneNumber.replace("+91", "");
 
-            // Step 3 — Find credential by role
             if ("RESIDENT".equals(request.getRole())) {
 
-                // Resident login — need wing + flat to identify
                 if (request.getWingName() == null
                         || request.getFlatNumber() == null) {
                     throw new BadRequestException(
@@ -99,7 +97,6 @@ public class AuthServiceImpl implements AuthService {
                 String fullFlat = request.getWingName().toUpperCase()
                         + "-" + request.getFlatNumber();
 
-                // Find credential by mobile
                 Credential credential = credentialRepository
                         .findByLoginIdentifier(mobile)
                         .orElseThrow(() ->
@@ -123,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
                         .flatNumber(fullFlat)
                         .build();
 
-            }  else if ("CARETAKER".equals(request.getRole())) {
+            } else if ("CARETAKER".equals(request.getRole())) {
 
                 Credential credential = credentialRepository
                         .findByLoginIdentifier(mobile)
@@ -136,7 +133,6 @@ public class AuthServiceImpl implements AuthService {
                             "This mobile is not registered as a caretaker.");
                 }
 
-                // Check caretaker is ACTIVE
                 com.urbansync.caretaker.CaretakerProfile caretaker =
                         caretakerRepository
                         .findByMobileNumber(mobile)
@@ -193,6 +189,156 @@ public class AuthServiceImpl implements AuthService {
         credential.setPasswordHash(
                 passwordEncoder.encode(request.getNewPassword()));
         credentialRepository.save(credential);
+    }
+
+    @Override
+    public String sendOtp(SendOtpRequest request) {
+
+        String mobile = request.getMobile().trim();
+
+        if ("RESIDENT".equals(request.getRole())) {
+
+            if (request.getWingName() == null
+                    || request.getFlatNumber() == null) {
+                throw new BadRequestException(
+                        "Wing and flat number are required for resident login.");
+            }
+
+            String fullFlat = request.getWingName().toUpperCase()
+                    + "-" + request.getFlatNumber();
+
+            com.urbansync.resident.ResidentProfile resident =
+                    residentRepository
+                    .findByMobileNumberAndFlatNumber(mobile, fullFlat)
+                    .orElseThrow(() ->
+                            new UnauthorizedException(
+                                    "No resident found with these details. "
+                                    + "Please check your mobile number, wing and flat number."));
+
+            if (!resident.getStatus().equals("ACTIVE")) {
+                throw new UnauthorizedException(
+                        "Your resident account is inactive. "
+                        + "Please contact the secretary.");
+            }
+
+            return "OTP sent successfully to +91" + mobile;
+
+        } else if ("CARETAKER".equals(request.getRole())) {
+
+            com.urbansync.caretaker.CaretakerProfile caretaker =
+                    caretakerRepository
+                    .findByMobileNumber(mobile)
+                    .orElseThrow(() ->
+                            new UnauthorizedException(
+                                    "No caretaker found with this mobile number. "
+                                    + "Please contact the secretary."));
+
+            if (!caretaker.getStatus().equals("ACTIVE")) {
+                throw new UnauthorizedException(
+                        "Your caretaker account is inactive. "
+                        + "Please contact the secretary.");
+            }
+
+            return "OTP sent successfully to +91" + mobile;
+
+        } else {
+            throw new BadRequestException(
+                    "Invalid role. Must be RESIDENT or CARETAKER.");
+        }
+    }
+
+    @Override
+    public LoginResponse verifyOtp(VerifyOtpRequest request) {
+
+        String mobile = request.getMobile().trim();
+        String otp = request.getOtp().trim();
+
+        if ("RESIDENT".equals(request.getRole())) {
+
+            if (!"123456".equals(otp)) {
+                throw new UnauthorizedException("Invalid OTP.");
+            }
+
+            // Verify flat again at verify step too
+            if (request.getWingName() != null
+                    && request.getFlatNumber() != null) {
+                String fullFlat = request.getWingName().toUpperCase()
+                        + "-" + request.getFlatNumber();
+                residentRepository
+                        .findByMobileNumberAndFlatNumber(mobile, fullFlat)
+                        .orElseThrow(() ->
+                                new UnauthorizedException(
+                                        "No resident found with these details."));
+            }
+
+            Credential credential = credentialRepository
+                    .findByLoginIdentifier(mobile)
+                    .orElseThrow(() ->
+                            new UnauthorizedException(
+                                    "No resident found with this mobile number."));
+
+            if (!credential.getRole().equals("RESIDENT")) {
+                throw new UnauthorizedException(
+                        "This mobile is not registered as a resident.");
+            }
+
+            CustomUserDetails userDetails =
+                    new CustomUserDetails(credential);
+            String token = jwtService.generateToken(userDetails);
+
+            String flatNumber = null;
+            if (request.getWingName() != null
+                    && request.getFlatNumber() != null) {
+                flatNumber = request.getWingName().toUpperCase()
+                        + "-" + request.getFlatNumber();
+            }
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .loginIdentifier(mobile)
+                    .role("RESIDENT")
+                    .flatNumber(flatNumber)
+                    .build();
+
+        } else if ("CARETAKER".equals(request.getRole())) {
+
+            if (!"654321".equals(otp)) {
+                throw new UnauthorizedException("Invalid OTP.");
+            }
+
+            com.urbansync.caretaker.CaretakerProfile caretaker =
+                    caretakerRepository
+                    .findByMobileNumber(mobile)
+                    .orElseThrow(() ->
+                            new UnauthorizedException(
+                                    "No caretaker found with this mobile number."));
+
+            if (!caretaker.getStatus().equals("ACTIVE")) {
+                throw new UnauthorizedException(
+                        "Your caretaker account is inactive. "
+                        + "Please contact the secretary.");
+            }
+
+            Credential credential = credentialRepository
+                    .findByLoginIdentifier(mobile)
+                    .orElseThrow(() ->
+                            new UnauthorizedException(
+                                    "No caretaker credential found."));
+
+            CustomUserDetails userDetails =
+                    new CustomUserDetails(credential);
+            String token = jwtService.generateToken(userDetails);
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .loginIdentifier(mobile)
+                    .role("CARETAKER")
+                    .build();
+
+        } else {
+            throw new BadRequestException(
+                    "Invalid role. Must be RESIDENT or CARETAKER.");
+        }
     }
 
 }

@@ -9,5 +9,8 @@ public interface AuthService {
     void changePassword(String loginIdentifier, ChangePasswordRequest request);
     
     LoginResponse verifyOtpAndLogin(OtpLoginRequest request);
+    
+    String sendOtp(SendOtpRequest request);
+    LoginResponse verifyOtp(VerifyOtpRequest request);
 
 }

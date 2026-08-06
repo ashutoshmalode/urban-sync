@@ -1,9 +1,9 @@
 package com.urbansync.caretaker;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.urbansync.config.security.CustomUserDetails;
 
 import jakarta.validation.Valid;
 
@@ -54,6 +54,14 @@ public class CaretakerController {
 
         return ResponseEntity.ok(
                 caretakerService.getAllCaretakersHistory());
+    }
+    
+    @GetMapping("/caretaker/me")
+    public ResponseEntity<CaretakerDTO> getMyProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(
+                caretakerService.getByMobile(
+                        userDetails.getUsername()));
     }
 
 }

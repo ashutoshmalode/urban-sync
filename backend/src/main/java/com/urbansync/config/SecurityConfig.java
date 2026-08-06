@@ -54,35 +54,48 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            		.requestMatchers(
-            		        "/api/auth/**",
-            		        "/api/test/**",
-            		        "/api/secretary/register",
-            		        "/api/secretary/is-registered",
-            		        "/api/registration/resident",
-            		        "/api/registration/check-flat",
-            		        "/api/registration/verify-owner",
-            		        "/api/registration/fetch-owner-by-flat",
-            		        "/api/registration/check-pending-tenant",
-            		        "/api/auth/otp-login"
-            		).permitAll()
-            		.requestMatchers(
-            		        "/api/secretary/**",
-            		        "/api/registration/**",
-            		        "/api/caretaker/**",
-            		        "/api/payment/**",
-            		        "/api/registration/check-flat",
-            		        "/api/flat/**",
-            		        "/api/property/**",
-            		        "/api/complaint/**",
-            		        "/api/caretaker-issue/**",
-            		        "/api/maintenance/**",
-            		        "/api/permission/**",
-            		        "/api/announcement/**",
-            		        "/api/dashboard/**",
-            		        "/api/scheduler/**"
-            		).hasRole("SECRETARY")
-                    .anyRequest().authenticated())
+            	    .requestMatchers(
+            	            "/api/auth/**",
+            	            "/api/test/**",
+            	            "/api/secretary/register",
+            	            "/api/secretary/is-registered",
+            	            "/api/registration/resident",
+            	            "/api/registration/check-flat",
+            	            "/api/registration/verify-owner",
+            	            "/api/registration/fetch-owner-by-flat",
+            	            "/api/registration/check-pending-tenant",
+            	            "/api/auth/otp-login",
+            	            "/api/auth/send-otp",
+            	            "/api/auth/verify-otp"
+            	    ).permitAll()
+
+            	    // ── Resident endpoints ─────────────────────────
+            	    .requestMatchers(
+            	            "/api/resident/me",
+            	            "/api/resident/**"
+            	    ).hasRole("RESIDENT")
+
+            	    // ── Caretaker me endpoint BEFORE secretary block
+            	    .requestMatchers("/api/caretaker/me").hasRole("CARETAKER")
+
+            	    // ── Secretary endpoints ────────────────────────
+            	    .requestMatchers(
+            	            "/api/secretary/**",
+            	            "/api/registration/**",
+            	            "/api/caretaker/**",
+            	            "/api/payment/**",
+            	            "/api/flat/**",
+            	            "/api/property/**",
+            	            "/api/complaint/**",
+            	            "/api/caretaker-issue/**",
+            	            "/api/maintenance/**",
+            	            "/api/permission/**",
+            	            "/api/announcement/**",
+            	            "/api/dashboard/**",
+            	            "/api/scheduler/**"
+            	    ).hasRole("SECRETARY")
+
+            	    .anyRequest().authenticated())
             .addFilterBefore(
                     jwtAuthenticationFilter,
                     UsernamePasswordAuthenticationFilter.class)

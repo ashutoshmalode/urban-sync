@@ -49,6 +49,20 @@ public class AuthController {
         return ResponseEntity.ok(
                 authService.verifyOtpAndLogin(request));
     }
+    
+    @PostMapping("/send-otp")
+    public ResponseEntity<String> sendOtp(
+            @Valid @RequestBody SendOtpRequest request) {
+        return ResponseEntity.ok(
+                authService.sendOtp(request));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<LoginResponse> verifyOtp(
+            @Valid @RequestBody VerifyOtpRequest request) {
+        return ResponseEntity.ok(
+                authService.verifyOtp(request));
+    }
 }
 
 
