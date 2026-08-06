@@ -69,16 +69,26 @@ public class SecurityConfig {
             	            "/api/auth/verify-otp"
             	    ).permitAll()
 
-            	    // ── Resident endpoints ─────────────────────────
+            	    // RESIDENT accessible endpoints
             	    .requestMatchers(
-            	            "/api/resident/me",
-            	            "/api/resident/**"
-            	    ).hasRole("RESIDENT")
+            	            "/api/resident/**",
+            	            "/api/maintenance/bills/resident/**",
+            	            "/api/complaint/resident/**",
+            	            "/api/permission/resident/**",
+            	            "/api/announcement/all",
+            	            "/api/payment/create-order",
+            	            "/api/payment/verify",
+            	            "/api/property/post/all",
+            	            "/api/property/post/*/images"
+            	    ).hasAnyRole("RESIDENT", "SECRETARY")
 
-            	    // ── Caretaker me endpoint BEFORE secretary block
-            	    .requestMatchers("/api/caretaker/me").hasRole("CARETAKER")
+            	    // CARETAKER accessible endpoints
+            	    .requestMatchers(
+            	            "/api/caretaker/me",
+            	            "/api/caretaker-issue/caretaker/**"
+            	    ).hasAnyRole("CARETAKER", "SECRETARY")
 
-            	    // ── Secretary endpoints ────────────────────────
+            	    // SECRETARY only endpoints
             	    .requestMatchers(
             	            "/api/secretary/**",
             	            "/api/registration/**",
