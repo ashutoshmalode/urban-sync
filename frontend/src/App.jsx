@@ -10,6 +10,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import AuthGuard from "./components/common/AuthGuard";
 import ResidentDashboard from "./pages/resident/ResidentDashboard";
+import CaretakerDashboard from "./pages/caretaker/CaretakerDashboard";
 
 function App() {
   return (
@@ -42,15 +43,7 @@ function App() {
           path="/caretaker/dashboard/*"
           element={
             <ProtectedRoute allowedRole="CARETAKER">
-              <div
-                style={{
-                  padding: 40,
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "1.2rem",
-                }}
-              >
-                🔧 Caretaker Dashboard — Coming Soon
-              </div>
+              <CaretakerDashboard />
             </ProtectedRoute>
           }
         />
