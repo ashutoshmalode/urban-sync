@@ -28,7 +28,10 @@ axiosInstance.interceptors.response.use(
     // Don't force-redirect on login/auth endpoints —
     // let the page show the real error message
     const isAuthEndpoint =
-      url.includes("/api/auth/otp-login") || url.includes("/api/auth/login");
+      url.includes("/api/auth/otp-login") ||
+      url.includes("/api/auth/login") ||
+      url.includes("/api/auth/send-otp") ||
+      url.includes("/api/auth/verify-otp");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem("token");
