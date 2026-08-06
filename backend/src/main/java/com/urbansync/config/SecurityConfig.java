@@ -5,6 +5,7 @@ import com.urbansync.config.security.JwtAuthenticationFilter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,7 +25,6 @@ public class SecurityConfig {
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
-
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
@@ -33,18 +33,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -54,58 +52,79 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            	    .requestMatchers(
-            	            "/api/auth/**",
-            	            "/api/test/**",
-            	            "/api/secretary/register",
-            	            "/api/secretary/is-registered",
-            	            "/api/registration/resident",
-            	            "/api/registration/check-flat",
-            	            "/api/registration/verify-owner",
-            	            "/api/registration/fetch-owner-by-flat",
-            	            "/api/registration/check-pending-tenant",
-            	            "/api/auth/otp-login",
-            	            "/api/auth/send-otp",
-            	            "/api/auth/verify-otp"
-            	    ).permitAll()
 
-            	    // RESIDENT accessible endpoints
-            	    .requestMatchers(
-            	            "/api/resident/**",
-            	            "/api/maintenance/bills/resident/**",
-            	            "/api/complaint/resident/**",
-            	            "/api/permission/resident/**",
-            	            "/api/announcement/all",
-            	            "/api/payment/create-order",
-            	            "/api/payment/verify",
-            	            "/api/property/post/all",
-            	            "/api/property/post/*/images"
-            	    ).hasAnyRole("RESIDENT", "SECRETARY")
+                // ── PUBLIC ─────────────────────────────────────────────
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/api/test/**",
+                        "/api/secretary/register",
+                        "/api/secretary/is-registered",
+                        "/api/registration/resident",
+                        "/api/registration/check-flat",
+                        "/api/registration/verify-owner",
+                        "/api/registration/fetch-owner-by-flat",
+                        "/api/registration/check-pending-tenant"
+                ).permitAll()
 
-            	    // CARETAKER accessible endpoints
-            	    .requestMatchers(
-            	            "/api/caretaker/me",
-            	            "/api/caretaker-issue/caretaker/**"
-            	    ).hasAnyRole("CARETAKER", "SECRETARY")
+                // ── RESIDENT ───────────────────────────────────────────
+                .requestMatchers(
+                        "/api/resident/**",
+                        "/api/maintenance/bills/resident/**",
+                        "/api/complaint/resident/**",
+                        "/api/permission/resident/**"
+                ).hasAnyRole("RESIDENT", "SECRETARY")
 
-            	    // SECRETARY only endpoints
-            	    .requestMatchers(
-            	            "/api/secretary/**",
-            	            "/api/registration/**",
-            	            "/api/caretaker/**",
-            	            "/api/payment/**",
-            	            "/api/flat/**",
-            	            "/api/property/**",
-            	            "/api/complaint/**",
-            	            "/api/caretaker-issue/**",
-            	            "/api/maintenance/**",
-            	            "/api/permission/**",
-            	            "/api/announcement/**",
-            	            "/api/dashboard/**",
-            	            "/api/scheduler/**"
-            	    ).hasRole("SECRETARY")
+                // ── CARETAKER — exact paths BEFORE secretary wildcard ──
+                .requestMatchers(HttpMethod.GET, "/api/caretaker/profile/me"
+                ).hasAnyRole("CARETAKER", "SECRETARY")
 
-            	    .anyRequest().authenticated())
+                .requestMatchers(HttpMethod.GET,  "/api/caretaker-issue/caretaker/**"
+                ).hasAnyRole("CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.GET,  "/api/caretaker-issue/*/media"
+                ).hasAnyRole("CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.POST, "/api/caretaker-issue/media"
+                ).hasAnyRole("CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.PUT,  "/api/caretaker-issue/*/status"
+                ).hasAnyRole("CARETAKER", "SECRETARY")
+
+                // ── SHARED resident + caretaker + secretary ────────────
+                .requestMatchers(HttpMethod.GET,  "/api/announcement/all"
+                ).hasAnyRole("RESIDENT", "CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.GET,  "/api/property/post/all"
+                ).hasAnyRole("RESIDENT", "CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.GET,  "/api/property/post/*/images"
+                ).hasAnyRole("RESIDENT", "CARETAKER", "SECRETARY")
+
+                .requestMatchers(HttpMethod.POST, "/api/payment/create-order"
+                ).hasAnyRole("RESIDENT", "SECRETARY")
+
+                .requestMatchers(HttpMethod.POST, "/api/payment/verify"
+                ).hasAnyRole("RESIDENT", "SECRETARY")
+
+                // ── SECRETARY only ─────────────────────────────────────
+                .requestMatchers(
+                        "/api/secretary/**",
+                        "/api/registration/**",
+                        "/api/caretaker/**",
+                        "/api/payment/**",
+                        "/api/flat/**",
+                        "/api/property/**",
+                        "/api/complaint/**",
+                        "/api/caretaker-issue/**",
+                        "/api/maintenance/**",
+                        "/api/permission/**",
+                        "/api/announcement/**",
+                        "/api/dashboard/**",
+                        "/api/scheduler/**"
+                ).hasRole("SECRETARY")
+
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(
                     jwtAuthenticationFilter,
                     UsernamePasswordAuthenticationFilter.class)
@@ -114,5 +133,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-}
+}	

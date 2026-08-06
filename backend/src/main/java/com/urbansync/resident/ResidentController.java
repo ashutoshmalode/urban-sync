@@ -19,7 +19,7 @@ public class ResidentController {
         this.residentService = residentService;
     }
 
-    @GetMapping("/resident/me")
+    @GetMapping("/resident/profile/me")
     public ResponseEntity<ResidentDTO> getMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(
