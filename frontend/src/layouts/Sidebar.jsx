@@ -128,19 +128,10 @@ const Sidebar = ({ open, onClose }) => {
         }}
       >
         <Box
-          sx={{
-            width: 42,
-            height: 42,
-            borderRadius: 2,
-            bgcolor: "rgba(255,255,255,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <ApartmentIcon sx={{ color: "white", fontSize: 26 }} />
-        </Box>
+          component="img"
+          src="/urbansync-logo.svg"
+          sx={{ width: 42, height: 42, borderRadius: 2 }}
+        />
         <Box>
           <Typography
             sx={{
