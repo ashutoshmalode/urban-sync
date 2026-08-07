@@ -76,8 +76,8 @@ const ResidentAppLayout = ({ children }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const flatNumber = useSelector((state) => state.auth.flatNumber);
   const loginIdentifier = useSelector((state) => state.auth.loginIdentifier);
 
@@ -86,49 +86,83 @@ const ResidentAppLayout = ({ children }) => {
     navigate("/");
   };
 
-  const DrawerContent = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Logo */}
+  const drawerContent = (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        bgcolor: "white",
+      }}
+    >
+      {/* Logo Header */}
       <Box
         sx={{
-          p: 2.5,
-          background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
+          px: 2.5,
+          py: 2.5,
+          background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          flexShrink: 0,
+          minHeight: 80,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <ApartmentIcon sx={{ color: "white", fontSize: 24 }} />
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                color: "white",
-              }}
-            >
-              UrbanSync
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.65rem",
-                color: "rgba(255,255,255,0.8)",
-              }}
-            >
-              Resident Panel
-            </Typography>
-          </Box>
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            bgcolor: "rgba(255,255,255,0.2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <ApartmentIcon sx={{ color: "white", fontSize: 26 }} />
+        </Box>
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 800,
+              fontSize: "1.1rem",
+              color: "white",
+              letterSpacing: 0.3,
+            }}
+          >
+            UrbanSync
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.7rem",
+              color: "rgba(255,255,255,0.75)",
+              fontWeight: 500,
+              mt: 0.2,
+            }}
+          >
+            Resident Panel
+          </Typography>
         </Box>
       </Box>
 
       {/* Resident Info */}
-      <Box sx={{ p: 2, bgcolor: "#f0f9ff", borderBottom: "1px solid #e0f2fe" }}>
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: "#f5f3ff",
+          borderBottom: "1px solid #e9d5ff",
+          flexShrink: 0,
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Avatar
             sx={{
               width: 36,
               height: 36,
-              bgcolor: "#0891b2",
+              bgcolor: "#7c3aed",
               fontSize: "0.9rem",
               fontWeight: 700,
             }}
@@ -160,7 +194,19 @@ const ResidentAppLayout = ({ children }) => {
       </Box>
 
       {/* Menu Items */}
-      <List sx={{ flexGrow: 1, px: 1, py: 1 }}>
+      <List
+        sx={{
+          flexGrow: 1,
+          px: 1,
+          py: 1,
+          overflow: "auto",
+          "&::-webkit-scrollbar": { width: "4px" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#e9d5ff",
+            borderRadius: "99px",
+          },
+        }}
+      >
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -173,22 +219,25 @@ const ResidentAppLayout = ({ children }) => {
                 sx={{
                   borderRadius: 2,
                   py: 1,
-                  bgcolor: isActive ? "#e0f2fe" : "transparent",
-                  "&:hover": { bgcolor: isActive ? "#e0f2fe" : "#f8fbff" },
+                  bgcolor: isActive ? "#f3e8ff" : "transparent",
+                  transition: "all 0.15s ease",
+                  "&:hover": { bgcolor: isActive ? "#f3e8ff" : "#faf5ff" },
                 }}
               >
                 <ListItemIcon
-                  sx={{ minWidth: 36, color: isActive ? "#0891b2" : "#64748b" }}
+                  sx={{ minWidth: 36, color: isActive ? "#7c3aed" : "#64748b" }}
                 >
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}
-                  primarytypographyprops={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.82rem",
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? "#0891b2" : "#475569",
+                  slotProps={{
+                    primary: {
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? "#7c3aed" : "#475569",
+                    },
                   }}
                 />
               </ListItemButton>
@@ -197,7 +246,7 @@ const ResidentAppLayout = ({ children }) => {
         })}
       </List>
 
-      <Divider sx={{ borderColor: "#e0f2fe" }} />
+      <Divider sx={{ borderColor: "#e9d5ff" }} />
 
       {/* Logout */}
       <List sx={{ px: 1, py: 1 }}>
@@ -211,11 +260,13 @@ const ResidentAppLayout = ({ children }) => {
             </ListItemIcon>
             <ListItemText
               primary="Logout"
-              primarytypographyprops={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.82rem",
-                fontWeight: 500,
-                color: "#dc2626",
+              slotProps={{
+                primary: {
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.82rem",
+                  fontWeight: 500,
+                  color: "#dc2626",
+                },
               }}
             />
           </ListItemButton>
@@ -225,96 +276,139 @@ const ResidentAppLayout = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f8fbff" }}>
-      {/* Mobile AppBar */}
-      {isMobile && (
-        <AppBar
-          position="fixed"
-          elevation={0}
-          sx={{
-            bgcolor: "white",
-            borderBottom: "1px solid #e0f2fe",
-            zIndex: 1300,
-          }}
-        >
-          <Toolbar sx={{ minHeight: 56 }}>
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              sx={{ color: "#0891b2", mr: 1 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <ApartmentIcon sx={{ color: "#0891b2", mr: 1 }} />
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 700,
-                color: "#1e293b",
-                flexGrow: 1,
-              }}
-            >
-              UrbanSync
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.75rem",
-                color: "#0891b2",
-                fontWeight: 600,
-              }}
-            >
-              {flatNumber}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+        bgcolor: "#faf5ff",
+      }}
+    >
+      {/* Navbar — full width always */}
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          bgcolor: "white",
+          borderBottom: "1px solid #e9d5ff",
+          flexShrink: 0,
+        }}
+      >
+        <Toolbar sx={{ minHeight: "56px !important", px: { xs: 1.5, sm: 2 } }}>
+          <IconButton
+            onClick={() =>
+              isMobile
+                ? setMobileOpen(!mobileOpen)
+                : setSidebarOpen(!sidebarOpen)
+            }
+            size="small"
+            sx={{ mr: 1, color: "#7c3aed" }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <ApartmentIcon sx={{ color: "#7c3aed", fontSize: 22, mr: 0.8 }} />
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            color="#7c3aed"
+            sx={{
+              flexGrow: 1,
+              letterSpacing: 0.3,
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            UrbanSync
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.78rem",
+              color: "#7c3aed",
+              fontWeight: 700,
+              bgcolor: "#f3e8ff",
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+            }}
+          >
+            {flatNumber}
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-      {/* Desktop Sidebar */}
-      {!isMobile && (
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: DRAWER_WIDTH,
-            flexShrink: 0,
-            "& .MuiDrawer-paper": {
-              width: DRAWER_WIDTH,
-              boxSizing: "border-box",
-              border: "none",
-              borderRight: "1px solid #e0f2fe",
-              bgcolor: "white",
-            },
-          }}
-        >
-          <DrawerContent />
-        </Drawer>
-      )}
-
-      {/* Mobile Drawer */}
-      {isMobile && (
+      {/* Body */}
+      <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
+        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
           sx={{
-            "& .MuiDrawer-paper": { width: DRAWER_WIDTH, bgcolor: "white" },
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              width: DRAWER_WIDTH,
+              bgcolor: "white",
+              border: "none",
+              boxShadow: "4px 0 20px rgba(124,58,237,0.12)",
+              transition: "transform 0.25s ease !important",
+            },
           }}
         >
-          <DrawerContent />
+          {drawerContent}
         </Drawer>
-      )}
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: { xs: 2, md: 3 },
-          mt: isMobile ? 7 : 0,
-          maxWidth: "100%",
-          overflow: "auto",
-        }}
-      >
-        {children}
+        {/* Desktop Sidebar — animates width */}
+        {!isMobile && (
+          <Box
+            sx={{
+              width: sidebarOpen ? DRAWER_WIDTH : 0,
+              flexShrink: 0,
+              overflow: "hidden",
+              transition: "width 0.25s ease",
+              height: "100%",
+              borderRight: sidebarOpen ? "1px solid #e9d5ff" : "none",
+              bgcolor: "white",
+            }}
+          >
+            <Box
+              sx={{
+                width: DRAWER_WIDTH,
+                height: "100%",
+                overflow: "auto",
+                "&::-webkit-scrollbar": { width: "4px" },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "#e9d5ff",
+                  borderRadius: "99px",
+                },
+              }}
+            >
+              {drawerContent}
+            </Box>
+          </Box>
+        )}
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, md: 3 },
+            overflow: "auto",
+            minWidth: 0,
+            transition: "all 0.25s ease",
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#d8b4fe",
+              borderRadius: "99px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": { background: "#c084fc" },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

@@ -11,25 +11,43 @@ const AppLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f0f9ff" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+        bgcolor: "#f0f9ff",
+      }}
+    >
+      {/* Navbar — always full width on top */}
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Body — sidebar + content */}
+      <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
+        {/* Sidebar */}
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          mt: "56px",
-          ml: { xs: 0, md: sidebarOpen ? `${DRAWER_WIDTH}px` : 0 },
-          transition: "margin 0.25s ease",
-          p: { xs: 2, sm: 2.5, md: 3 },
-          minHeight: "calc(100vh - 56px)",
-          maxWidth: "100%",
-          overflowX: "hidden",
-        }}
-      >
-        {children}
+        {/* Main Content — shifts smoothly */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, md: 3 },
+            overflow: "auto",
+            minWidth: 0,
+            transition: "all 0.25s ease",
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#bae6fd",
+              borderRadius: "99px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": { background: "#7dd3fc" },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );
