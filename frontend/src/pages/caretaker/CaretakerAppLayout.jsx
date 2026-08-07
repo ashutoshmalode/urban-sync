@@ -26,7 +26,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import ApartmentIcon from "@mui/icons-material/Apartment";
-import { logout } from "../../features/auth/authSlice";
+import { logout } from "..//../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
 
@@ -64,6 +64,7 @@ const CaretakerAppLayout = ({ children }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [mobileOpen, setMobileOpen] = useState(false);
   const loginIdentifier = useSelector((state) => state.auth.loginIdentifier);
 
@@ -72,43 +73,77 @@ const CaretakerAppLayout = ({ children }) => {
     navigate("/");
   };
 
-  const DrawerContent = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Logo */}
+  const drawerContent = (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        bgcolor: "white",
+      }}
+    >
+      {/* Logo Header */}
       <Box
         sx={{
-          p: 2.5,
+          px: 2.5,
+          py: 2.5,
           background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          flexShrink: 0,
+          minHeight: 80,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <ApartmentIcon sx={{ color: "white", fontSize: 24 }} />
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                color: "white",
-              }}
-            >
-              UrbanSync
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.65rem",
-                color: "rgba(255,255,255,0.8)",
-              }}
-            >
-              Caretaker Panel
-            </Typography>
-          </Box>
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            bgcolor: "rgba(255,255,255,0.2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <ApartmentIcon sx={{ color: "white", fontSize: 26 }} />
+        </Box>
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 800,
+              fontSize: "1.1rem",
+              color: "white",
+              letterSpacing: 0.3,
+            }}
+          >
+            UrbanSync
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.7rem",
+              color: "rgba(255,255,255,0.75)",
+              fontWeight: 500,
+              mt: 0.2,
+            }}
+          >
+            Caretaker Panel
+          </Typography>
         </Box>
       </Box>
 
       {/* Caretaker Info */}
-      <Box sx={{ p: 2, bgcolor: "#f0fdf4", borderBottom: "1px solid #bbf7d0" }}>
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: "#f0fdf4",
+          borderBottom: "1px solid #bbf7d0",
+          flexShrink: 0,
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Avatar
             sx={{
@@ -146,7 +181,19 @@ const CaretakerAppLayout = ({ children }) => {
       </Box>
 
       {/* Menu Items */}
-      <List sx={{ flexGrow: 1, px: 1, py: 1 }}>
+      <List
+        sx={{
+          flexGrow: 1,
+          px: 1,
+          py: 1,
+          overflow: "auto",
+          "&::-webkit-scrollbar": { width: "4px" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#bbf7d0",
+            borderRadius: "99px",
+          },
+        }}
+      >
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -160,6 +207,7 @@ const CaretakerAppLayout = ({ children }) => {
                   borderRadius: 2,
                   py: 1,
                   bgcolor: isActive ? "#dcfce7" : "transparent",
+                  transition: "all 0.15s ease",
                   "&:hover": { bgcolor: isActive ? "#dcfce7" : "#f0fdf4" },
                 }}
               >
@@ -170,11 +218,13 @@ const CaretakerAppLayout = ({ children }) => {
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}
-                  primarytypographyprops={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.82rem",
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? "#059669" : "#475569",
+                  slotProps={{
+                    primary: {
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? "#059669" : "#475569",
+                    },
                   }}
                 />
               </ListItemButton>
@@ -197,11 +247,13 @@ const CaretakerAppLayout = ({ children }) => {
             </ListItemIcon>
             <ListItemText
               primary="Logout"
-              primarytypographyprops={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.82rem",
-                fontWeight: 500,
-                color: "#dc2626",
+              slotProps={{
+                primary: {
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "0.82rem",
+                  fontWeight: 500,
+                  color: "#dc2626",
+                },
               }}
             />
           </ListItemButton>
@@ -211,82 +263,139 @@ const CaretakerAppLayout = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f0fdf4" }}>
-      {isMobile && (
-        <AppBar
-          position="fixed"
-          elevation={0}
-          sx={{
-            bgcolor: "white",
-            borderBottom: "1px solid #bbf7d0",
-            zIndex: 1300,
-          }}
-        >
-          <Toolbar sx={{ minHeight: 56 }}>
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              sx={{ color: "#059669", mr: 1 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <ApartmentIcon sx={{ color: "#059669", mr: 1 }} />
-            <Typography
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 700,
-                color: "#1e293b",
-                flexGrow: 1,
-              }}
-            >
-              UrbanSync
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+        bgcolor: "#f0fdf4",
+      }}
+    >
+      {/* Navbar — full width always */}
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          bgcolor: "white",
+          borderBottom: "1px solid #bbf7d0",
+          flexShrink: 0,
+        }}
+      >
+        <Toolbar sx={{ minHeight: "56px !important", px: { xs: 1.5, sm: 2 } }}>
+          <IconButton
+            onClick={() =>
+              isMobile
+                ? setMobileOpen(!mobileOpen)
+                : setSidebarOpen(!sidebarOpen)
+            }
+            size="small"
+            sx={{ mr: 1, color: "#059669" }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <ApartmentIcon sx={{ color: "#059669", fontSize: 22, mr: 0.8 }} />
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            color="#059669"
+            sx={{
+              flexGrow: 1,
+              letterSpacing: 0.3,
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            UrbanSync
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.78rem",
+              color: "#059669",
+              fontWeight: 700,
+              bgcolor: "#dcfce7",
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+            }}
+          >
+            Caretaker
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-      {!isMobile && (
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: DRAWER_WIDTH,
-            flexShrink: 0,
-            "& .MuiDrawer-paper": {
-              width: DRAWER_WIDTH,
-              boxSizing: "border-box",
-              border: "none",
-              borderRight: "1px solid #bbf7d0",
-              bgcolor: "white",
-            },
-          }}
-        >
-          <DrawerContent />
-        </Drawer>
-      )}
-
-      {isMobile && (
+      {/* Body */}
+      <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
+        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
           sx={{
-            "& .MuiDrawer-paper": { width: DRAWER_WIDTH, bgcolor: "white" },
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              width: DRAWER_WIDTH,
+              bgcolor: "white",
+              border: "none",
+              boxShadow: "4px 0 20px rgba(5,150,105,0.12)",
+              transition: "transform 0.25s ease !important",
+            },
           }}
         >
-          <DrawerContent />
+          {drawerContent}
         </Drawer>
-      )}
 
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: { xs: 2, md: 3 },
-          mt: isMobile ? 7 : 0,
-          maxWidth: "100%",
-          overflow: "auto",
-        }}
-      >
-        {children}
+        {/* Desktop Sidebar — animates width */}
+        {!isMobile && (
+          <Box
+            sx={{
+              width: sidebarOpen ? DRAWER_WIDTH : 0,
+              flexShrink: 0,
+              overflow: "hidden",
+              transition: "width 0.25s ease",
+              height: "100%",
+              borderRight: sidebarOpen ? "1px solid #bbf7d0" : "none",
+              bgcolor: "white",
+            }}
+          >
+            <Box
+              sx={{
+                width: DRAWER_WIDTH,
+                height: "100%",
+                overflow: "auto",
+                "&::-webkit-scrollbar": { width: "4px" },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "#bbf7d0",
+                  borderRadius: "99px",
+                },
+              }}
+            >
+              {drawerContent}
+            </Box>
+          </Box>
+        )}
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, md: 3 },
+            overflow: "auto",
+            minWidth: 0,
+            transition: "all 0.25s ease",
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#86efac",
+              borderRadius: "99px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": { background: "#4ade80" },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

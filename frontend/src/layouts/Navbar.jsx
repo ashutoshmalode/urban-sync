@@ -48,12 +48,12 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <AppBar
-      position="fixed"
+      position="static"
       elevation={0}
       sx={{
         bgcolor: "white",
         borderBottom: "1px solid #e0f2fe",
-        zIndex: (theme) => theme.zIndex.drawer + 1,
+        flexShrink: 0,
       }}
     >
       <Toolbar sx={{ minHeight: "56px !important", px: { xs: 1.5, sm: 2 } }}>

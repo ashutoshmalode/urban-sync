@@ -12,6 +12,7 @@ import {
   Divider,
   useMediaQuery,
   useTheme,
+  Collapse,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
@@ -50,7 +51,6 @@ const menuItems = [
     icon: <EngineeringIcon fontSize="small" />,
     path: "/secretary/dashboard/caretakers",
   },
-  // ADD THIS
   {
     label: "Property",
     icon: <ApartmentIcon fontSize="small" />,
@@ -114,22 +114,74 @@ const Sidebar = ({ open, onClose }) => {
         bgcolor: "white",
       }}
     >
-      {/* Sidebar Header */}
+      {/* Logo Header */}
       <Box
         sx={{
-          px: 2,
-          py: 1.5,
-          borderBottom: "1px solid #e0f2fe",
-          mt: "56px",
+          px: 2.5,
+          py: 2.5,
+          background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          flexShrink: 0,
+          minHeight: 80,
         }}
       >
-        <Typography variant="caption" color="text.secondary" fontWeight={600}>
-          SECRETARY PANEL
-        </Typography>
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            bgcolor: "rgba(255,255,255,0.2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <ApartmentIcon sx={{ color: "white", fontSize: 26 }} />
+        </Box>
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 800,
+              fontSize: "1.1rem",
+              color: "white",
+              letterSpacing: 0.3,
+            }}
+          >
+            UrbanSync
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: "0.7rem",
+              color: "rgba(255,255,255,0.75)",
+              fontWeight: 500,
+              mt: 0.2,
+            }}
+          >
+            Secretary Panel
+          </Typography>
+        </Box>
       </Box>
 
       {/* Menu Items */}
-      <List sx={{ px: 1, pt: 1, flexGrow: 1 }} disablePadding>
+      <List
+        sx={{
+          px: 1,
+          pt: 1,
+          flexGrow: 1,
+          overflow: "auto",
+          "&::-webkit-scrollbar": { width: "4px" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#e0f2fe",
+            borderRadius: "99px",
+          },
+        }}
+        disablePadding
+      >
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -143,6 +195,7 @@ const Sidebar = ({ open, onClose }) => {
                   px: 1.5,
                   bgcolor: isActive ? "#e0f2fe" : "transparent",
                   color: isActive ? "#0891b2" : "#475569",
+                  transition: "all 0.15s ease",
                   "&:hover": {
                     bgcolor: isActive ? "#e0f2fe" : "#f8fafc",
                     color: "#0891b2",
@@ -150,10 +203,7 @@ const Sidebar = ({ open, onClose }) => {
                 }}
               >
                 <ListItemIcon
-                  sx={{
-                    minWidth: 32,
-                    color: isActive ? "#0891b2" : "#94a3b8",
-                  }}
+                  sx={{ minWidth: 32, color: isActive ? "#0891b2" : "#94a3b8" }}
                 >
                   {item.icon}
                 </ListItemIcon>
@@ -163,6 +213,7 @@ const Sidebar = ({ open, onClose }) => {
                     primary: {
                       fontSize: "0.85rem",
                       fontWeight: isActive ? 700 : 500,
+                      fontFamily: "Inter, sans-serif",
                     },
                   }}
                 />
@@ -183,8 +234,9 @@ const Sidebar = ({ open, onClose }) => {
         })}
       </List>
 
-      {/* Logout */}
       <Divider sx={{ borderColor: "#e0f2fe" }} />
+
+      {/* Logout */}
       <List sx={{ px: 1, py: 1 }} disablePadding>
         <ListItem disablePadding>
           <ListItemButton
@@ -195,6 +247,7 @@ const Sidebar = ({ open, onClose }) => {
               py: 0.8,
               px: 1.5,
               color: "#dc2626",
+              transition: "all 0.15s ease",
               "&:hover": { bgcolor: "#fef2f2" },
             }}
           >
@@ -203,7 +256,13 @@ const Sidebar = ({ open, onClose }) => {
             </ListItemIcon>
             <ListItemText
               primary="Logout"
-              slotProps={{ primary: { fontSize: "0.85rem", fontWeight: 500 } }}
+              slotProps={{
+                primary: {
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                  fontFamily: "Inter, sans-serif",
+                },
+              }}
             />
           </ListItemButton>
         </ListItem>
@@ -213,8 +272,7 @@ const Sidebar = ({ open, onClose }) => {
 
   return (
     <>
-      {/* Mobile Drawer */}
-      {/* Mobile Drawer */}
+      {/* Mobile — temporary drawer slides over content */}
       <Drawer
         variant="temporary"
         open={open}
@@ -226,32 +284,47 @@ const Sidebar = ({ open, onClose }) => {
         }}
         sx={{
           display: { xs: "block", md: "none" },
+          zIndex: 1300,
           "& .MuiDrawer-paper": {
             width: DRAWER_WIDTH,
             border: "none",
             boxShadow: "4px 0 20px rgba(0,0,0,0.08)",
+            transition: "transform 0.25s ease !important",
           },
         }}
       >
         {drawerContent}
       </Drawer>
 
-      {/* Desktop Drawer */}
-      <Drawer
-        variant="persistent"
-        open={open}
-        sx={{
-          display: { xs: "none", md: "block" },
-          "& .MuiDrawer-paper": {
-            width: DRAWER_WIDTH,
-            border: "none",
-            borderRight: "1px solid #e0f2fe",
-            boxShadow: "none",
-          },
-        }}
-      >
-        {drawerContent}
-      </Drawer>
+      {/* Desktop — inline box that animates width */}
+      {!isMobile && (
+        <Box
+          sx={{
+            width: open ? DRAWER_WIDTH : 0,
+            flexShrink: 0,
+            overflow: "hidden",
+            transition: "width 0.25s ease",
+            height: "100%",
+            borderRight: open ? "1px solid #e0f2fe" : "none",
+            bgcolor: "white",
+          }}
+        >
+          <Box
+            sx={{
+              width: DRAWER_WIDTH,
+              height: "100%",
+              overflow: "auto",
+              "&::-webkit-scrollbar": { width: "4px" },
+              "&::-webkit-scrollbar-thumb": {
+                background: "#e0f2fe",
+                borderRadius: "99px",
+              },
+            }}
+          >
+            {drawerContent}
+          </Box>
+        </Box>
+      )}
     </>
   );
 };
