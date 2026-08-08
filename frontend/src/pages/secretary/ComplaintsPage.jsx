@@ -27,6 +27,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import EngineeringIcon from "@mui/icons-material/Engineering";
@@ -43,31 +45,43 @@ import { uploadMultipleToCloudinary } from "../../utils/cloudinary";
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
-const fieldStyle = {
+const fieldStyle = (isMobile) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
   },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+  },
   "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
-};
+  "& .MuiFormHelperText-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.6rem" : "0.7rem",
+  },
+});
 
 const StatusChip = ({ status }) => {
   const map = {
@@ -84,15 +98,55 @@ const StatusChip = ({ status }) => {
         bgcolor: s.bgcolor,
         color: s.color,
         fontWeight: 700,
-        fontSize: "0.7rem",
+        fontSize: "0.62rem",
         fontFamily: "Inter, sans-serif",
-        height: 22,
+        height: 20,
       }}
     />
   );
 };
 
+const DetailRow = ({ label, value }) => (
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-between",
+      py: 0.8,
+      borderBottom: "1px solid #f1f5f9",
+      alignItems: "flex-start",
+      gap: 1,
+    }}
+  >
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.72rem", sm: "0.8rem" },
+        color: "#64748b",
+        fontWeight: 500,
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </Typography>
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.72rem", sm: "0.85rem" },
+        color: "#1e293b",
+        fontWeight: 600,
+        textAlign: "right",
+        wordBreak: "break-word",
+      }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
+
 const ComplaintsPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [tab, setTab] = useState(0);
   const [complaints, setComplaints] = useState([]);
   const [issues, setIssues] = useState([]);
@@ -100,16 +154,10 @@ const ComplaintsPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [caretakers, setCaretakers] = useState([]);
   const [secretaryId, setSecretaryId] = useState(null);
-
-  // Complaint detail modal
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-
-  // Issue detail modal
   const [issueDetailOpen, setIssueDetailOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
-
-  // Create issue modal
   const [createIssueOpen, setCreateIssueOpen] = useState(false);
   const [issueForm, setIssueForm] = useState({
     assignedToId: "",
@@ -117,28 +165,20 @@ const ComplaintsPage = () => {
     description: "",
   });
   const [issueFormErrors, setIssueFormErrors] = useState({});
-
-  // Update issue status modal
   const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
   const [updateIssueId, setUpdateIssueId] = useState(null);
   const [newStatus, setNewStatus] = useState("PROCESSING");
-
-  // Complaint media upload states
   const [mediaUploadOpen, setMediaUploadOpen] = useState(false);
   const [mediaUploadComplaintId, setMediaUploadComplaintId] = useState(null);
   const [selectedMediaFiles, setSelectedMediaFiles] = useState([]);
   const [mediaPreviews, setMediaPreviews] = useState([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaType, setMediaType] = useState("IMAGE");
-
-  // Complaint media gallery states
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
   const [galleryMedia, setGalleryMedia] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [galleryComplaintTitle, setGalleryComplaintTitle] = useState("");
-
-  // Issue media upload states
   const [issueMediaUploadOpen, setIssueMediaUploadOpen] = useState(false);
   const [issueMediaUploadId, setIssueMediaUploadId] = useState(null);
   const [selectedIssueMediaFiles, setSelectedIssueMediaFiles] = useState([]);
@@ -146,8 +186,6 @@ const ComplaintsPage = () => {
   const [uploadingIssueMedia, setUploadingIssueMedia] = useState(false);
   const [issueMediaType, setIssueMediaType] = useState("IMAGE");
   const [issueMediaUploadedBy, setIssueMediaUploadedBy] = useState("SECRETARY");
-
-  // Issue media gallery states
   const [issueGalleryOpen, setIssueGalleryOpen] = useState(false);
   const [issueGalleryMedia, setIssueGalleryMedia] = useState([]);
   const [issueGalleryIndex, setIssueGalleryIndex] = useState(0);
@@ -185,11 +223,11 @@ const ComplaintsPage = () => {
     setActionLoading(true);
     try {
       await axiosInstance.put(`/api/complaint/${id}/resolve`);
-      showSuccess("Complaint resolved successfully");
+      showSuccess("Complaint resolved");
       setDetailOpen(false);
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to resolve");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
@@ -210,13 +248,13 @@ const ComplaintsPage = () => {
         title: issueForm.title,
         description: issueForm.description,
       });
-      showSuccess("Issue assigned to caretaker successfully");
+      showSuccess("Issue assigned to caretaker");
       setCreateIssueOpen(false);
       setIssueForm({ assignedToId: "", title: "", description: "" });
       setIssueFormErrors({});
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to create issue");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
@@ -228,36 +266,35 @@ const ComplaintsPage = () => {
       await axiosInstance.put(`/api/caretaker-issue/${updateIssueId}/status`, {
         status: newStatus,
       });
-      showSuccess("Issue status updated");
+      showSuccess("Status updated");
       setUpdateStatusOpen(false);
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to update status");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Complaint media handlers
   const handleMediaFileSelect = (e, type) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     if (type === "IMAGE") {
       const oversized = files.filter((f) => f.size > 5 * 1024 * 1024);
       if (oversized.length > 0) {
-        showError(`${oversized.length} image(s) exceed 5MB limit.`);
+        showError(`${oversized.length} image(s) exceed 5MB.`);
         e.target.value = "";
         return;
       }
     }
     if (type === "VIDEO") {
       if (files.length > 1) {
-        showError("Only 1 video allowed per upload.");
+        showError("Only 1 video allowed.");
         e.target.value = "";
         return;
       }
       if (files[0].size > 50 * 1024 * 1024) {
-        showError("Video size must be less than 50MB.");
+        showError("Video must be < 50MB.");
         e.target.value = "";
         return;
       }
@@ -269,7 +306,7 @@ const ComplaintsPage = () => {
 
   const handleUploadMedia = async () => {
     if (selectedMediaFiles.length === 0) {
-      showError("Please select files to upload");
+      showError("Please select files");
       return;
     }
     setUploadingMedia(true);
@@ -281,17 +318,15 @@ const ComplaintsPage = () => {
       await axiosInstance.post("/api/complaint/media", {
         complaintId: mediaUploadComplaintId,
         mediaUrls: urls,
-        mediaType: mediaType,
+        mediaType,
       });
-      showSuccess(
-        `${urls.length} ${mediaType.toLowerCase()}(s) uploaded successfully`,
-      );
+      showSuccess(`${urls.length} file(s) uploaded`);
       setMediaUploadOpen(false);
       setSelectedMediaFiles([]);
       setMediaPreviews([]);
       setMediaUploadComplaintId(null);
     } catch (err) {
-      showError(err.response?.data?.message || "Media upload failed");
+      showError(err.response?.data?.message || "Upload failed");
     } finally {
       setUploadingMedia(false);
     }
@@ -314,26 +349,25 @@ const ComplaintsPage = () => {
     }
   };
 
-  // Issue media handlers
   const handleIssueMediaFileSelect = (e, type) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     if (type === "IMAGE") {
       const oversized = files.filter((f) => f.size > 5 * 1024 * 1024);
       if (oversized.length > 0) {
-        showError(`${oversized.length} image(s) exceed 5MB limit.`);
+        showError(`${oversized.length} image(s) exceed 5MB.`);
         e.target.value = "";
         return;
       }
     }
     if (type === "VIDEO") {
       if (files.length > 1) {
-        showError("Only 1 video allowed per upload.");
+        showError("Only 1 video allowed.");
         e.target.value = "";
         return;
       }
       if (files[0].size > 50 * 1024 * 1024) {
-        showError("Video size must be less than 50MB.");
+        showError("Video must be < 50MB.");
         e.target.value = "";
         return;
       }
@@ -347,7 +381,7 @@ const ComplaintsPage = () => {
 
   const handleUploadIssueMedia = async () => {
     if (selectedIssueMediaFiles.length === 0) {
-      showError("Please select files to upload");
+      showError("Please select files");
       return;
     }
     setUploadingIssueMedia(true);
@@ -362,15 +396,13 @@ const ComplaintsPage = () => {
         mediaType: issueMediaType,
         uploadedBy: issueMediaUploadedBy,
       });
-      showSuccess(
-        `${urls.length} ${issueMediaType.toLowerCase()}(s) uploaded successfully`,
-      );
+      showSuccess(`${urls.length} file(s) uploaded`);
       setIssueMediaUploadOpen(false);
       setSelectedIssueMediaFiles([]);
       setIssueMediaPreviews([]);
       setIssueMediaUploadId(null);
     } catch (err) {
-      showError(err.response?.data?.message || "Media upload failed");
+      showError(err.response?.data?.message || "Upload failed");
     } finally {
       setUploadingIssueMedia(false);
     }
@@ -399,12 +431,12 @@ const ComplaintsPage = () => {
   const resolvedComplaints = complaints.filter((c) => c.status === "RESOLVED");
 
   const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {[...Array(5)].map((_, i) => (
         <Skeleton
           key={i}
           variant="rounded"
-          height={48}
+          height={44}
           sx={{ mb: 1, borderRadius: 1.5 }}
         />
       ))}
@@ -412,13 +444,13 @@ const ComplaintsPage = () => {
   );
 
   const EmptyState = ({ icon, message }) => (
-    <Box sx={{ textAlign: "center", py: 6 }}>
+    <Box sx={{ textAlign: "center", py: 5 }}>
       {icon}
       <Typography
         sx={{
           fontFamily: "Inter, sans-serif",
           color: "#94a3b8",
-          fontSize: "0.88rem",
+          fontSize: "0.85rem",
           mt: 1,
         }}
       >
@@ -427,215 +459,58 @@ const ComplaintsPage = () => {
     </Box>
   );
 
-  const ComplaintActionsCell = ({ c }) => (
-    <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-start" }}>
-      <Tooltip title="View Details">
-        <IconButton
-          size="small"
-          onClick={() => {
-            setSelected(c);
-            setDetailOpen(true);
-          }}
-          sx={{
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
-        >
-          <VisibilityIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Tooltip>
-      {c.status === "PENDING" ? (
-        <Tooltip title="Mark Resolved">
-          <IconButton
-            size="small"
-            onClick={() => handleResolve(c.id)}
-            disabled={actionLoading}
-            sx={{
-              color: "#059669",
-              bgcolor: "#dcfce7",
-              borderRadius: 1.5,
-              width: 28,
-              height: 28,
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 14 }} />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Already Resolved">
-          <IconButton
-            size="small"
-            disableRipple
-            sx={{
-              color: "#cbd5e1",
-              bgcolor: "#f1f5f9",
-              borderRadius: 1.5,
-              width: 28,
-              height: 28,
-              cursor: "default",
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 14 }} />
-          </IconButton>
-        </Tooltip>
-      )}
-      <Tooltip title="Upload Media">
-        <IconButton
-          size="small"
-          onClick={() => {
-            setMediaUploadComplaintId(c.id);
-            setMediaUploadOpen(true);
-          }}
-          sx={{
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
-        >
-          <CloudUploadIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="View Media">
-        <IconButton
-          size="small"
-          onClick={() => openMediaGallery(c)}
-          sx={{
-            color: "#d97706",
-            bgcolor: "#fef3c7",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
-        >
-          <ImageIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Tooltip>
+  const ActionBtns = ({ children }) => (
+    <Box
+      sx={{
+        display: "flex",
+        gap: 0.4,
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
+      }}
+    >
+      {children}
     </Box>
   );
 
-  const IssueActionsCell = ({ issue }) => (
-    <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-start" }}>
-      <Tooltip title="View Details">
+  const ABtn = ({ title, onClick, color, bgcolor, icon, disabled }) => (
+    <Tooltip title={title}>
+      <span>
         <IconButton
           size="small"
-          onClick={() => {
-            setSelectedIssue(issue);
-            setIssueDetailOpen(true);
-          }}
-          sx={{
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
+          onClick={onClick}
+          disabled={disabled}
+          sx={{ color, bgcolor, borderRadius: 1.5, width: 26, height: 26 }}
         >
-          <VisibilityIcon sx={{ fontSize: 14 }} />
+          {icon}
         </IconButton>
-      </Tooltip>
-      {issue.status !== "RESOLVED" ? (
-        <Tooltip title="Update Status">
-          <IconButton
-            size="small"
-            onClick={() => {
-              setUpdateIssueId(issue.id);
-              setNewStatus("PROCESSING");
-              setUpdateStatusOpen(true);
-            }}
-            sx={{
-              color: "#7c3aed",
-              bgcolor: "#f3e8ff",
-              borderRadius: 1.5,
-              width: 28,
-              height: 28,
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 14 }} />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Already Resolved">
-          <IconButton
-            size="small"
-            disableRipple
-            sx={{
-              color: "#cbd5e1",
-              bgcolor: "#f1f5f9",
-              borderRadius: 1.5,
-              width: 28,
-              height: 28,
-              cursor: "default",
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 14 }} />
-          </IconButton>
-        </Tooltip>
-      )}
-      <Tooltip title="Upload Issue Media">
-        <IconButton
-          size="small"
-          onClick={() => {
-            setIssueMediaUploadId(issue.id);
-            setIssueMediaUploadedBy("SECRETARY");
-            setIssueMediaUploadOpen(true);
-          }}
-          sx={{
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
-        >
-          <CloudUploadIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="View Issue Media">
-        <IconButton
-          size="small"
-          onClick={() => openIssueGallery(issue)}
-          sx={{
-            color: "#d97706",
-            bgcolor: "#fef3c7",
-            borderRadius: 1.5,
-            width: 28,
-            height: 28,
-          }}
-        >
-          <ImageIcon sx={{ fontSize: 14 }} />
-        </IconButton>
-      </Tooltip>
-    </Box>
+      </span>
+    </Tooltip>
   );
 
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.2 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#fee2e2",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <ReportProblemIcon sx={{ color: "#dc2626", fontSize: 20 }} />
+          <ReportProblemIcon sx={{ color: "#dc2626", fontSize: 18 }} />
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -644,76 +519,88 @@ const ComplaintsPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            Manage resident complaints and caretaker issues
+            {isMobile
+              ? "Complaints & caretaker tasks"
+              : "Manage resident complaints and caretaker issues"}
           </Typography>
         </Box>
         <Button
           variant="contained"
           size="small"
-          startIcon={<AddIcon fontSize="small" />}
+          startIcon={<AddIcon sx={{ fontSize: "13px !important" }} />}
           onClick={() => setCreateIssueOpen(true)}
           sx={{
             bgcolor: "#0891b2",
             borderRadius: 2,
             fontFamily: "Inter, sans-serif",
             fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
+            fontSize: { xs: "0.68rem", sm: "0.78rem" },
+            px: { xs: 1, sm: 1.5 },
+            whiteSpace: "nowrap",
+            flexShrink: 0,
             boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
             "&:hover": { bgcolor: "#0e7490" },
           }}
         >
-          Assign Issue
+          {isMobile ? "Issue" : "Assign Issue"}
         </Button>
       </Box>
 
-      {/* Stats Row */}
+      {/* Stats */}
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 2,
-          mb: 2.5,
+          gridTemplateColumns: { xs: "1fr 1fr 1fr", sm: "repeat(3, 1fr)" },
+          gap: { xs: 1, sm: 1.5, md: 2 },
+          mb: 2,
         }}
       >
         {[
           {
-            label: "Total Complaints",
+            label: isMobile ? "Complaints" : "Total Complaints",
             value: complaints.length,
             color: "#dc2626",
           },
           {
-            label: "Pending Complaints",
+            label: isMobile ? "Pending" : "Pending Complaints",
             value: pendingComplaints.length,
             color: "#d97706",
           },
-          { label: "Caretaker Issues", value: issues.length, color: "#0891b2" },
+          {
+            label: isMobile ? "Issues" : "Caretaker Issues",
+            value: issues.length,
+            color: "#0891b2",
+          },
         ].map((stat) => (
           <Paper
             key={stat.label}
             elevation={0}
             sx={{
-              p: 2,
+              p: { xs: 1.2, sm: 2 },
               borderRadius: 3,
               border: "1px solid #e0f2fe",
               boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.5,
             }}
           >
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.7rem",
+                fontSize: { xs: "0.58rem", sm: "0.7rem" },
                 fontWeight: 600,
                 color: "#94a3b8",
                 textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                letterSpacing: "0.04em",
+                mb: 0.3,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {stat.label}
@@ -721,7 +608,7 @@ const ComplaintsPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "1.5rem",
+                fontSize: { xs: "1.2rem", sm: "1.5rem" },
                 fontWeight: 800,
                 color: stat.color,
               }}
@@ -744,26 +631,30 @@ const ComplaintsPage = () => {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.68rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
+              px: { xs: 1.2, sm: 2 },
             },
             "& .Mui-selected": { color: "#0891b2" },
             "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
           }}
         >
-          <Tab label={`All Complaints (${complaints.length})`} />
+          <Tab label={`All (${complaints.length})`} />
           <Tab label={`Pending (${pendingComplaints.length})`} />
           <Tab label={`Resolved (${resolvedComplaints.length})`} />
           <Tab
-            label={`Caretaker Issues (${issues.length})`}
-            icon={<EngineeringIcon sx={{ fontSize: 16 }} />}
+            label={`Issues (${issues.length})`}
+            icon={<EngineeringIcon sx={{ fontSize: 14 }} />}
             iconPosition="start"
           />
         </Tabs>
@@ -785,7 +676,7 @@ const ComplaintsPage = () => {
                     <EmptyState
                       icon={
                         <ReportProblemIcon
-                          sx={{ fontSize: 48, color: "#cbd5e1" }}
+                          sx={{ fontSize: 40, color: "#cbd5e1" }}
                         />
                       }
                       message="No complaints found"
@@ -793,7 +684,7 @@ const ComplaintsPage = () => {
                   );
                 return (
                   <TableContainer sx={{ overflowX: "auto" }}>
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 520 }}>
                       <TableHead>
                         <TableRow>
                           <TableCell sx={headSx}>Raised By</TableCell>
@@ -816,15 +707,15 @@ const ComplaintsPage = () => {
                                 sx={{
                                   display: "flex",
                                   alignItems: "center",
-                                  gap: 1,
+                                  gap: 0.8,
                                 }}
                               >
                                 <Avatar
                                   sx={{
-                                    width: 28,
-                                    height: 28,
+                                    width: 24,
+                                    height: 24,
                                     bgcolor: "#fee2e2",
-                                    fontSize: "0.75rem",
+                                    fontSize: "0.65rem",
                                     color: "#dc2626",
                                     fontWeight: 700,
                                   }}
@@ -834,7 +725,7 @@ const ComplaintsPage = () => {
                                 <Typography
                                   sx={{
                                     fontFamily: "Inter, sans-serif",
-                                    fontSize: "0.82rem",
+                                    fontSize: "0.78rem",
                                     fontWeight: 600,
                                   }}
                                 >
@@ -842,13 +733,12 @@ const ComplaintsPage = () => {
                                 </Typography>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ ...cellSx, maxWidth: 200 }}>
+                            <TableCell sx={{ ...cellSx, maxWidth: 160 }}>
                               <Typography
                                 noWrap
                                 sx={{
                                   fontFamily: "Inter, sans-serif",
-                                  fontSize: "0.82rem",
-                                  color: "#1e293b",
+                                  fontSize: "0.78rem",
                                 }}
                               >
                                 {c.subject}
@@ -862,9 +752,9 @@ const ComplaintsPage = () => {
                                   bgcolor: "#f1f5f9",
                                   color: "#475569",
                                   fontWeight: 600,
-                                  fontSize: "0.68rem",
+                                  fontSize: "0.6rem",
                                   fontFamily: "Inter, sans-serif",
-                                  height: 20,
+                                  height: 18,
                                 }}
                               />
                             </TableCell>
@@ -878,8 +768,63 @@ const ComplaintsPage = () => {
                                   )
                                 : "—"}
                             </TableCell>
-                            <TableCell sx={{ py: 1 }}>
-                              <ComplaintActionsCell c={c} />
+                            <TableCell
+                              sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                            >
+                              <ActionBtns>
+                                <ABtn
+                                  title="View"
+                                  onClick={() => {
+                                    setSelected(c);
+                                    setDetailOpen(true);
+                                  }}
+                                  color="#0891b2"
+                                  bgcolor="#e0f2fe"
+                                  icon={
+                                    <VisibilityIcon sx={{ fontSize: 13 }} />
+                                  }
+                                />
+                                {c.status === "PENDING" ? (
+                                  <ABtn
+                                    title="Resolve"
+                                    onClick={() => handleResolve(c.id)}
+                                    disabled={actionLoading}
+                                    color="#059669"
+                                    bgcolor="#dcfce7"
+                                    icon={
+                                      <CheckCircleIcon sx={{ fontSize: 13 }} />
+                                    }
+                                  />
+                                ) : (
+                                  <ABtn
+                                    title="Resolved"
+                                    color="#cbd5e1"
+                                    bgcolor="#f1f5f9"
+                                    icon={
+                                      <CheckCircleIcon sx={{ fontSize: 13 }} />
+                                    }
+                                  />
+                                )}
+                                <ABtn
+                                  title="Upload Media"
+                                  onClick={() => {
+                                    setMediaUploadComplaintId(c.id);
+                                    setMediaUploadOpen(true);
+                                  }}
+                                  color="#7c3aed"
+                                  bgcolor="#f3e8ff"
+                                  icon={
+                                    <CloudUploadIcon sx={{ fontSize: 13 }} />
+                                  }
+                                />
+                                <ABtn
+                                  title="View Media"
+                                  onClick={() => openMediaGallery(c)}
+                                  color="#d97706"
+                                  bgcolor="#fef3c7"
+                                  icon={<ImageIcon sx={{ fontSize: 13 }} />}
+                                />
+                              </ActionBtns>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -893,18 +838,18 @@ const ComplaintsPage = () => {
               (issues.length === 0 ? (
                 <EmptyState
                   icon={
-                    <EngineeringIcon sx={{ fontSize: 48, color: "#cbd5e1" }} />
+                    <EngineeringIcon sx={{ fontSize: 40, color: "#cbd5e1" }} />
                   }
                   message="No caretaker issues assigned yet"
                 />
               ) : (
                 <TableContainer sx={{ overflowX: "auto" }}>
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 520 }}>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={headSx}>Assigned To</TableCell>
                         <TableCell sx={headSx}>Title</TableCell>
-                        <TableCell sx={headSx}>Assigned By</TableCell>
+                        <TableCell sx={headSx}>By</TableCell>
                         <TableCell sx={headSx}>Status</TableCell>
                         <TableCell sx={headSx}>Date</TableCell>
                         <TableCell sx={headSx}>Actions</TableCell>
@@ -922,15 +867,15 @@ const ComplaintsPage = () => {
                               sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 1,
+                                gap: 0.8,
                               }}
                             >
                               <Avatar
                                 sx={{
-                                  width: 28,
-                                  height: 28,
+                                  width: 24,
+                                  height: 24,
                                   bgcolor: "#e0f2fe",
-                                  fontSize: "0.75rem",
+                                  fontSize: "0.65rem",
                                   color: "#0891b2",
                                   fontWeight: 700,
                                 }}
@@ -940,7 +885,7 @@ const ComplaintsPage = () => {
                               <Typography
                                 sx={{
                                   fontFamily: "Inter, sans-serif",
-                                  fontSize: "0.82rem",
+                                  fontSize: "0.78rem",
                                   fontWeight: 600,
                                 }}
                               >
@@ -948,12 +893,12 @@ const ComplaintsPage = () => {
                               </Typography>
                             </Box>
                           </TableCell>
-                          <TableCell sx={{ ...cellSx, maxWidth: 200 }}>
+                          <TableCell sx={{ ...cellSx, maxWidth: 160 }}>
                             <Typography
                               noWrap
                               sx={{
                                 fontFamily: "Inter, sans-serif",
-                                fontSize: "0.82rem",
+                                fontSize: "0.78rem",
                               }}
                             >
                               {issue.title}
@@ -972,8 +917,63 @@ const ComplaintsPage = () => {
                                 )
                               : "—"}
                           </TableCell>
-                          <TableCell sx={{ py: 1 }}>
-                            <IssueActionsCell issue={issue} />
+                          <TableCell
+                            sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                          >
+                            <ActionBtns>
+                              <ABtn
+                                title="View"
+                                onClick={() => {
+                                  setSelectedIssue(issue);
+                                  setIssueDetailOpen(true);
+                                }}
+                                color="#0891b2"
+                                bgcolor="#e0f2fe"
+                                icon={<VisibilityIcon sx={{ fontSize: 13 }} />}
+                              />
+                              {issue.status !== "RESOLVED" ? (
+                                <ABtn
+                                  title="Update Status"
+                                  onClick={() => {
+                                    setUpdateIssueId(issue.id);
+                                    setNewStatus("PROCESSING");
+                                    setUpdateStatusOpen(true);
+                                  }}
+                                  color="#7c3aed"
+                                  bgcolor="#f3e8ff"
+                                  icon={
+                                    <CheckCircleIcon sx={{ fontSize: 13 }} />
+                                  }
+                                />
+                              ) : (
+                                <ABtn
+                                  title="Resolved"
+                                  color="#cbd5e1"
+                                  bgcolor="#f1f5f9"
+                                  icon={
+                                    <CheckCircleIcon sx={{ fontSize: 13 }} />
+                                  }
+                                />
+                              )}
+                              <ABtn
+                                title="Upload Media"
+                                onClick={() => {
+                                  setIssueMediaUploadId(issue.id);
+                                  setIssueMediaUploadedBy("SECRETARY");
+                                  setIssueMediaUploadOpen(true);
+                                }}
+                                color="#7c3aed"
+                                bgcolor="#f3e8ff"
+                                icon={<CloudUploadIcon sx={{ fontSize: 13 }} />}
+                              />
+                              <ABtn
+                                title="View Media"
+                                onClick={() => openIssueGallery(issue)}
+                                color="#d97706"
+                                bgcolor="#fef3c7"
+                                icon={<ImageIcon sx={{ fontSize: 13 }} />}
+                              />
+                            </ActionBtns>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -989,87 +989,53 @@ const ComplaintsPage = () => {
       <Dialog
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <ReportProblemIcon sx={{ color: "#dc2626", fontSize: 18 }} />
+          <ReportProblemIcon sx={{ color: "#dc2626", fontSize: 16 }} />
           Complaint Details
           {selected && <StatusChip status={selected.status} />}
         </DialogTitle>
         {selected && (
-          <DialogContent sx={{ pt: 2 }}>
-            {[
-              ["Raised By", selected.raisedByName || "Unknown"],
-              ["Subject", selected.subject],
-              ["Target Type", selected.targetType || "ALL"],
-              ["Target Resident", selected.targetResidentName || "—"],
-              ["Status", selected.status],
-              [
-                "Submitted On",
-                new Date(selected.createdAt).toLocaleString("en-IN"),
-              ],
-              ...(selected.resolvedAt
-                ? [
-                    [
-                      "Resolved On",
-                      new Date(selected.resolvedAt).toLocaleString("en-IN"),
-                    ],
-                  ]
-                : []),
-            ].map(([label, value]) => (
-              <Box
-                key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                  alignItems: "flex-start",
-                  gap: 2,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                    flexShrink: 0,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: "#1e293b",
-                    fontWeight: 600,
-                    textAlign: "right",
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
-            ))}
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
+            <DetailRow
+              label="Raised By"
+              value={selected.raisedByName || "Unknown"}
+            />
+            <DetailRow label="Subject" value={selected.subject} />
+            <DetailRow label="Target" value={selected.targetType || "ALL"} />
+            <DetailRow label="Status" value={selected.status} />
+            <DetailRow
+              label="Submitted"
+              value={new Date(selected.createdAt).toLocaleString("en-IN")}
+            />
+            {selected.resolvedAt && (
+              <DetailRow
+                label="Resolved"
+                value={new Date(selected.resolvedAt).toLocaleString("en-IN")}
+              />
+            )}
             <Box
               sx={{
                 mt: 1.5,
-                p: 1.5,
+                p: 1.2,
                 bgcolor: "#fef2f2",
                 borderRadius: 2,
                 border: "1px solid #fecaca",
@@ -1078,12 +1044,12 @@ const ComplaintsPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.7rem",
+                  fontSize: "0.62rem",
                   fontWeight: 700,
                   color: "#dc2626",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  mb: 0.8,
+                  mb: 0.6,
                 }}
               >
                 Description
@@ -1091,7 +1057,7 @@ const ComplaintsPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.85rem",
+                  fontSize: { xs: "0.75rem", sm: "0.85rem" },
                   color: "#1e293b",
                   lineHeight: 1.7,
                   whiteSpace: "pre-wrap",
@@ -1102,13 +1068,17 @@ const ComplaintsPage = () => {
             </Box>
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => setDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -1116,12 +1086,16 @@ const ComplaintsPage = () => {
           {selected?.status === "PENDING" && (
             <Button
               variant="contained"
+              size="small"
               onClick={() => handleResolve(selected?.id)}
               disabled={actionLoading}
-              startIcon={<CheckCircleIcon fontSize="small" />}
+              startIcon={
+                <CheckCircleIcon sx={{ fontSize: "13px !important" }} />
+              }
               sx={{
                 fontFamily: "Inter, sans-serif",
                 textTransform: "none",
+                fontSize: "0.78rem",
                 bgcolor: "#059669",
                 borderRadius: 2,
                 "&:hover": { bgcolor: "#047857" },
@@ -1137,88 +1111,58 @@ const ComplaintsPage = () => {
       <Dialog
         open={issueDetailOpen}
         onClose={() => setIssueDetailOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Issue Details
           {selectedIssue && <StatusChip status={selectedIssue.status} />}
         </DialogTitle>
         {selectedIssue && (
-          <DialogContent sx={{ pt: 2 }}>
-            {[
-              ["Assigned To", selectedIssue.assignedToName || "—"],
-              ["Assigned By", selectedIssue.assignedByName || "—"],
-              ["Title", selectedIssue.title],
-              ["Status", selectedIssue.status],
-              [
-                "Assigned On",
-                new Date(selectedIssue.createdAt).toLocaleString("en-IN"),
-              ],
-              ...(selectedIssue.resolvedAt
-                ? [
-                    [
-                      "Resolved On",
-                      new Date(selectedIssue.resolvedAt).toLocaleString(
-                        "en-IN",
-                      ),
-                    ],
-                  ]
-                : []),
-            ].map(([label, value]) => (
-              <Box
-                key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                  alignItems: "flex-start",
-                  gap: 2,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                    flexShrink: 0,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: "#1e293b",
-                    fontWeight: 600,
-                    textAlign: "right",
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
-            ))}
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
+            <DetailRow
+              label="Assigned To"
+              value={selectedIssue.assignedToName || "—"}
+            />
+            <DetailRow
+              label="Assigned By"
+              value={selectedIssue.assignedByName || "—"}
+            />
+            <DetailRow label="Title" value={selectedIssue.title} />
+            <DetailRow label="Status" value={selectedIssue.status} />
+            <DetailRow
+              label="Assigned On"
+              value={new Date(selectedIssue.createdAt).toLocaleString("en-IN")}
+            />
+            {selectedIssue.resolvedAt && (
+              <DetailRow
+                label="Resolved On"
+                value={new Date(selectedIssue.resolvedAt).toLocaleString(
+                  "en-IN",
+                )}
+              />
+            )}
             <Box
               sx={{
                 mt: 1.5,
-                p: 1.5,
+                p: 1.2,
                 bgcolor: "#f8fbff",
                 borderRadius: 2,
                 border: "1px solid #e0f2fe",
@@ -1227,12 +1171,12 @@ const ComplaintsPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.7rem",
+                  fontSize: "0.62rem",
                   fontWeight: 700,
                   color: "#0891b2",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  mb: 0.8,
+                  mb: 0.6,
                 }}
               >
                 Description
@@ -1240,7 +1184,7 @@ const ComplaintsPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.85rem",
+                  fontSize: { xs: "0.75rem", sm: "0.85rem" },
                   color: "#1e293b",
                   lineHeight: 1.7,
                   whiteSpace: "pre-wrap",
@@ -1251,13 +1195,15 @@ const ComplaintsPage = () => {
             </Box>
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setIssueDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -1273,35 +1219,43 @@ const ComplaintsPage = () => {
           setIssueForm({ assignedToId: "", title: "", description: "" });
           setIssueFormErrors({});
         }}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Assign Issue to Caretaker
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <FormControl
               size="small"
               fullWidth
               error={!!issueFormErrors.assignedToId}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             >
-              <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+              <InputLabel
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
+                }}
+              >
                 Select Caretaker *
               </InputLabel>
               <Select
@@ -1310,14 +1264,21 @@ const ComplaintsPage = () => {
                   setIssueForm({ ...issueForm, assignedToId: e.target.value })
                 }
                 label="Select Caretaker *"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
+                }}
               >
                 {caretakers.length === 0 ? (
                   <MenuItem
                     disabled
-                    sx={{ fontFamily: "Inter, sans-serif", color: "#94a3b8" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      color: "#94a3b8",
+                      fontSize: "0.82rem",
+                    }}
                   >
-                    No active caretakers found
+                    No active caretakers
                   </MenuItem>
                 ) : (
                   caretakers.map((c) => (
@@ -1327,15 +1288,15 @@ const ComplaintsPage = () => {
                       sx={{ fontFamily: "Inter, sans-serif" }}
                     >
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
                         <Avatar
                           src={c.photoUrl || undefined}
                           sx={{
-                            width: 24,
-                            height: 24,
+                            width: 22,
+                            height: 22,
                             bgcolor: "#e0f2fe",
-                            fontSize: "0.7rem",
+                            fontSize: "0.62rem",
                             color: "#0891b2",
                             fontWeight: 700,
                           }}
@@ -1346,7 +1307,7 @@ const ComplaintsPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.85rem",
+                              fontSize: { xs: "0.78rem", sm: "0.85rem" },
                               fontWeight: 600,
                               color: "#1e293b",
                             }}
@@ -1356,11 +1317,11 @@ const ComplaintsPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.7rem",
+                              fontSize: { xs: "0.62rem", sm: "0.7rem" },
                               color: "#64748b",
                             }}
                           >
-                            Serial #{c.serialNumber} • {c.mobileNumber}
+                            #{c.serialNumber}
                           </Typography>
                         </Box>
                       </Box>
@@ -1372,7 +1333,7 @@ const ComplaintsPage = () => {
                 <Typography
                   sx={{
                     color: "#d32f2f",
-                    fontSize: "0.72rem",
+                    fontSize: "0.62rem",
                     mt: 0.5,
                     ml: 1.5,
                     fontFamily: "Inter, sans-serif",
@@ -1392,7 +1353,7 @@ const ComplaintsPage = () => {
               fullWidth
               error={!!issueFormErrors.title}
               helperText={issueFormErrors.title}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Description *"
@@ -1406,32 +1367,38 @@ const ComplaintsPage = () => {
               rows={3}
               error={!!issueFormErrors.description}
               helperText={issueFormErrors.description}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setCreateIssueOpen(false);
               setIssueForm({ assignedToId: "", title: "", description: "" });
               setIssueFormErrors({});
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleCreateIssue}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               borderRadius: 2,
               "&:hover": { bgcolor: "#0e7490" },
@@ -1442,76 +1409,93 @@ const ComplaintsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Update Issue Status Modal */}
+      {/* Update Status Modal */}
       <Dialog
         open={updateStatusOpen}
         onClose={() => setUpdateStatusOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Update Issue Status
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <FormControl size="small" fullWidth sx={fieldStyle}>
-            <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <FormControl size="small" fullWidth sx={fieldStyle(isMobile)}>
+            <InputLabel
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: isMobile ? "0.78rem" : "0.875rem",
+              }}
+            >
               Status
             </InputLabel>
             <Select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
               label="Status"
-              sx={{ fontFamily: "Inter, sans-serif" }}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: isMobile ? "0.78rem" : "0.875rem",
+              }}
             >
               <MenuItem
                 value="PENDING"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
               >
                 Pending
               </MenuItem>
               <MenuItem
                 value="PROCESSING"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
               >
                 Processing
               </MenuItem>
               <MenuItem
                 value="RESOLVED"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
               >
                 Resolved
               </MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => setUpdateStatusOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleUpdateStatus}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#7c3aed",
               borderRadius: 2,
               "&:hover": { bgcolor: "#6d28d9" },
@@ -1522,548 +1506,457 @@ const ComplaintsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Complaint Media Upload Modal */}
-      <Dialog
-        open={mediaUploadOpen}
-        onClose={() => {
-          setMediaUploadOpen(false);
-          setSelectedMediaFiles([]);
-          setMediaPreviews([]);
-        }}
-        maxWidth="sm"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
-      >
-        <DialogTitle
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 700,
-            fontSize: "1rem",
-            color: "#1e293b",
-            borderBottom: "1px solid #e0f2fe",
-            py: 2,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <CloudUploadIcon sx={{ color: "#7c3aed", fontSize: 18 }} />
-          Upload Complaint Media
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "#f3e8ff",
-                borderRadius: 2,
-                border: "1px dashed #7c3aed",
-              }}
-            >
-              <Typography
+      {/* Media Upload Helper */}
+      {[
+        {
+          open: mediaUploadOpen,
+          onClose: () => {
+            setMediaUploadOpen(false);
+            setSelectedMediaFiles([]);
+            setMediaPreviews([]);
+          },
+          title: "Upload Complaint Media",
+          color: "#7c3aed",
+          bgcolor: "#f3e8ff",
+          dashed: "#7c3aed",
+          previews: mediaPreviews,
+          files: selectedMediaFiles,
+          uploading: uploadingMedia,
+          onSelect: handleMediaFileSelect,
+          onUpload: handleUploadMedia,
+          type: mediaType,
+          hint: "Images max 5MB • Video max 50MB (1 file)",
+        },
+        {
+          open: issueMediaUploadOpen,
+          onClose: () => {
+            setIssueMediaUploadOpen(false);
+            setSelectedIssueMediaFiles([]);
+            setIssueMediaPreviews([]);
+          },
+          title: "Upload Issue Media",
+          color: "#0891b2",
+          bgcolor: "#e0f2fe",
+          dashed: "#0891b2",
+          previews: issueMediaPreviews,
+          files: selectedIssueMediaFiles,
+          uploading: uploadingIssueMedia,
+          onSelect: handleIssueMediaFileSelect,
+          onUpload: handleUploadIssueMedia,
+          type: issueMediaType,
+          hint: "Images max 5MB • Video max 50MB (1 file)",
+          extra: (
+            <FormControl size="small" sx={fieldStyle(isMobile)}>
+              <InputLabel
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.82rem",
-                  color: "#7c3aed",
-                  fontWeight: 600,
-                  mb: 0.5,
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
                 }}
               >
-                Upload images or video related to this complaint
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
-                  color: "#94a3b8",
-                }}
-              >
-                Images: JPG, PNG max 5MB each. Video: MP4 max 50MB (1 file).
-              </Typography>
-            </Box>
-            <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
-            >
-              <Button
-                variant="outlined"
-                component="label"
-                fullWidth
-                startIcon={<ImageIcon />}
-                sx={{
-                  borderRadius: 2,
-                  borderColor: "#7c3aed",
-                  color: "#7c3aed",
-                  fontFamily: "Inter, sans-serif",
-                  textTransform: "none",
-                  py: 1.2,
-                }}
-              >
-                Upload Images
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleMediaFileSelect(e, "IMAGE")}
-                />
-              </Button>
-              <Button
-                variant="outlined"
-                component="label"
-                fullWidth
-                startIcon={<PlayCircleIcon />}
-                sx={{
-                  borderRadius: 2,
-                  borderColor: "#d97706",
-                  color: "#d97706",
-                  fontFamily: "Inter, sans-serif",
-                  textTransform: "none",
-                  py: 1.2,
-                }}
-              >
-                Upload Video
-                <input
-                  type="file"
-                  hidden
-                  accept="video/*"
-                  onChange={(e) => handleMediaFileSelect(e, "VIDEO")}
-                />
-              </Button>
-            </Box>
-            {mediaPreviews.length > 0 && (
-              <Box>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    color: "#64748b",
-                    mb: 1,
-                  }}
-                >
-                  Selected ({mediaPreviews.length} {mediaType.toLowerCase()}
-                  (s)):
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {mediaPreviews.map((item, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 1.5,
-                        overflow: "hidden",
-                        border: "2px solid #e0f2fe",
-                      }}
-                    >
-                      {item.type === "IMAGE" ? (
-                        <Box
-                          component="img"
-                          src={item.url}
-                          alt={`preview-${i}`}
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            bgcolor: "#1e293b",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <PlayCircleIcon
-                            sx={{ color: "#d97706", fontSize: 32 }}
-                          />
-                        </Box>
-                      )}
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
-          <Button
-            onClick={() => {
-              setMediaUploadOpen(false);
-              setSelectedMediaFiles([]);
-              setMediaPreviews([]);
-            }}
-            sx={{
-              fontFamily: "Inter, sans-serif",
-              color: "#64748b",
-              textTransform: "none",
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleUploadMedia}
-            disabled={uploadingMedia || selectedMediaFiles.length === 0}
-            startIcon={
-              uploadingMedia ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <CloudUploadIcon fontSize="small" />
-              )
-            }
-            sx={{
-              fontFamily: "Inter, sans-serif",
-              textTransform: "none",
-              bgcolor: "#7c3aed",
-              borderRadius: 2,
-              "&:hover": { bgcolor: "#6d28d9" },
-            }}
-          >
-            {uploadingMedia
-              ? "Uploading..."
-              : `Upload ${selectedMediaFiles.length} File(s)`}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Complaint Media Gallery Modal */}
-      <Dialog
-        open={mediaGalleryOpen}
-        onClose={() => {
-          setMediaGalleryOpen(false);
-          setGalleryMedia([]);
-        }}
-        maxWidth="md"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
-      >
-        <DialogTitle
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 700,
-            fontSize: "0.9rem",
-            color: "white",
-            borderBottom: "1px solid #1e293b",
-            py: 1.5,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ImageIcon sx={{ color: "#d97706", fontSize: 18 }} />
-            <Typography
-              noWrap
-              sx={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.85rem",
-                color: "white",
-                fontWeight: 600,
-              }}
-            >
-              {galleryComplaintTitle}
-            </Typography>
-            {galleryMedia.length > 0 && (
-              <Chip
-                label={`${galleryMedia.length} files`}
-                size="small"
-                sx={{
-                  bgcolor: "#1e293b",
-                  color: "#94a3b8",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.68rem",
-                  height: 20,
-                }}
-              />
-            )}
-          </Box>
-          <IconButton
-            size="small"
-            onClick={() => {
-              setMediaGalleryOpen(false);
-              setGalleryMedia([]);
-            }}
-            sx={{ color: "white" }}
-          >
-            <CancelIcon fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 2, bgcolor: "#0f172a" }}>
-          {loadingMedia ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-              <CircularProgress sx={{ color: "#d97706" }} />
-            </Box>
-          ) : galleryMedia.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <ImageIcon sx={{ fontSize: 48, color: "#334155", mb: 1 }} />
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  color: "#64748b",
-                  fontSize: "0.88rem",
-                }}
-              >
-                No media uploaded for this complaint
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box
-                sx={{
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  bgcolor: "#1e293b",
-                  minHeight: 300,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {galleryMedia[galleryIndex]?.mediaType === "IMAGE" ? (
-                  <Box
-                    component="img"
-                    src={galleryMedia[galleryIndex]?.mediaUrl}
-                    alt="complaint media"
-                    sx={{ width: "100%", maxHeight: 400, objectFit: "contain" }}
-                  />
-                ) : (
-                  <Box
-                    component="video"
-                    src={galleryMedia[galleryIndex]?.mediaUrl}
-                    controls
-                    sx={{ width: "100%", maxHeight: 400 }}
-                  />
-                )}
-              </Box>
-              <Box sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1 }}>
-                {galleryMedia.map((item, i) => (
-                  <Box
-                    key={item.id}
-                    onClick={() => setGalleryIndex(i)}
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      flexShrink: 0,
-                      borderRadius: 1.5,
-                      overflow: "hidden",
-                      border:
-                        i === galleryIndex
-                          ? "2px solid #d97706"
-                          : "2px solid #1e293b",
-                      cursor: "pointer",
-                      opacity: i === galleryIndex ? 1 : 0.6,
-                      transition: "all 0.2s",
-                      bgcolor: "#0f172a",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {item.mediaType === "IMAGE" ? (
-                      <Box
-                        component="img"
-                        src={item.mediaUrl}
-                        alt={`thumb-${i}`}
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <PlayCircleIcon sx={{ color: "#d97706", fontSize: 28 }} />
-                    )}
-                  </Box>
-                ))}
-              </Box>
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
-                  color: "#64748b",
-                  textAlign: "center",
-                }}
-              >
-                {galleryIndex + 1} / {galleryMedia.length} —{" "}
-                {galleryMedia[galleryIndex]?.mediaType}
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Issue Media Upload Modal */}
-      <Dialog
-        open={issueMediaUploadOpen}
-        onClose={() => {
-          setIssueMediaUploadOpen(false);
-          setSelectedIssueMediaFiles([]);
-          setIssueMediaPreviews([]);
-        }}
-        maxWidth="sm"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
-      >
-        <DialogTitle
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 700,
-            fontSize: "1rem",
-            color: "#1e293b",
-            borderBottom: "1px solid #e0f2fe",
-            py: 2,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <CloudUploadIcon sx={{ color: "#0891b2", fontSize: 18 }} />
-          Upload Issue Media
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "#f0f9ff",
-                borderRadius: 2,
-                border: "1px dashed #0891b2",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.82rem",
-                  color: "#0891b2",
-                  fontWeight: 600,
-                  mb: 0.5,
-                }}
-              >
-                Upload media related to this caretaker issue
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
-                  color: "#94a3b8",
-                }}
-              >
-                Images: JPG, PNG max 5MB each. Video: MP4 max 50MB (1 file).
-              </Typography>
-            </Box>
-
-            {/* Uploaded by selector */}
-            <FormControl size="small" sx={fieldStyle}>
-              <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
                 Uploaded By
               </InputLabel>
               <Select
                 value={issueMediaUploadedBy}
                 onChange={(e) => setIssueMediaUploadedBy(e.target.value)}
                 label="Uploaded By"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
+                }}
               >
                 <MenuItem
                   value="SECRETARY"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
                 >
                   Secretary
                 </MenuItem>
                 <MenuItem
                   value="CARETAKER"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
                 >
                   Caretaker
                 </MenuItem>
               </Select>
             </FormControl>
-
-            <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
-            >
-              <Button
-                variant="outlined"
-                component="label"
-                fullWidth
-                startIcon={<ImageIcon />}
+          ),
+        },
+      ].map((m, idx) => (
+        <Dialog
+          key={idx}
+          open={m.open}
+          onClose={m.onClose}
+          maxWidth="xs"
+          fullWidth
+          slotProps={{
+            paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 700,
+              fontSize: { xs: "0.88rem", sm: "1rem" },
+              color: "#1e293b",
+              borderBottom: "1px solid #e0f2fe",
+              py: 1.5,
+              px: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <CloudUploadIcon sx={{ color: m.color, fontSize: 16 }} />
+            {m.title}
+          </DialogTitle>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box
                 sx={{
+                  p: 1.2,
                   borderRadius: 2,
-                  borderColor: "#0891b2",
-                  color: "#0891b2",
-                  fontFamily: "Inter, sans-serif",
-                  textTransform: "none",
-                  py: 1.2,
+                  border: `1px dashed ${m.dashed}`,
+                  bgcolor: m.bgcolor + "33",
                 }}
               >
-                Upload Images
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleIssueMediaFileSelect(e, "IMAGE")}
-                />
-              </Button>
-              <Button
-                variant="outlined"
-                component="label"
-                fullWidth
-                startIcon={<PlayCircleIcon />}
-                sx={{
-                  borderRadius: 2,
-                  borderColor: "#d97706",
-                  color: "#d97706",
-                  fontFamily: "Inter, sans-serif",
-                  textTransform: "none",
-                  py: 1.2,
-                }}
-              >
-                Upload Video
-                <input
-                  type="file"
-                  hidden
-                  accept="video/*"
-                  onChange={(e) => handleIssueMediaFileSelect(e, "VIDEO")}
-                />
-              </Button>
-            </Box>
-
-            {issueMediaPreviews.length > 0 && (
-              <Box>
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
                     color: "#64748b",
-                    mb: 1,
                   }}
                 >
-                  Selected ({issueMediaPreviews.length}{" "}
-                  {issueMediaType.toLowerCase()}(s)):
+                  {m.hint}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {issueMediaPreviews.map((item, i) => (
+              </Box>
+              {m.extra}
+              <Box
+                sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}
+              >
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  fullWidth
+                  startIcon={<ImageIcon sx={{ fontSize: "13px !important" }} />}
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: m.color,
+                    color: m.color,
+                    fontFamily: "Inter, sans-serif",
+                    textTransform: "none",
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
+                    py: 0.8,
+                  }}
+                >
+                  Images
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => m.onSelect(e, "IMAGE")}
+                  />
+                </Button>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  fullWidth
+                  startIcon={
+                    <PlayCircleIcon sx={{ fontSize: "13px !important" }} />
+                  }
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: "#d97706",
+                    color: "#d97706",
+                    fontFamily: "Inter, sans-serif",
+                    textTransform: "none",
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
+                    py: 0.8,
+                  }}
+                >
+                  Video
+                  <input
+                    type="file"
+                    hidden
+                    accept="video/*"
+                    onChange={(e) => m.onSelect(e, "VIDEO")}
+                  />
+                </Button>
+              </Box>
+              {m.previews.length > 0 && (
+                <Box>
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.68rem",
+                      fontWeight: 600,
+                      color: "#64748b",
+                      mb: 0.8,
+                    }}
+                  >
+                    Selected ({m.previews.length}):
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
+                    {m.previews.map((item, i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          width: { xs: 56, sm: 72 },
+                          height: { xs: 56, sm: 72 },
+                          borderRadius: 1.5,
+                          overflow: "hidden",
+                          border: "2px solid #e0f2fe",
+                        }}
+                      >
+                        {item.type === "IMAGE" ? (
+                          <Box
+                            component="img"
+                            src={item.url}
+                            alt={`p${i}`}
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              bgcolor: "#1e293b",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <PlayCircleIcon
+                              sx={{
+                                color: "#d97706",
+                                fontSize: { xs: 22, sm: 28 },
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions
+            sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+          >
+            <Button
+              onClick={m.onClose}
+              size="small"
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                color: "#64748b",
+                textTransform: "none",
+                fontSize: "0.78rem",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={m.onUpload}
+              disabled={m.uploading || m.files.length === 0}
+              startIcon={
+                m.uploading ? (
+                  <CircularProgress size={12} color="inherit" />
+                ) : (
+                  <CloudUploadIcon sx={{ fontSize: "13px !important" }} />
+                )
+              }
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                textTransform: "none",
+                fontSize: "0.78rem",
+                bgcolor: m.color,
+                borderRadius: 2,
+                "&:hover": { filter: "brightness(0.9)" },
+              }}
+            >
+              {m.uploading ? "Uploading..." : `Upload ${m.files.length}`}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      ))}
+
+      {/* Gallery Modals */}
+      {[
+        {
+          open: mediaGalleryOpen,
+          onClose: () => {
+            setMediaGalleryOpen(false);
+            setGalleryMedia([]);
+          },
+          title: galleryComplaintTitle,
+          loading: loadingMedia,
+          media: galleryMedia,
+          index: galleryIndex,
+          setIndex: setGalleryIndex,
+          accentColor: "#d97706",
+          icon: <ImageIcon sx={{ color: "#d97706", fontSize: 16 }} />,
+          emptyMsg: "No media for this complaint",
+        },
+      ].map((g, idx) => (
+        <Dialog
+          key={idx}
+          open={g.open}
+          onClose={g.onClose}
+          maxWidth="sm"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: { borderRadius: 3, bgcolor: "#0f172a", mx: { xs: 1, sm: 3 } },
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 700,
+              fontSize: { xs: "0.78rem", sm: "0.9rem" },
+              color: "white",
+              borderBottom: "1px solid #1e293b",
+              py: 1.2,
+              px: 2,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.8,
+                minWidth: 0,
+              }}
+            >
+              {g.icon}
+              <Typography
+                noWrap
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: { xs: "0.75rem", sm: "0.85rem" },
+                  color: "white",
+                  fontWeight: 600,
+                }}
+              >
+                {g.title}
+              </Typography>
+              {g.media.length > 0 && (
+                <Chip
+                  label={g.media.length}
+                  size="small"
+                  sx={{
+                    bgcolor: "#1e293b",
+                    color: "#94a3b8",
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.6rem",
+                    height: 18,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+            </Box>
+            <IconButton
+              size="small"
+              onClick={g.onClose}
+              sx={{ color: "white", flexShrink: 0 }}
+            >
+              <CancelIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ p: { xs: 1, sm: 2 }, bgcolor: "#0f172a" }}>
+            {g.loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+                <CircularProgress sx={{ color: g.accentColor }} />
+              </Box>
+            ) : g.media.length === 0 ? (
+              <Box sx={{ textAlign: "center", py: 5 }}>
+                <ImageIcon sx={{ fontSize: 36, color: "#334155", mb: 1 }} />
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    color: "#64748b",
+                    fontSize: { xs: "0.75rem", sm: "0.88rem" },
+                  }}
+                >
+                  {g.emptyMsg}
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    bgcolor: "#1e293b",
+                    minHeight: { xs: 180, sm: 280 },
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {g.media[g.index]?.mediaType === "IMAGE" ? (
                     <Box
-                      key={i}
+                      component="img"
+                      src={g.media[g.index]?.mediaUrl}
+                      alt="media"
                       sx={{
-                        width: 80,
-                        height: 80,
+                        width: "100%",
+                        maxHeight: { xs: 220, sm: 380 },
+                        objectFit: "contain",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      component="video"
+                      src={g.media[g.index]?.mediaUrl}
+                      controls
+                      sx={{ width: "100%", maxHeight: { xs: 220, sm: 380 } }}
+                    />
+                  )}
+                </Box>
+                <Box
+                  sx={{ display: "flex", gap: 0.8, overflowX: "auto", pb: 0.5 }}
+                >
+                  {g.media.map((item, i) => (
+                    <Box
+                      key={item.id}
+                      onClick={() => g.setIndex(i)}
+                      sx={{
+                        width: { xs: 44, sm: 56 },
+                        height: { xs: 44, sm: 56 },
+                        flexShrink: 0,
                         borderRadius: 1.5,
                         overflow: "hidden",
-                        border: "2px solid #e0f2fe",
+                        border:
+                          i === g.index
+                            ? `2px solid ${g.accentColor}`
+                            : "2px solid #1e293b",
+                        cursor: "pointer",
+                        opacity: i === g.index ? 1 : 0.6,
+                        transition: "all 0.2s",
+                        bgcolor: "#0f172a",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      {item.type === "IMAGE" ? (
+                      {item.mediaType === "IMAGE" ? (
                         <Box
                           component="img"
-                          src={item.url}
-                          alt={`preview-${i}`}
+                          src={item.mediaUrl}
+                          alt={`t${i}`}
                           sx={{
                             width: "100%",
                             height: "100%",
@@ -2071,121 +1964,84 @@ const ComplaintsPage = () => {
                           }}
                         />
                       ) : (
-                        <Box
+                        <PlayCircleIcon
                           sx={{
-                            width: "100%",
-                            height: "100%",
-                            bgcolor: "#1e293b",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            color: g.accentColor,
+                            fontSize: { xs: 20, sm: 24 },
                           }}
-                        >
-                          <PlayCircleIcon
-                            sx={{ color: "#d97706", fontSize: 32 }}
-                          />
-                        </Box>
+                        />
                       )}
                     </Box>
                   ))}
                 </Box>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "0.65rem",
+                    color: "#64748b",
+                    textAlign: "center",
+                  }}
+                >
+                  {g.index + 1} / {g.media.length} —{" "}
+                  {g.media[g.index]?.mediaType}
+                </Typography>
               </Box>
             )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
-          <Button
-            onClick={() => {
-              setIssueMediaUploadOpen(false);
-              setSelectedIssueMediaFiles([]);
-              setIssueMediaPreviews([]);
-            }}
-            sx={{
-              fontFamily: "Inter, sans-serif",
-              color: "#64748b",
-              textTransform: "none",
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleUploadIssueMedia}
-            disabled={
-              uploadingIssueMedia || selectedIssueMediaFiles.length === 0
-            }
-            startIcon={
-              uploadingIssueMedia ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <CloudUploadIcon fontSize="small" />
-              )
-            }
-            sx={{
-              fontFamily: "Inter, sans-serif",
-              textTransform: "none",
-              bgcolor: "#0891b2",
-              borderRadius: 2,
-              "&:hover": { bgcolor: "#0e7490" },
-            }}
-          >
-            {uploadingIssueMedia
-              ? "Uploading..."
-              : `Upload ${selectedIssueMediaFiles.length} File(s)`}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      ))}
 
-      {/* Issue Media Gallery Modal */}
+      {/* Issue Gallery Modal — separate since it has filter toggle */}
       <Dialog
         open={issueGalleryOpen}
         onClose={() => {
           setIssueGalleryOpen(false);
           setIssueGalleryMedia([]);
         }}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: 3, bgcolor: "#0f172a", mx: { xs: 1, sm: 3 } },
+          },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "0.9rem",
+            fontSize: { xs: "0.78rem", sm: "0.9rem" },
             color: "white",
             borderBottom: "1px solid #1e293b",
-            py: 1.5,
+            py: 1.2,
+            px: 2,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              minWidth: 0,
+            }}
+          >
+            <EngineeringIcon
+              sx={{ color: "#0891b2", fontSize: 16, flexShrink: 0 }}
+            />
             <Typography
               noWrap
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.85rem",
+                fontSize: { xs: "0.75rem", sm: "0.85rem" },
                 color: "white",
                 fontWeight: 600,
               }}
             >
               {issueGalleryTitle}
             </Typography>
-            {issueGalleryMedia.length > 0 && (
-              <Chip
-                label={`${issueGalleryMedia.length} files`}
-                size="small"
-                sx={{
-                  bgcolor: "#1e293b",
-                  color: "#94a3b8",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "0.68rem",
-                  height: 20,
-                }}
-              />
-            )}
           </Box>
           <IconButton
             size="small"
@@ -2193,74 +2049,70 @@ const ComplaintsPage = () => {
               setIssueGalleryOpen(false);
               setIssueGalleryMedia([]);
             }}
-            sx={{ color: "white" }}
+            sx={{ color: "white", flexShrink: 0 }}
           >
             <CancelIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 2, bgcolor: "#0f172a" }}>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 }, bgcolor: "#0f172a" }}>
           {loadingIssueMedia ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
               <CircularProgress sx={{ color: "#0891b2" }} />
             </Box>
           ) : issueGalleryMedia.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <EngineeringIcon sx={{ fontSize: 48, color: "#334155", mb: 1 }} />
+            <Box sx={{ textAlign: "center", py: 5 }}>
+              <EngineeringIcon sx={{ fontSize: 36, color: "#334155", mb: 1 }} />
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   color: "#64748b",
-                  fontSize: "0.88rem",
+                  fontSize: { xs: "0.75rem", sm: "0.88rem" },
                 }}
               >
-                No media uploaded for this issue
+                No media for this issue
               </Typography>
             </Box>
           ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {/* Filter Toggle */}
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", gap: 0.8, justifyContent: "center" }}>
                 {[
-                  {
-                    key: "SECRETARY",
-                    label: `Secretary (${issueGalleryMedia.filter((m) => m.uploadedBy === "SECRETARY").length})`,
-                    color: "#0891b2",
-                  },
-                  {
-                    key: "CARETAKER",
-                    label: `Caretaker (${issueGalleryMedia.filter((m) => m.uploadedBy === "CARETAKER").length})`,
-                    color: "#059669",
-                  },
-                ].map((f) => (
-                  <Button
-                    key={f.key}
-                    size="small"
-                    onClick={() => {
-                      setIssueGalleryFilter(f.key);
-                      setIssueGalleryLocalIndex(0);
-                    }}
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      textTransform: "none",
-                      fontSize: "0.78rem",
-                      borderRadius: 2,
-                      px: 2,
-                      bgcolor:
-                        issueGalleryFilter === f.key ? f.color : "#1e293b",
-                      color: issueGalleryFilter === f.key ? "white" : "#64748b",
-                      border: `1px solid ${issueGalleryFilter === f.key ? f.color : "#334155"}`,
-                      "&:hover": {
+                  { key: "SECRETARY", color: "#0891b2" },
+                  { key: "CARETAKER", color: "#059669" },
+                ].map((f) => {
+                  const count = issueGalleryMedia.filter(
+                    (m) => m.uploadedBy === f.key,
+                  ).length;
+                  return (
+                    <Button
+                      key={f.key}
+                      size="small"
+                      onClick={() => {
+                        setIssueGalleryFilter(f.key);
+                        setIssueGalleryLocalIndex(0);
+                      }}
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        textTransform: "none",
+                        fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                        borderRadius: 2,
+                        px: { xs: 1, sm: 1.5 },
                         bgcolor:
-                          issueGalleryFilter === f.key ? f.color : "#334155",
-                      },
-                    }}
-                  >
-                    {f.label}
-                  </Button>
-                ))}
+                          issueGalleryFilter === f.key ? f.color : "#1e293b",
+                        color:
+                          issueGalleryFilter === f.key ? "white" : "#64748b",
+                        border: `1px solid ${issueGalleryFilter === f.key ? f.color : "#334155"}`,
+                        "&:hover": {
+                          bgcolor:
+                            issueGalleryFilter === f.key ? f.color : "#334155",
+                        },
+                      }}
+                    >
+                      {f.key === "SECRETARY" ? "Secretary" : "Caretaker"} (
+                      {count})
+                    </Button>
+                  );
+                })}
               </Box>
-
-              {/* Filtered content */}
               {(() => {
                 const filtered = issueGalleryMedia.filter(
                   (m) => m.uploadedBy === issueGalleryFilter,
@@ -2271,15 +2123,15 @@ const ComplaintsPage = () => {
                 );
                 if (filtered.length === 0)
                   return (
-                    <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Box sx={{ textAlign: "center", py: 3 }}>
                       <Typography
                         sx={{
                           fontFamily: "Inter, sans-serif",
                           color: "#64748b",
-                          fontSize: "0.85rem",
+                          fontSize: { xs: "0.72rem", sm: "0.85rem" },
                         }}
                       >
-                        No media uploaded by{" "}
+                        No media by{" "}
                         {issueGalleryFilter === "SECRETARY"
                           ? "Secretary"
                           : "Caretaker"}{" "}
@@ -2294,7 +2146,7 @@ const ComplaintsPage = () => {
                         borderRadius: 2,
                         overflow: "hidden",
                         bgcolor: "#1e293b",
-                        minHeight: 300,
+                        minHeight: { xs: 180, sm: 280 },
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -2307,7 +2159,7 @@ const ComplaintsPage = () => {
                           alt="issue media"
                           sx={{
                             width: "100%",
-                            maxHeight: 400,
+                            maxHeight: { xs: 220, sm: 380 },
                             objectFit: "contain",
                           }}
                         />
@@ -2316,20 +2168,28 @@ const ComplaintsPage = () => {
                           component="video"
                           src={filtered[safeIdx]?.mediaUrl}
                           controls
-                          sx={{ width: "100%", maxHeight: 400 }}
+                          sx={{
+                            width: "100%",
+                            maxHeight: { xs: 220, sm: 380 },
+                          }}
                         />
                       )}
                     </Box>
                     <Box
-                      sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1 }}
+                      sx={{
+                        display: "flex",
+                        gap: 0.8,
+                        overflowX: "auto",
+                        pb: 0.5,
+                      }}
                     >
                       {filtered.map((item, i) => (
                         <Box
                           key={item.id}
                           onClick={() => setIssueGalleryLocalIndex(i)}
                           sx={{
-                            width: 64,
-                            height: 64,
+                            width: { xs: 44, sm: 56 },
+                            height: { xs: 44, sm: 56 },
                             flexShrink: 0,
                             borderRadius: 1.5,
                             overflow: "hidden",
@@ -2350,7 +2210,7 @@ const ComplaintsPage = () => {
                             <Box
                               component="img"
                               src={item.mediaUrl}
-                              alt={`thumb-${i}`}
+                              alt={`t${i}`}
                               sx={{
                                 width: "100%",
                                 height: "100%",
@@ -2359,7 +2219,10 @@ const ComplaintsPage = () => {
                             />
                           ) : (
                             <PlayCircleIcon
-                              sx={{ color: "#d97706", fontSize: 28 }}
+                              sx={{
+                                color: "#d97706",
+                                fontSize: { xs: 20, sm: 24 },
+                              }}
                             />
                           )}
                         </Box>
@@ -2368,7 +2231,7 @@ const ComplaintsPage = () => {
                     <Typography
                       sx={{
                         fontFamily: "Inter, sans-serif",
-                        fontSize: "0.72rem",
+                        fontSize: "0.65rem",
                         color: "#64748b",
                         textAlign: "center",
                       }}

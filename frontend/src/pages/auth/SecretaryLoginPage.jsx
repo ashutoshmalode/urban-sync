@@ -22,10 +22,23 @@ import LoginIcon from "@mui/icons-material/Login";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 
+const fs = (isMobile) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 1.5,
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.82rem" : "0.875rem",
+    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
+  },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.82rem" : "0.875rem",
+  },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
+});
+
 const SecretaryLoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const [form, setForm] = useState({ loginIdentifier: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,8 +54,7 @@ const SecretaryLoginPage = () => {
       setError("Please fill in all fields");
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.loginIdentifier)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.loginIdentifier)) {
       setError("Please enter a valid email address");
       return;
     }
@@ -59,7 +71,6 @@ const SecretaryLoginPage = () => {
       );
       navigate("/secretary/dashboard");
     } catch (err) {
-      // Stay on login page — just show error
       setError(
         err.response?.data?.message || "Login failed. Please try again.",
       );
@@ -76,7 +87,7 @@ const SecretaryLoginPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: { xs: 2, sm: 3 },
+        p: { xs: 1.5, sm: 3 },
       }}
     >
       <Container maxWidth="xs">
@@ -93,29 +104,53 @@ const SecretaryLoginPage = () => {
           <Box
             sx={{
               background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-              py: 3,
+              py: { xs: 2, sm: 3 },
               textAlign: "center",
             }}
           >
-            <ApartmentIcon sx={{ fontSize: 32, color: "white", mb: 0.5 }} />
-            <Typography variant="subtitle1" fontWeight={700} color="white">
+            <ApartmentIcon
+              sx={{ fontSize: { xs: 28, sm: 32 }, color: "white", mb: 0.3 }}
+            />
+            <Typography
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 700,
+                fontSize: { xs: "0.95rem", sm: "1.05rem" },
+                color: "white",
+              }}
+            >
               Secretary Login
             </Typography>
             <Typography
-              variant="caption"
-              sx={{ color: "rgba(255,255,255,0.85)" }}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                color: "rgba(255,255,255,0.85)",
+              }}
             >
               UrbanSync Society Management
             </Typography>
           </Box>
 
           {/* Form */}
-          <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              p: { xs: 2, sm: 3 },
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: 1.5, sm: 2 },
+            }}
+          >
             {error && (
               <Alert
                 severity="error"
                 onClose={() => setError("")}
-                sx={{ borderRadius: 1.5, py: 0.5 }}
+                sx={{
+                  borderRadius: 1.5,
+                  py: 0.4,
+                  fontSize: { xs: "0.75rem", sm: "0.82rem" },
+                  fontFamily: "Inter, sans-serif",
+                }}
               >
                 {error}
               </Alert>
@@ -130,13 +165,7 @@ const SecretaryLoginPage = () => {
               onKeyPress={(e) => e.key === "Enter" && handleLogin()}
               fullWidth
               size="small"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 1.5,
-                  "&.Mui-focused fieldset": { borderColor: "#0891b2" },
-                },
-                "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-              }}
+              sx={fs(true)}
             />
 
             <TextField
@@ -148,13 +177,7 @@ const SecretaryLoginPage = () => {
               onKeyPress={(e) => e.key === "Enter" && handleLogin()}
               fullWidth
               size="small"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 1.5,
-                  "&.Mui-focused fieldset": { borderColor: "#0891b2" },
-                },
-                "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-              }}
+              sx={fs(true)}
               slotProps={{
                 input: {
                   endAdornment: (
@@ -165,9 +188,9 @@ const SecretaryLoginPage = () => {
                         size="small"
                       >
                         {showPassword ? (
-                          <VisibilityOff fontSize="small" />
+                          <VisibilityOff sx={{ fontSize: 16 }} />
                         ) : (
-                          <Visibility fontSize="small" />
+                          <Visibility sx={{ fontSize: 16 }} />
                         )}
                       </IconButton>
                     </InputAdornment>
@@ -176,17 +199,15 @@ const SecretaryLoginPage = () => {
               }}
             />
 
-            {/* Forgot Password */}
-            <Box sx={{ textAlign: "right", mt: -1 }}>
+            <Box sx={{ textAlign: "right", mt: -0.5 }}>
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.75rem",
+                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
                   color: "#0891b2",
                   cursor: "pointer",
                   "&:hover": { textDecoration: "underline" },
                 }}
-                onClick={() => {}}
               >
                 Forgot Password?
               </Typography>
@@ -199,17 +220,18 @@ const SecretaryLoginPage = () => {
               disabled={loading || !form.loginIdentifier || !form.password}
               startIcon={
                 loading ? (
-                  <CircularProgress size={16} color="inherit" />
+                  <CircularProgress size={14} color="inherit" />
                 ) : (
-                  <LoginIcon fontSize="small" />
+                  <LoginIcon sx={{ fontSize: "16px !important" }} />
                 )
               }
               sx={{
-                py: 1,
+                py: { xs: 0.8, sm: 1 },
                 borderRadius: 1.5,
                 bgcolor: "#0891b2",
+                fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.875rem",
+                fontSize: { xs: "0.82rem", sm: "0.875rem" },
                 boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
                 "&:hover": { bgcolor: "#0e7490" },
                 "&.Mui-disabled": { bgcolor: "#bae6fd", color: "white" },
@@ -221,9 +243,10 @@ const SecretaryLoginPage = () => {
             <Box sx={{ textAlign: "center" }}>
               <Link
                 component="button"
-                variant="caption"
                 onClick={() => navigate("/")}
                 sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: { xs: "0.72rem", sm: "0.78rem" },
                   color: "#0891b2",
                   display: "inline-flex",
                   alignItems: "center",
@@ -232,8 +255,7 @@ const SecretaryLoginPage = () => {
                   "&:hover": { textDecoration: "underline" },
                 }}
               >
-                <ArrowBackIcon sx={{ fontSize: 14 }} />
-                Back to Home
+                <ArrowBackIcon sx={{ fontSize: 13 }} /> Back to Home
               </Link>
             </Box>
           </Box>
@@ -243,15 +265,17 @@ const SecretaryLoginPage = () => {
             sx={{
               bgcolor: "#f8fafc",
               px: 3,
-              py: 1.5,
+              py: { xs: 1, sm: 1.5 },
               textAlign: "center",
               borderTop: "1px solid #e0f2fe",
             }}
           >
             <Typography
-              variant="caption"
-              color="text.secondary"
-              fontSize="0.65rem"
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "0.6rem",
+                color: "#94a3b8",
+              }}
             >
               © 2026 UrbanSync — CDAC Final Project
             </Typography>

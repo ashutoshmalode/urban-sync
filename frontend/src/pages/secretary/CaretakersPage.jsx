@@ -24,6 +24,8 @@ import {
   Tab,
   InputAdornment,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import AddIcon from "@mui/icons-material/Add";
@@ -44,32 +46,44 @@ import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 
-const fieldStyle = {
+const fieldStyle = (isMobile) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
   },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+  },
   "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
-};
+  "& .MuiFormHelperText-root": {
+    fontSize: isMobile ? "0.62rem" : "0.7rem",
+    fontFamily: "Inter, sans-serif",
+  },
+});
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const InfoRow = ({ icon, label, value }) => (
@@ -77,16 +91,16 @@ const InfoRow = ({ icon, label, value }) => (
     sx={{
       display: "flex",
       alignItems: "flex-start",
-      gap: 1.5,
-      py: 1.2,
+      gap: 1.2,
+      py: 1,
       borderBottom: "1px solid #f1f5f9",
       "&:last-child": { borderBottom: "none" },
     }}
   >
     <Box
       sx={{
-        width: 30,
-        height: 30,
+        width: 28,
+        height: 28,
         borderRadius: 1.5,
         bgcolor: "#f0f9ff",
         border: "1px solid #e0f2fe",
@@ -98,10 +112,10 @@ const InfoRow = ({ icon, label, value }) => (
     >
       {icon}
     </Box>
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Typography
         sx={{
-          fontSize: "0.68rem",
+          fontSize: "0.62rem",
           fontWeight: 600,
           color: "#94a3b8",
           letterSpacing: "0.05em",
@@ -114,10 +128,11 @@ const InfoRow = ({ icon, label, value }) => (
       </Typography>
       <Typography
         sx={{
-          fontSize: "0.875rem",
+          fontSize: { xs: "0.78rem", sm: "0.875rem" },
           fontWeight: 600,
           color: "#1e293b",
           fontFamily: "Inter, sans-serif",
+          wordBreak: "break-word",
         }}
       >
         {value || "—"}
@@ -127,6 +142,9 @@ const InfoRow = ({ icon, label, value }) => (
 );
 
 const CaretakersPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [tab, setTab] = useState(0);
   const [caretakers, setCaretakers] = useState([]);
   const [historyList, setHistoryList] = useState([]);
@@ -134,17 +152,11 @@ const CaretakersPage = () => {
   const [search, setSearch] = useState("");
   const [fullImageOpen, setFullImageOpen] = useState(false);
   const [fullImageUrl, setFullImageUrl] = useState("");
-
-  // Photo states
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState("");
-
-  // Detail modal
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-
-  // Create modal
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({
@@ -156,8 +168,6 @@ const CaretakersPage = () => {
     permanentAddress: "",
   });
   const [formErrors, setFormErrors] = useState({});
-
-  // Delete modal
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteReason, setDeleteReason] = useState("");
@@ -225,13 +235,12 @@ const CaretakersPage = () => {
     if (!form.firstName.trim()) e.firstName = "Required";
     if (!form.lastName.trim()) e.lastName = "Required";
     if (!/^\d{10}$/.test(form.mobileNumber))
-      e.mobileNumber = "Must be exactly 10 digits";
+      e.mobileNumber = "Must be 10 digits";
     if (!form.age || Number(form.age) < 18 || Number(form.age) > 70)
-      e.age = "Age must be 18-70";
+      e.age = "Age 18-70";
     if (!/^\d{12}$/.test(form.aadhaarNumber))
-      e.aadhaarNumber = "Must be exactly 12 digits";
-    if (!form.permanentAddress.trim())
-      e.permanentAddress = "Address is required";
+      e.aadhaarNumber = "Must be 12 digits";
+    if (!form.permanentAddress.trim()) e.permanentAddress = "Required";
     setFormErrors(e);
     return Object.values(e).every((v) => !v);
   };
@@ -248,9 +257,9 @@ const CaretakersPage = () => {
     try {
       const url = await uploadToCloudinary(file, "urbansync/caretakers");
       setUploadedPhotoUrl(url);
-      showSuccess("Photo uploaded successfully");
+      showSuccess("Photo uploaded");
     } catch {
-      showError("Photo upload failed. Please try again.");
+      showError("Photo upload failed.");
       setPhotoPreview(null);
       setUploadedPhotoUrl("");
     } finally {
@@ -314,12 +323,12 @@ const CaretakersPage = () => {
     });
 
   const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {[...Array(4)].map((_, i) => (
         <Skeleton
           key={i}
           variant="rounded"
-          height={48}
+          height={44}
           sx={{ mb: 1, borderRadius: 1.5 }}
         />
       ))}
@@ -336,22 +345,22 @@ const CaretakersPage = () => {
             bgcolor: c.status === "ACTIVE" ? "#e0f2fe" : "#f1f5f9",
             color: c.status === "ACTIVE" ? "#0891b2" : "#64748b",
             fontWeight: 700,
-            fontSize: "0.7rem",
+            fontSize: "0.65rem",
             fontFamily: "Inter, sans-serif",
-            height: 22,
+            height: 20,
           }}
         />
       </TableCell>
       <TableCell sx={cellSx}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
           {c.status === "ACTIVE" && (
             <Box
               sx={{
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 borderRadius: "50%",
                 bgcolor: "#22c55e",
-                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                boxShadow: "0 0 5px 1px rgba(34,197,94,0.5)",
                 flexShrink: 0,
               }}
             />
@@ -359,14 +368,14 @@ const CaretakersPage = () => {
           <Avatar
             src={c.photoUrl || undefined}
             sx={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               bgcolor: c.photoUrl
                 ? "transparent"
                 : c.status === "ACTIVE"
                   ? "#e0f2fe"
                   : "#f1f5f9",
-              fontSize: "0.75rem",
+              fontSize: "0.65rem",
               color: c.status === "ACTIVE" ? "#0891b2" : "#64748b",
               fontWeight: 700,
             }}
@@ -376,7 +385,7 @@ const CaretakersPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.82rem",
+              fontSize: "0.78rem",
               fontWeight: c.status === "ACTIVE" ? 700 : 400,
               color: c.status === "ACTIVE" ? "#1e293b" : "#64748b",
             }}
@@ -386,7 +395,7 @@ const CaretakersPage = () => {
         </Box>
       </TableCell>
       <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
-      <TableCell sx={cellSx}>{c.age} yrs</TableCell>
+      <TableCell sx={cellSx}>{c.age}y</TableCell>
       <TableCell sx={cellSx}>
         {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : "—"}
       </TableCell>
@@ -397,28 +406,28 @@ const CaretakersPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.78rem",
+              fontSize: "0.72rem",
               color: "#22c55e",
               fontWeight: 600,
             }}
           >
-            Currently Active
+            Active
           </Typography>
         )}
       </TableCell>
-      <TableCell sx={{ ...cellSx, maxWidth: 120 }}>
+      <TableCell sx={{ ...cellSx, maxWidth: 100 }}>
         <Typography
           noWrap
           sx={{
             fontFamily: "Inter, sans-serif",
-            fontSize: "0.78rem",
+            fontSize: "0.72rem",
             color: "#94a3b8",
           }}
         >
           {c.leavingReason || "—"}
         </Typography>
       </TableCell>
-      <TableCell align="center" sx={{ py: 1 }}>
+      <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
         <Tooltip title="View Details">
           <IconButton
             size="small"
@@ -427,11 +436,11 @@ const CaretakersPage = () => {
               color: "#0891b2",
               bgcolor: "#e0f2fe",
               borderRadius: 1.5,
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
             }}
           >
-            <VisibilityIcon sx={{ fontSize: 14 }} />
+            <VisibilityIcon sx={{ fontSize: 13 }} />
           </IconButton>
         </Tooltip>
       </TableCell>
@@ -441,26 +450,27 @@ const CaretakersPage = () => {
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.2 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -469,7 +479,7 @@ const CaretakersPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.68rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
@@ -478,7 +488,7 @@ const CaretakersPage = () => {
         </Box>
         <Button
           variant="contained"
-          startIcon={<AddIcon fontSize="small" />}
+          startIcon={<AddIcon sx={{ fontSize: "14px !important" }} />}
           onClick={() => setCreateOpen(true)}
           size="small"
           sx={{
@@ -486,13 +496,15 @@ const CaretakersPage = () => {
             borderRadius: 2,
             fontFamily: "Inter, sans-serif",
             fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
+            fontSize: { xs: "0.72rem", sm: "0.8rem" },
+            px: { xs: 1.2, sm: 2 },
+            whiteSpace: "nowrap",
+            flexShrink: 0,
             boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
             "&:hover": { bgcolor: "#0e7490" },
           }}
         >
-          Add Caretaker
+          {isMobile ? "Add" : "Add Caretaker"}
         </Button>
       </Box>
 
@@ -508,24 +520,25 @@ const CaretakersPage = () => {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="fullWidth"
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.7rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
             },
             "& .Mui-selected": { color: "#0891b2" },
             "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
           }}
         >
-          <Tab label={`Active Caretakers (${caretakers.length})`} />
+          <Tab label={`Active (${caretakers.length})`} />
           <Tab
             label={`History (${historyList.length})`}
-            icon={<HistoryIcon sx={{ fontSize: 16 }} />}
+            icon={<HistoryIcon sx={{ fontSize: 14 }} />}
             iconPosition="start"
           />
         </Tabs>
@@ -534,13 +547,13 @@ const CaretakersPage = () => {
           <LoadingSkeleton />
         ) : tab === 0 ? (
           caretakers.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <EngineeringIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+            <Box sx={{ textAlign: "center", py: 5 }}>
+              <EngineeringIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   color: "#94a3b8",
-                  fontSize: "0.88rem",
+                  fontSize: "0.85rem",
                   mb: 2,
                 }}
               >
@@ -565,7 +578,7 @@ const CaretakersPage = () => {
             </Box>
           ) : (
             <TableContainer sx={{ overflowX: "auto" }}>
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 480 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={headSx}>#</TableCell>
@@ -593,33 +606,37 @@ const CaretakersPage = () => {
                             bgcolor: "#e0f2fe",
                             color: "#0891b2",
                             fontWeight: 700,
-                            fontSize: "0.7rem",
+                            fontSize: "0.65rem",
                             fontFamily: "Inter, sans-serif",
-                            height: 22,
+                            height: 20,
                           }}
                         />
                       </TableCell>
                       <TableCell sx={cellSx}>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.8,
+                          }}
                         >
                           <Box
                             sx={{
-                              width: 8,
-                              height: 8,
+                              width: 7,
+                              height: 7,
                               borderRadius: "50%",
                               bgcolor: "#22c55e",
-                              boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                              boxShadow: "0 0 5px 1px rgba(34,197,94,0.5)",
                               flexShrink: 0,
                             }}
                           />
                           <Avatar
                             src={c.photoUrl || undefined}
                             sx={{
-                              width: 30,
-                              height: 30,
+                              width: 26,
+                              height: 26,
                               bgcolor: c.photoUrl ? "transparent" : "#e0f2fe",
-                              fontSize: "0.75rem",
+                              fontSize: "0.65rem",
                               color: "#0891b2",
                               fontWeight: 700,
                             }}
@@ -629,7 +646,7 @@ const CaretakersPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.82rem",
+                              fontSize: "0.78rem",
                               fontWeight: 600,
                               color: "#1e293b",
                             }}
@@ -639,7 +656,7 @@ const CaretakersPage = () => {
                         </Box>
                       </TableCell>
                       <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
-                      <TableCell sx={cellSx}>{c.age} yrs</TableCell>
+                      <TableCell sx={cellSx}>{c.age}y</TableCell>
                       <TableCell sx={cellSx}>
                         <Chip
                           label="ACTIVE"
@@ -648,17 +665,20 @@ const CaretakersPage = () => {
                             bgcolor: "#dcfce7",
                             color: "#166534",
                             fontWeight: 700,
-                            fontSize: "0.7rem",
+                            fontSize: "0.65rem",
                             fontFamily: "Inter, sans-serif",
-                            height: 22,
+                            height: 20,
                           }}
                         />
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 1 }}>
+                      <TableCell
+                        align="center"
+                        sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                      >
                         <Box
                           sx={{
                             display: "flex",
-                            gap: 0.5,
+                            gap: 0.4,
                             justifyContent: "center",
                           }}
                         >
@@ -673,11 +693,11 @@ const CaretakersPage = () => {
                                 color: "#0891b2",
                                 bgcolor: "#e0f2fe",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <VisibilityIcon sx={{ fontSize: 14 }} />
+                              <VisibilityIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Remove Caretaker">
@@ -691,11 +711,11 @@ const CaretakersPage = () => {
                                 color: "#dc2626",
                                 bgcolor: "#fee2e2",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <DeleteIcon sx={{ fontSize: 14 }} />
+                              <DeleteIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -710,14 +730,14 @@ const CaretakersPage = () => {
           <Box>
             <Box
               sx={{
-                px: 2.5,
-                py: 1.5,
+                px: 2,
+                py: 1.2,
                 borderBottom: "1px solid #e0f2fe",
                 bgcolor: "#f8fbff",
               }}
             >
               <TextField
-                placeholder="Search by name, mobile, Aadhaar or address..."
+                placeholder="Search by name, mobile, Aadhaar..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 size="small"
@@ -726,7 +746,7 @@ const CaretakersPage = () => {
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.82rem",
+                    fontSize: { xs: "0.75rem", sm: "0.82rem" },
                     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
                   },
                 }}
@@ -734,13 +754,13 @@ const CaretakersPage = () => {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
+                        <SearchIcon sx={{ fontSize: 15, color: "#94a3b8" }} />
                       </InputAdornment>
                     ),
                     endAdornment: search ? (
                       <InputAdornment position="end">
                         <IconButton size="small" onClick={() => setSearch("")}>
-                          <ClearIcon sx={{ fontSize: 14 }} />
+                          <ClearIcon sx={{ fontSize: 13 }} />
                         </IconButton>
                       </InputAdornment>
                     ) : null,
@@ -748,15 +768,14 @@ const CaretakersPage = () => {
                 }}
               />
             </Box>
-
             {filteredHistory.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 6 }}>
-                <HistoryIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+              <Box sx={{ textAlign: "center", py: 5 }}>
+                <HistoryIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
                     color: "#94a3b8",
-                    fontSize: "0.88rem",
+                    fontSize: "0.85rem",
                   }}
                 >
                   {search
@@ -766,7 +785,7 @@ const CaretakersPage = () => {
               </Box>
             ) : (
               <TableContainer sx={{ overflowX: "auto" }}>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 560 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={headSx}>#</TableCell>
@@ -788,7 +807,7 @@ const CaretakersPage = () => {
                         <TableCell
                           colSpan={8}
                           sx={{
-                            py: 0.8,
+                            py: 0.6,
                             px: 2,
                             bgcolor: "#f0fdf4",
                             borderBottom: "1px solid #bbf7d0",
@@ -798,22 +817,22 @@ const CaretakersPage = () => {
                             sx={{
                               display: "flex",
                               alignItems: "center",
-                              gap: 1,
+                              gap: 0.8,
                             }}
                           >
                             <Box
                               sx={{
-                                width: 8,
-                                height: 8,
+                                width: 7,
+                                height: 7,
                                 borderRadius: "50%",
                                 bgcolor: "#22c55e",
-                                boxShadow: "0 0 6px 2px rgba(34,197,94,0.5)",
+                                boxShadow: "0 0 5px 1px rgba(34,197,94,0.5)",
                               }}
                             />
                             <Typography
                               sx={{
                                 fontFamily: "Inter, sans-serif",
-                                fontSize: "0.7rem",
+                                fontSize: "0.65rem",
                                 fontWeight: 700,
                                 color: "#166534",
                                 letterSpacing: "0.05em",
@@ -850,7 +869,7 @@ const CaretakersPage = () => {
                         <TableCell
                           colSpan={8}
                           sx={{
-                            py: 0.8,
+                            py: 0.6,
                             px: 2,
                             bgcolor: "#f8fafc",
                             borderBottom: "1px solid #e2e8f0",
@@ -860,7 +879,7 @@ const CaretakersPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.7rem",
+                              fontSize: "0.65rem",
                               fontWeight: 700,
                               color: "#64748b",
                               letterSpacing: "0.05em",
@@ -904,37 +923,39 @@ const CaretakersPage = () => {
         onClose={() => setDetailOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
+            gap: 1,
           }}
         >
-          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <EngineeringIcon sx={{ color: "#0891b2", fontSize: 18 }} />
           Caretaker Details
         </DialogTitle>
         {selected && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 2,
-                mb: 2,
-                pb: 2,
+                gap: 1.5,
+                mb: 1.5,
+                pb: 1.5,
                 borderBottom: "1px solid #e0f2fe",
               }}
             >
-              {/* Left side — photo + hint */}
               <Box
                 sx={{
                   display: "flex",
@@ -952,22 +973,19 @@ const CaretakersPage = () => {
                     }
                   }}
                   sx={{
-                    width: 64,
-                    height: 64,
+                    width: 56,
+                    height: 56,
                     bgcolor: selected.photoUrl
                       ? "transparent"
                       : selected.status === "ACTIVE"
                         ? "#0891b2"
                         : "#94a3b8",
-                    fontSize: "1.4rem",
+                    fontSize: "1.2rem",
                     fontWeight: 700,
                     cursor: selected.photoUrl ? "pointer" : "default",
                     transition: "transform 0.2s",
                     "&:hover": selected.photoUrl
-                      ? {
-                          transform: "scale(1.05)",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                        }
+                      ? { transform: "scale(1.05)" }
                       : {},
                   }}
                 >
@@ -978,39 +996,41 @@ const CaretakersPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.62rem",
+                      fontSize: "0.58rem",
                       color: "#94a3b8",
-                      textAlign: "center",
                     }}
                   >
                     tap to view
                   </Typography>
                 )}
               </Box>
-
-              {/* Right side — name + chips */}
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 700,
-                    fontSize: "1rem",
+                    fontSize: { xs: "0.88rem", sm: "1rem" },
                     color: "#1e293b",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {selected.firstName} {selected.lastName}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 0.5, mt: 0.3 }}>
+                <Box
+                  sx={{ display: "flex", gap: 0.5, mt: 0.3, flexWrap: "wrap" }}
+                >
                   <Chip
-                    label={`Serial #${selected.serialNumber}`}
+                    label={`#${selected.serialNumber}`}
                     size="small"
                     sx={{
                       bgcolor: "#e0f2fe",
                       color: "#0891b2",
                       fontWeight: 700,
-                      fontSize: "0.68rem",
+                      fontSize: "0.62rem",
                       fontFamily: "Inter, sans-serif",
-                      height: 20,
+                      height: 18,
                     }}
                   />
                   <Chip
@@ -1022,37 +1042,37 @@ const CaretakersPage = () => {
                       color:
                         selected.status === "ACTIVE" ? "#166534" : "#991b1b",
                       fontWeight: 700,
-                      fontSize: "0.68rem",
+                      fontSize: "0.62rem",
                       fontFamily: "Inter, sans-serif",
-                      height: 20,
+                      height: 18,
                     }}
                   />
                 </Box>
               </Box>
             </Box>
             <InfoRow
-              icon={<PhoneIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+              icon={<PhoneIcon sx={{ fontSize: 13, color: "#0891b2" }} />}
               label="Mobile"
               value={selected.mobileNumber}
             />
             <InfoRow
-              icon={<CakeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+              icon={<CakeIcon sx={{ fontSize: 13, color: "#0891b2" }} />}
               label="Age"
               value={`${selected.age} years`}
             />
             <InfoRow
-              icon={<FingerprintIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
-              label="Aadhaar Number"
+              icon={<FingerprintIcon sx={{ fontSize: 13, color: "#0891b2" }} />}
+              label="Aadhaar"
               value={selected.aadhaarNumber}
             />
             <InfoRow
-              icon={<HomeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
-              label="Permanent Address"
+              icon={<HomeIcon sx={{ fontSize: 13, color: "#0891b2" }} />}
+              label="Address"
               value={selected.permanentAddress}
             />
             <InfoRow
-              icon={<BadgeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
-              label="Joined On"
+              icon={<BadgeIcon sx={{ fontSize: 13, color: "#0891b2" }} />}
+              label="Joined"
               value={
                 selected.createdAt
                   ? new Date(selected.createdAt).toLocaleDateString("en-IN")
@@ -1063,7 +1083,7 @@ const CaretakersPage = () => {
               <>
                 <InfoRow
                   icon={
-                    <EventBusyIcon sx={{ fontSize: 14, color: "#dc2626" }} />
+                    <EventBusyIcon sx={{ fontSize: 13, color: "#dc2626" }} />
                   }
                   label="Left On"
                   value={
@@ -1075,7 +1095,7 @@ const CaretakersPage = () => {
                 <Box
                   sx={{
                     mt: 1,
-                    p: 1.5,
+                    p: 1.2,
                     bgcolor: "#fef2f2",
                     borderRadius: 2,
                     border: "1px solid #fecaca",
@@ -1084,10 +1104,10 @@ const CaretakersPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.68rem",
+                      fontSize: "0.62rem",
                       fontWeight: 700,
                       color: "#dc2626",
-                      mb: 0.5,
+                      mb: 0.4,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                     }}
@@ -1097,7 +1117,7 @@ const CaretakersPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.85rem",
+                      fontSize: { xs: "0.75rem", sm: "0.85rem" },
                       color: "#991b1b",
                     }}
                   >
@@ -1108,13 +1128,15 @@ const CaretakersPage = () => {
             )}
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -1132,49 +1154,52 @@ const CaretakersPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <DeleteIcon sx={{ color: "#dc2626", fontSize: 18 }} />
+          <DeleteIcon sx={{ color: "#dc2626", fontSize: 16 }} />
           Remove Caretaker
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
           {deleteTarget && (
             <Box
               sx={{
-                p: 1.5,
+                p: 1.2,
                 bgcolor: "#f8fbff",
                 borderRadius: 2,
                 border: "1px solid #e0f2fe",
-                mb: 2,
+                mb: 1.5,
               }}
             >
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.8rem",
+                  fontSize: { xs: "0.7rem", sm: "0.8rem" },
                   color: "#64748b",
                 }}
               >
-                Removing caretaker:
+                Removing:
               </Typography>
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 700,
-                  fontSize: "0.9rem",
+                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
                   color: "#1e293b",
                 }}
               >
@@ -1186,9 +1211,9 @@ const CaretakersPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.85rem",
+              fontSize: { xs: "0.75rem", sm: "0.85rem" },
               color: "#64748b",
-              mb: 2,
+              mb: 1.5,
             }}
           >
             Please provide a reason for removing this caretaker.
@@ -1201,10 +1226,17 @@ const CaretakersPage = () => {
             multiline
             rows={3}
             size="small"
+            InputLabelProps={{
+              sx: {
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.78rem", sm: "0.875rem" },
+              },
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
                 fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.78rem", sm: "0.875rem" },
                 "&.Mui-focused fieldset": { borderColor: "#dc2626" },
               },
               "& .MuiInputLabel-root.Mui-focused": { color: "#dc2626" },
@@ -1212,29 +1244,35 @@ const CaretakersPage = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setDeleteOpen(false);
               setDeleteReason("");
               setDeleteTarget(null);
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleDelete}
             disabled={!deleteReason.trim() || deleting}
-            startIcon={<DeleteIcon fontSize="small" />}
+            startIcon={<DeleteIcon sx={{ fontSize: "13px !important" }} />}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#dc2626",
               "&:hover": { bgcolor: "#b91c1c" },
               borderRadius: 2,
@@ -1249,52 +1287,57 @@ const CaretakersPage = () => {
       <Dialog
         open={createOpen}
         onClose={resetCreateModal}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
+            gap: 1,
           }}
         >
-          <AddIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <AddIcon sx={{ color: "#0891b2", fontSize: 18 }} />
           Add New Caretaker
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {/* Photo Upload Section */}
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            {/* Photo Upload */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 2,
-                p: 2,
+                gap: 1.5,
+                p: 1.5,
                 bgcolor: "#f8fbff",
                 borderRadius: 2,
                 border: "1px solid #e0f2fe",
               }}
             >
-              <Box sx={{ position: "relative" }}>
+              <Box sx={{ position: "relative", flexShrink: 0 }}>
                 <Avatar
                   src={photoPreview || undefined}
                   sx={{
-                    width: 72,
-                    height: 72,
+                    width: { xs: 56, sm: 64 },
+                    height: { xs: 56, sm: 64 },
                     bgcolor: photoPreview ? "transparent" : "#e0f2fe",
                     color: "#0891b2",
-                    fontSize: "1.8rem",
+                    fontSize: "1.6rem",
                   }}
                 >
-                  {!photoPreview && <PersonIcon sx={{ fontSize: 32 }} />}
+                  {!photoPreview && (
+                    <PersonIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />
+                  )}
                 </Avatar>
                 {photoUploading && (
                   <Box
@@ -1311,7 +1354,7 @@ const CaretakersPage = () => {
                     <Typography
                       sx={{
                         color: "white",
-                        fontSize: "0.6rem",
+                        fontSize: "0.55rem",
                         fontFamily: "Inter, sans-serif",
                       }}
                     >
@@ -1320,38 +1363,41 @@ const CaretakersPage = () => {
                   </Box>
                 )}
               </Box>
-              <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 600,
-                    fontSize: "0.82rem",
+                    fontSize: { xs: "0.75rem", sm: "0.82rem" },
                     color: "#1e293b",
                     mb: 0.5,
                   }}
                 >
-                  Caretaker Photo
+                  Caretaker Photo *
                 </Typography>
                 <Button
                   variant="outlined"
                   size="small"
                   component="label"
                   disabled={photoUploading}
-                  startIcon={<CameraAltIcon fontSize="small" />}
+                  startIcon={
+                    <CameraAltIcon sx={{ fontSize: "13px !important" }} />
+                  }
                   sx={{
                     borderRadius: 2,
                     borderColor: "#0891b2",
                     color: "#0891b2",
                     fontFamily: "Inter, sans-serif",
                     textTransform: "none",
-                    fontSize: "0.78rem",
-                    mb: 0.5,
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
+                    mb: 0.4,
+                    px: 1,
                   }}
                 >
                   {photoUploading
                     ? "Uploading..."
                     : uploadedPhotoUrl
-                      ? "Change Photo"
+                      ? "Change"
                       : "Upload Photo"}
                   <input
                     type="file"
@@ -1363,14 +1409,14 @@ const CaretakersPage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.68rem",
+                    fontSize: { xs: "0.6rem", sm: "0.65rem" },
                     color: uploadedPhotoUrl ? "#059669" : "#94a3b8",
                     display: "block",
                   }}
                 >
                   {uploadedPhotoUrl
-                    ? "✓ Photo uploaded successfully"
-                    : "JPG, PNG — Max 5MB (required)"}
+                    ? "✓ Uploaded successfully"
+                    : "JPG, PNG — Max 5MB"}
                 </Typography>
               </Box>
             </Box>
@@ -1381,7 +1427,7 @@ const CaretakersPage = () => {
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.7rem",
+                fontSize: "0.65rem",
                 color: "#0891b2",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -1391,7 +1437,7 @@ const CaretakersPage = () => {
             </Typography>
 
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <TextField
                 label="First Name *"
@@ -1401,7 +1447,7 @@ const CaretakersPage = () => {
                 size="small"
                 error={!!formErrors.firstName}
                 helperText={formErrors.firstName}
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
               <TextField
                 label="Last Name *"
@@ -1411,22 +1457,21 @@ const CaretakersPage = () => {
                 size="small"
                 error={!!formErrors.lastName}
                 helperText={formErrors.lastName}
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
             </Box>
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <TextField
-                label="Mobile Number *"
+                label="Mobile *"
                 name="mobileNumber"
                 value={form.mobileNumber}
                 onChange={handleChange}
                 size="small"
-                inputprops={{ maxLength: 10 }}
                 error={!!formErrors.mobileNumber}
                 helperText={formErrors.mobileNumber}
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
               <TextField
                 label="Age *"
@@ -1434,10 +1479,9 @@ const CaretakersPage = () => {
                 value={form.age}
                 onChange={handleChange}
                 size="small"
-                inputprops={{ maxLength: 2 }}
                 error={!!formErrors.age}
                 helperText={formErrors.age}
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
             </Box>
             <TextField
@@ -1447,10 +1491,9 @@ const CaretakersPage = () => {
               onChange={handleChange}
               size="small"
               fullWidth
-              inputprops={{ maxLength: 12 }}
               error={!!formErrors.aadhaarNumber}
-              helperText={formErrors.aadhaarNumber || "12 digit Aadhaar number"}
-              sx={fieldStyle}
+              helperText={formErrors.aadhaarNumber || "12 digit Aadhaar"}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Permanent Address *"
@@ -1463,29 +1506,35 @@ const CaretakersPage = () => {
               rows={2}
               error={!!formErrors.permanentAddress}
               helperText={formErrors.permanentAddress}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={resetCreateModal}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleCreate}
             disabled={creating || photoUploading}
-            startIcon={<AddIcon fontSize="small" />}
+            startIcon={<AddIcon sx={{ fontSize: "13px !important" }} />}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               fontWeight: 600,
               "&:hover": { bgcolor: "#0e7490" },
@@ -1496,22 +1545,27 @@ const CaretakersPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* Full Image View Modal */}
+
+      {/* Full Image Modal */}
       <Dialog
         open={fullImageOpen}
         onClose={() => setFullImageOpen(false)}
         maxWidth="sm"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: 3, bgcolor: "#0f172a", mx: { xs: 1.5, sm: 3 } },
+          },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "0.9rem",
+            fontSize: "0.85rem",
             color: "white",
             borderBottom: "1px solid #1e293b",
-            py: 1.5,
+            py: 1.2,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -1532,14 +1586,18 @@ const CaretakersPage = () => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            minHeight: 300,
+            minHeight: 250,
           }}
         >
           <Box
             component="img"
             src={fullImageUrl}
             alt="Caretaker Photo"
-            sx={{ width: "100%", maxHeight: 500, objectFit: "contain" }}
+            sx={{
+              width: "100%",
+              maxHeight: { xs: 350, sm: 500 },
+              objectFit: "contain",
+            }}
           />
         </DialogContent>
       </Dialog>

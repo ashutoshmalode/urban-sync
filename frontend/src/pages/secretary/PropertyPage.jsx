@@ -27,6 +27,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import AddIcon from "@mui/icons-material/Add";
@@ -43,21 +45,43 @@ import { showSuccess, showError } from "../../utils/toast";
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
+
+const fieldStyle = (isMobile) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
+  },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+  },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
+  "& .MuiFormHelperText-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.62rem" : "0.7rem",
+  },
+});
 
 const StatusChip = ({ status }) => {
   const map = {
@@ -66,13 +90,9 @@ const StatusChip = ({ status }) => {
       bgcolor: "#f1f5f9",
       color: "#64748b",
     },
-    ACTIVE_WITH_OWNER: {
-      label: "Active — Owner",
-      bgcolor: "#dcfce7",
-      color: "#166534",
-    },
+    ACTIVE_WITH_OWNER: { label: "Owner", bgcolor: "#dcfce7", color: "#166534" },
     ACTIVE_WITH_TENANT: {
-      label: "Active — Tenant",
+      label: "Tenant",
       bgcolor: "#e0f2fe",
       color: "#0891b2",
     },
@@ -86,9 +106,9 @@ const StatusChip = ({ status }) => {
         bgcolor: s.bgcolor,
         color: s.color,
         fontWeight: 700,
-        fontSize: "0.7rem",
+        fontSize: "0.62rem",
         fontFamily: "Inter, sans-serif",
-        height: 22,
+        height: 20,
       }}
     />
   );
@@ -102,65 +122,81 @@ const ListingChip = ({ type }) => (
       bgcolor: type === "RENT" ? "#f3e8ff" : "#fef3c7",
       color: type === "RENT" ? "#7c3aed" : "#d97706",
       fontWeight: 700,
-      fontSize: "0.7rem",
+      fontSize: "0.62rem",
       fontFamily: "Inter, sans-serif",
-      height: 22,
+      height: 20,
     }}
   />
 );
 
-const fieldStyle = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    fontFamily: "Inter, sans-serif",
-    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
-  },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
-};
+const DetailRow = ({ label, value }) => (
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-between",
+      py: 0.8,
+      borderBottom: "1px solid #f1f5f9",
+      alignItems: "flex-start",
+      gap: 1,
+    }}
+  >
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.72rem", sm: "0.8rem" },
+        color: "#64748b",
+        fontWeight: 500,
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </Typography>
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.75rem", sm: "0.85rem" },
+        color: "#1e293b",
+        fontWeight: 600,
+        textAlign: "right",
+        wordBreak: "break-word",
+      }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
 
 const PropertyPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [tab, setTab] = useState(0);
   const [flats, setFlats] = useState([]);
   const [posts, setPosts] = useState([]);
   const [postHistory, setPostHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Image upload states
   const [imageUploadOpen, setImageUploadOpen] = useState(false);
   const [imageUploadPostId, setImageUploadPostId] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
-
-  // Image gallery states
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [galleryPostTitle, setGalleryPostTitle] = useState("");
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingGallery, setLoadingGallery] = useState(false);
-
-  // Flat detail modal
   const [flatDetailOpen, setFlatDetailOpen] = useState(false);
   const [selectedFlat, setSelectedFlat] = useState(null);
-
-  // Create flat modal
   const [createFlatOpen, setCreateFlatOpen] = useState(false);
   const [flatForm, setFlatForm] = useState({ flatNumber: "", wingId: "" });
   const [flatFormErrors, setFlatFormErrors] = useState({});
-
-  // Assign owner modal
   const [assignOwnerOpen, setAssignOwnerOpen] = useState(false);
   const [assignOwnerFlatId, setAssignOwnerFlatId] = useState(null);
   const [ownerResidentId, setOwnerResidentId] = useState("");
-
-  // Assign tenant modal
   const [assignTenantOpen, setAssignTenantOpen] = useState(false);
   const [assignTenantFlatId, setAssignTenantFlatId] = useState(null);
   const [tenantResidentId, setTenantResidentId] = useState("");
-
-  // Create post modal
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [postForm, setPostForm] = useState({
     flatId: "",
@@ -171,8 +207,6 @@ const PropertyPage = () => {
     availabilityDate: "",
   });
   const [postFormErrors, setPostFormErrors] = useState({});
-
-  // Post detail modal
   const [postDetailOpen, setPostDetailOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
@@ -206,11 +240,10 @@ const PropertyPage = () => {
     loadData();
   }, []);
 
-  // Image handlers
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length < 5 || files.length > 10) {
-      showError("Please select minimum 5 and maximum 10 images");
+      showError("Select 5-10 images");
       return;
     }
     setSelectedFiles(files);
@@ -232,13 +265,13 @@ const PropertyPage = () => {
         postId: imageUploadPostId,
         imageUrls: urls,
       });
-      showSuccess(`${urls.length} images uploaded successfully`);
+      showSuccess(`${urls.length} images uploaded`);
       setImageUploadOpen(false);
       setSelectedFiles([]);
       setImagePreviews([]);
       setImageUploadPostId(null);
     } catch (err) {
-      showError(err.response?.data?.message || "Image upload failed");
+      showError(err.response?.data?.message || "Upload failed");
     } finally {
       setUploadingImages(false);
     }
@@ -263,7 +296,6 @@ const PropertyPage = () => {
     }
   };
 
-  // Create Flat
   const handleCreateFlat = async () => {
     const e = {};
     if (!flatForm.flatNumber) e.flatNumber = "Required";
@@ -276,18 +308,17 @@ const PropertyPage = () => {
         flatNumber: flatForm.flatNumber,
         wingId: Number(flatForm.wingId),
       });
-      showSuccess("Flat created successfully");
+      showSuccess("Flat created");
       setCreateFlatOpen(false);
       setFlatForm({ flatNumber: "", wingId: "" });
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to create flat");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Assign Owner
   const handleAssignOwner = async () => {
     if (!ownerResidentId) {
       showError("Enter resident ID");
@@ -298,18 +329,17 @@ const PropertyPage = () => {
       await axiosInstance.put(`/api/flat/${assignOwnerFlatId}/assign-owner`, {
         residentId: Number(ownerResidentId),
       });
-      showSuccess("Owner assigned successfully");
+      showSuccess("Owner assigned");
       setAssignOwnerOpen(false);
       setOwnerResidentId("");
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to assign owner");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Assign Tenant
   const handleAssignTenant = async () => {
     if (!tenantResidentId) {
       showError("Enter resident ID");
@@ -320,32 +350,30 @@ const PropertyPage = () => {
       await axiosInstance.put(`/api/flat/${assignTenantFlatId}/assign-tenant`, {
         residentId: Number(tenantResidentId),
       });
-      showSuccess("Tenant assigned successfully");
+      showSuccess("Tenant assigned");
       setAssignTenantOpen(false);
       setTenantResidentId("");
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to assign tenant");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Remove Tenant
   const handleRemoveTenant = async (flatId) => {
     setActionLoading(true);
     try {
       await axiosInstance.put(`/api/flat/${flatId}/remove-tenant`);
-      showSuccess("Tenant removed successfully");
+      showSuccess("Tenant removed");
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to remove tenant");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Create Post
   const handleCreatePost = async () => {
     const e = {};
     if (!postForm.flatId) e.flatId = "Required";
@@ -359,7 +387,7 @@ const PropertyPage = () => {
         ...postForm,
         flatId: Number(postForm.flatId),
       });
-      showSuccess("Property post created successfully");
+      showSuccess("Listing created");
       setCreatePostOpen(false);
       setPostForm({
         flatId: "",
@@ -371,13 +399,12 @@ const PropertyPage = () => {
       });
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to create post");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Mark Rented
   const handleMarkRented = async (postId) => {
     setActionLoading(true);
     try {
@@ -385,19 +412,19 @@ const PropertyPage = () => {
       showSuccess("Marked as rented/sold");
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to update");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
   const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {[...Array(5)].map((_, i) => (
         <Skeleton
           key={i}
           variant="rounded"
-          height={48}
+          height={44}
           sx={{ mb: 1, borderRadius: 1.5 }}
         />
       ))}
@@ -407,27 +434,39 @@ const PropertyPage = () => {
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.2,
+          flexWrap: "nowrap",
+        }}
+      >
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <ApartmentIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <ApartmentIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.85rem", sm: "1.05rem" },
               color: "#1e293b",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
             Property Management
@@ -435,49 +474,52 @@ const PropertyPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
-            Manage flats and property listings
+            Manage flats and listings
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={() => setCreateFlatOpen(true)}
-          sx={{
-            bgcolor: "#0891b2",
-            borderRadius: 2,
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
-            boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
-            "&:hover": { bgcolor: "#0e7490" },
-            mr: 1,
-          }}
-        >
-          Add Flat
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<HomeWorkIcon fontSize="small" />}
-          onClick={() => setCreatePostOpen(true)}
-          sx={{
-            borderRadius: 2,
-            borderColor: "#0891b2",
-            color: "#0891b2",
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
-          }}
-        >
-          Post Listing
-        </Button>
+        <Box sx={{ display: "flex", gap: 0.8, flexShrink: 0 }}>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon sx={{ fontSize: "13px !important" }} />}
+            onClick={() => setCreateFlatOpen(true)}
+            sx={{
+              bgcolor: "#0891b2",
+              borderRadius: 2,
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: { xs: "0.68rem", sm: "0.78rem" },
+              px: { xs: 1, sm: 1.5 },
+              whiteSpace: "nowrap",
+              boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
+              "&:hover": { bgcolor: "#0e7490" },
+            }}
+          >
+            {isMobile ? "Flat" : "Add Flat"}
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<HomeWorkIcon sx={{ fontSize: "13px !important" }} />}
+            onClick={() => setCreatePostOpen(true)}
+            sx={{
+              borderRadius: 2,
+              borderColor: "#0891b2",
+              color: "#0891b2",
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: { xs: "0.68rem", sm: "0.78rem" },
+              px: { xs: 1, sm: 1.5 },
+              whiteSpace: "nowrap",
+            }}
+          >
+            {isMobile ? "List" : "Post Listing"}
+          </Button>
+        </Box>
       </Box>
 
       <Paper
@@ -492,36 +534,40 @@ const PropertyPage = () => {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.68rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
+              px: { xs: 1.5, sm: 2 },
             },
             "& .Mui-selected": { color: "#0891b2" },
             "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
           }}
         >
           <Tab label={`All Flats (${flats.length})`} />
-          <Tab label={`Active Listings (${posts.length})`} />
-          <Tab label={`Listing History (${postHistory.length})`} />
+          <Tab label={`Active (${posts.length})`} />
+          <Tab label={`History (${postHistory.length})`} />
         </Tabs>
 
         {loading ? (
           <LoadingSkeleton />
         ) : tab === 0 ? (
           flats.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <ApartmentIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+            <Box sx={{ textAlign: "center", py: 5 }}>
+              <ApartmentIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   color: "#94a3b8",
-                  fontSize: "0.88rem",
+                  fontSize: "0.85rem",
                 }}
               >
                 No flats added yet
@@ -529,7 +575,7 @@ const PropertyPage = () => {
             </Box>
           ) : (
             <TableContainer sx={{ overflowX: "auto" }}>
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 480 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={headSx}>Flat</TableCell>
@@ -551,14 +597,18 @@ const PropertyPage = () => {
                     >
                       <TableCell sx={cellSx}>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.8,
+                          }}
                         >
                           <Avatar
                             sx={{
-                              width: 28,
-                              height: 28,
+                              width: 24,
+                              height: 24,
                               bgcolor: "#e0f2fe",
-                              fontSize: "0.7rem",
+                              fontSize: "0.62rem",
                               color: "#0891b2",
                               fontWeight: 700,
                             }}
@@ -568,7 +618,7 @@ const PropertyPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.82rem",
+                              fontSize: "0.78rem",
                               fontWeight: 600,
                             }}
                           >
@@ -582,12 +632,12 @@ const PropertyPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.78rem",
+                              fontSize: "0.72rem",
                               color: "#94a3b8",
                               fontStyle: "italic",
                             }}
                           >
-                            Not assigned
+                            None
                           </Typography>
                         )}
                       </TableCell>
@@ -596,23 +646,26 @@ const PropertyPage = () => {
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.78rem",
+                              fontSize: "0.72rem",
                               color: "#94a3b8",
                               fontStyle: "italic",
                             }}
                           >
-                            No tenant
+                            None
                           </Typography>
                         )}
                       </TableCell>
                       <TableCell sx={cellSx}>
                         <StatusChip status={flat.status} />
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 1 }}>
+                      <TableCell
+                        align="center"
+                        sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                      >
                         <Box
                           sx={{
                             display: "flex",
-                            gap: 0.5,
+                            gap: 0.4,
                             justifyContent: "center",
                           }}
                         >
@@ -627,11 +680,11 @@ const PropertyPage = () => {
                                 color: "#0891b2",
                                 bgcolor: "#e0f2fe",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <VisibilityIcon sx={{ fontSize: 14 }} />
+                              <VisibilityIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                           {!flat.ownerId && (
@@ -646,11 +699,11 @@ const PropertyPage = () => {
                                   color: "#059669",
                                   bgcolor: "#dcfce7",
                                   borderRadius: 1.5,
-                                  width: 28,
-                                  height: 28,
+                                  width: 26,
+                                  height: 26,
                                 }}
                               >
-                                <PersonAddIcon sx={{ fontSize: 14 }} />
+                                <PersonAddIcon sx={{ fontSize: 13 }} />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -666,11 +719,11 @@ const PropertyPage = () => {
                                   color: "#7c3aed",
                                   bgcolor: "#f3e8ff",
                                   borderRadius: 1.5,
-                                  width: 28,
-                                  height: 28,
+                                  width: 26,
+                                  height: 26,
                                 }}
                               >
-                                <PersonAddIcon sx={{ fontSize: 14 }} />
+                                <PersonAddIcon sx={{ fontSize: 13 }} />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -684,11 +737,11 @@ const PropertyPage = () => {
                                   color: "#dc2626",
                                   bgcolor: "#fee2e2",
                                   borderRadius: 1.5,
-                                  width: 28,
-                                  height: 28,
+                                  width: 26,
+                                  height: 26,
                                 }}
                               >
-                                <PersonRemoveIcon sx={{ fontSize: 14 }} />
+                                <PersonRemoveIcon sx={{ fontSize: 13 }} />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -702,13 +755,13 @@ const PropertyPage = () => {
           )
         ) : tab === 1 ? (
           posts.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <HomeWorkIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+            <Box sx={{ textAlign: "center", py: 5 }}>
+              <HomeWorkIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   color: "#94a3b8",
-                  fontSize: "0.88rem",
+                  fontSize: "0.85rem",
                 }}
               >
                 No active listings
@@ -716,7 +769,7 @@ const PropertyPage = () => {
             </Box>
           ) : (
             <TableContainer sx={{ overflowX: "auto" }}>
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 560 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={headSx}>Flat</TableCell>
@@ -724,7 +777,7 @@ const PropertyPage = () => {
                     <TableCell sx={headSx}>Contact</TableCell>
                     <TableCell sx={headSx}>Type</TableCell>
                     <TableCell sx={headSx}>Furnishing</TableCell>
-                    <TableCell sx={headSx}>Available From</TableCell>
+                    <TableCell sx={headSx}>Available</TableCell>
                     <TableCell sx={headSx} align="center">
                       Actions
                     </TableCell>
@@ -749,11 +802,11 @@ const PropertyPage = () => {
                         <Typography
                           sx={{
                             fontFamily: "Inter, sans-serif",
-                            fontSize: "0.78rem",
+                            fontSize: "0.72rem",
                             color: "#64748b",
                           }}
                         >
-                          {post.furnishingStatus?.replace("_", " ")}
+                          {post.furnishingStatus?.replace(/_/g, " ")}
                         </Typography>
                       </TableCell>
                       <TableCell sx={cellSx}>
@@ -763,11 +816,14 @@ const PropertyPage = () => {
                             )
                           : "—"}
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 1 }}>
+                      <TableCell
+                        align="center"
+                        sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                      >
                         <Box
                           sx={{
                             display: "flex",
-                            gap: 0.5,
+                            gap: 0.4,
                             justifyContent: "center",
                           }}
                         >
@@ -782,14 +838,14 @@ const PropertyPage = () => {
                                 color: "#0891b2",
                                 bgcolor: "#e0f2fe",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <VisibilityIcon sx={{ fontSize: 14 }} />
+                              <VisibilityIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Upload Images (min 5, max 10)">
+                          <Tooltip title="Upload Images">
                             <IconButton
                               size="small"
                               onClick={() => {
@@ -800,11 +856,11 @@ const PropertyPage = () => {
                                 color: "#7c3aed",
                                 bgcolor: "#f3e8ff",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <CloudUploadIcon sx={{ fontSize: 14 }} />
+                              <CloudUploadIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="View Images">
@@ -815,14 +871,14 @@ const PropertyPage = () => {
                                 color: "#d97706",
                                 bgcolor: "#fef3c7",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <ImageIcon sx={{ fontSize: 14 }} />
+                              <ImageIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Mark as Rented/Sold">
+                          <Tooltip title="Mark Rented/Sold">
                             <IconButton
                               size="small"
                               onClick={() => handleMarkRented(post.id)}
@@ -831,11 +887,11 @@ const PropertyPage = () => {
                                 color: "#059669",
                                 bgcolor: "#dcfce7",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <HomeWorkIcon sx={{ fontSize: 14 }} />
+                              <HomeWorkIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -847,13 +903,13 @@ const PropertyPage = () => {
             </TableContainer>
           )
         ) : postHistory.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 6 }}>
-            <HomeWorkIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+          <Box sx={{ textAlign: "center", py: 5 }}>
+            <HomeWorkIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 color: "#94a3b8",
-                fontSize: "0.88rem",
+                fontSize: "0.85rem",
               }}
             >
               No listing history yet
@@ -861,7 +917,7 @@ const PropertyPage = () => {
           </Box>
         ) : (
           <TableContainer sx={{ overflowX: "auto" }}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 500 }}>
               <TableHead>
                 <TableRow>
                   <TableCell sx={headSx}>Flat</TableCell>
@@ -869,7 +925,7 @@ const PropertyPage = () => {
                   <TableCell sx={headSx}>Type</TableCell>
                   <TableCell sx={headSx}>Furnishing</TableCell>
                   <TableCell sx={headSx}>Status</TableCell>
-                  <TableCell sx={headSx}>Posted On</TableCell>
+                  <TableCell sx={headSx}>Posted</TableCell>
                   <TableCell sx={headSx} align="center">
                     Images
                   </TableCell>
@@ -891,24 +947,24 @@ const PropertyPage = () => {
                       <Typography
                         sx={{
                           fontFamily: "Inter, sans-serif",
-                          fontSize: "0.78rem",
+                          fontSize: "0.72rem",
                           color: "#64748b",
                         }}
                       >
-                        {post.furnishingStatus?.replace("_", " ")}
+                        {post.furnishingStatus?.replace(/_/g, " ")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={cellSx}>
                       <Chip
-                        label={post.isActive ? "Active" : "Rented/Sold"}
+                        label={post.isActive ? "Active" : "Rented"}
                         size="small"
                         sx={{
                           bgcolor: post.isActive ? "#dcfce7" : "#fee2e2",
                           color: post.isActive ? "#166534" : "#991b1b",
                           fontWeight: 700,
-                          fontSize: "0.7rem",
+                          fontSize: "0.62rem",
                           fontFamily: "Inter, sans-serif",
-                          height: 22,
+                          height: 20,
                         }}
                       />
                     </TableCell>
@@ -917,7 +973,7 @@ const PropertyPage = () => {
                         ? new Date(post.createdAt).toLocaleDateString("en-IN")
                         : "—"}
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
+                    <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
                       <Tooltip title="View Images">
                         <IconButton
                           size="small"
@@ -926,11 +982,11 @@ const PropertyPage = () => {
                             color: "#d97706",
                             bgcolor: "#fef3c7",
                             borderRadius: 1.5,
-                            width: 28,
-                            height: 28,
+                            width: 26,
+                            height: 26,
                           }}
                         >
-                          <ImageIcon sx={{ fontSize: 14 }} />
+                          <ImageIcon sx={{ fontSize: 13 }} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -948,69 +1004,45 @@ const PropertyPage = () => {
         onClose={() => setFlatDetailOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Flat Details
         </DialogTitle>
         {selectedFlat && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
               ["Flat Number", selectedFlat.flatNumber],
               ["Wing", selectedFlat.wingName || "—"],
               ["Owner", selectedFlat.ownerName || "Not assigned"],
-              ["Current Tenant", selectedFlat.currentTenantName || "No tenant"],
+              ["Tenant", selectedFlat.currentTenantName || "No tenant"],
               ["Status", selectedFlat.status],
             ].map(([label, value]) => (
-              <Box
-                key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: "#1e293b",
-                    fontWeight: 600,
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
+              <DetailRow key={label} label={label} value={value} />
             ))}
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setFlatDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -1028,28 +1060,36 @@ const PropertyPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Add New Flat
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <FormControl
               size="small"
               error={!!flatFormErrors.wingId}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             >
-              <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+              <InputLabel
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
+                }}
+              >
                 Wing *
               </InputLabel>
               <Select
@@ -1058,13 +1098,19 @@ const PropertyPage = () => {
                   setFlatForm({ ...flatForm, wingId: e.target.value })
                 }
                 label="Wing *"
-                sx={{ fontFamily: "Inter, sans-serif" }}
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: isMobile ? "0.78rem" : "0.875rem",
+                }}
               >
                 {wings.map((w) => (
                   <MenuItem
                     key={w.id}
                     value={w.id}
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
                     {w.name}
                   </MenuItem>
@@ -1074,7 +1120,7 @@ const PropertyPage = () => {
                 <Typography
                   sx={{
                     color: "#d32f2f",
-                    fontSize: "0.72rem",
+                    fontSize: "0.62rem",
                     mt: 0.5,
                     ml: 1.5,
                     fontFamily: "Inter, sans-serif",
@@ -1095,32 +1141,38 @@ const PropertyPage = () => {
               placeholder="e.g. 201"
               error={!!flatFormErrors.flatNumber}
               helperText={flatFormErrors.flatNumber}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setCreateFlatOpen(false);
               setFlatForm({ flatNumber: "", wingId: "" });
               setFlatFormErrors({});
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleCreateFlat}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               borderRadius: 2,
               "&:hover": { bgcolor: "#0e7490" },
@@ -1140,30 +1192,33 @@ const PropertyPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
-          Assign Owner to Flat
+          Assign Owner
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.85rem",
+              fontSize: { xs: "0.75rem", sm: "0.85rem" },
               color: "#64748b",
-              mb: 2,
+              mb: 1.5,
             }}
           >
-            Enter the Resident ID of the owner to assign to this flat.
+            Enter the Resident ID of the owner.
           </Typography>
           <TextField
             label="Owner Resident ID *"
@@ -1174,30 +1229,36 @@ const PropertyPage = () => {
             }}
             size="small"
             fullWidth
-            sx={fieldStyle}
+            sx={fieldStyle(isMobile)}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setAssignOwnerOpen(false);
               setOwnerResidentId("");
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleAssignOwner}
             disabled={actionLoading || !ownerResidentId}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#059669",
               borderRadius: 2,
               "&:hover": { bgcolor: "#047857" },
@@ -1217,30 +1278,33 @@ const PropertyPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
-          Assign Tenant to Flat
+          Assign Tenant
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.85rem",
+              fontSize: { xs: "0.75rem", sm: "0.85rem" },
               color: "#64748b",
-              mb: 2,
+              mb: 1.5,
             }}
           >
-            Enter the Resident ID of the tenant to assign to this flat.
+            Enter the Resident ID of the tenant.
           </Typography>
           <TextField
             label="Tenant Resident ID *"
@@ -1251,30 +1315,36 @@ const PropertyPage = () => {
             }}
             size="small"
             fullWidth
-            sx={fieldStyle}
+            sx={fieldStyle(isMobile)}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setAssignTenantOpen(false);
               setTenantResidentId("");
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleAssignTenant}
             disabled={actionLoading || !tenantResidentId}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#7c3aed",
               borderRadius: 2,
               "&:hover": { bgcolor: "#6d28d9" },
@@ -1300,24 +1370,27 @@ const PropertyPage = () => {
           });
           setPostFormErrors({});
         }}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Create Property Listing
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <TextField
               label="Flat ID *"
               value={postForm.flatId}
@@ -1329,9 +1402,9 @@ const PropertyPage = () => {
               fullWidth
               error={!!postFormErrors.flatId}
               helperText={
-                postFormErrors.flatId || "Enter the flat ID from Flats tab"
+                postFormErrors.flatId || "Enter flat ID from Flats tab"
               }
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Owner Name *"
@@ -1344,7 +1417,7 @@ const PropertyPage = () => {
               fullWidth
               error={!!postFormErrors.ownerName}
               helperText={postFormErrors.ownerName}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Contact Number *"
@@ -1358,39 +1431,58 @@ const PropertyPage = () => {
               fullWidth
               error={!!postFormErrors.contactNumber}
               helperText={postFormErrors.contactNumber}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
-              <FormControl size="small" sx={fieldStyle}>
-                <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
-                  Listing Type
+              <FormControl size="small" sx={fieldStyle(isMobile)}>
+                <InputLabel
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
+                >
+                  Type
                 </InputLabel>
                 <Select
                   value={postForm.listingType}
                   onChange={(e) =>
                     setPostForm({ ...postForm, listingType: e.target.value })
                   }
-                  label="Listing Type"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  label="Type"
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
                 >
                   <MenuItem
                     value="RENT"
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
                     Rent
                   </MenuItem>
                   <MenuItem
                     value="SALE"
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
                     Sale
                   </MenuItem>
                 </Select>
               </FormControl>
-              <FormControl size="small" sx={fieldStyle}>
-                <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+              <FormControl size="small" sx={fieldStyle(isMobile)}>
+                <InputLabel
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
+                >
                   Furnishing
                 </InputLabel>
                 <Select
@@ -1402,25 +1494,37 @@ const PropertyPage = () => {
                     })
                   }
                   label="Furnishing"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
                 >
                   <MenuItem
                     value="FULLY_FURNISHED"
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
-                    Fully Furnished
+                    Fully
                   </MenuItem>
                   <MenuItem
                     value="SEMI_FURNISHED"
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
-                    Semi Furnished
+                    Semi
                   </MenuItem>
                   <MenuItem
                     value="NON_FURNISHED"
-                    sx={{ fontFamily: "Inter, sans-serif" }}
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
-                    Non Furnished
+                    None
                   </MenuItem>
                 </Select>
               </FormControl>
@@ -1435,11 +1539,13 @@ const PropertyPage = () => {
               fullWidth
               type="date"
               slotProps={{ inputLabel: { shrink: true } }}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setCreatePostOpen(false);
@@ -1453,21 +1559,25 @@ const PropertyPage = () => {
               });
               setPostFormErrors({});
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleCreatePost}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               borderRadius: 2,
               "&:hover": { bgcolor: "#0e7490" },
@@ -1484,30 +1594,33 @@ const PropertyPage = () => {
         onClose={() => setPostDetailOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Listing Details
         </DialogTitle>
         {selectedPost && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
               ["Flat Number", selectedPost.flatNumber || "—"],
               ["Owner Name", selectedPost.ownerName],
               ["Contact", selectedPost.contactNumber],
-              ["Listing Type", selectedPost.listingType],
-              ["Furnishing", selectedPost.furnishingStatus?.replace("_", " ")],
+              ["Type", selectedPost.listingType],
+              ["Furnishing", selectedPost.furnishingStatus?.replace(/_/g, " ")],
               [
-                "Available From",
+                "Available",
                 selectedPost.availabilityDate
                   ? new Date(selectedPost.availabilityDate).toLocaleDateString(
                       "en-IN",
@@ -1522,46 +1635,19 @@ const PropertyPage = () => {
                   : "—",
               ],
             ].map(([label, value]) => (
-              <Box
-                key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: "#1e293b",
-                    fontWeight: 600,
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
+              <DetailRow key={label} label={label} value={value} />
             ))}
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setPostDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -1577,31 +1663,34 @@ const PropertyPage = () => {
           setSelectedFiles([]);
           setImagePreviews([]);
         }}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <CloudUploadIcon sx={{ color: "#7c3aed", fontSize: 18 }} />
+          <CloudUploadIcon sx={{ color: "#7c3aed", fontSize: 16 }} />
           Upload Property Images
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <Box
               sx={{
-                p: 2,
+                p: 1.5,
                 bgcolor: "#f3e8ff",
                 borderRadius: 2,
                 border: "1px dashed #7c3aed",
@@ -1610,10 +1699,10 @@ const PropertyPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.82rem",
+                  fontSize: { xs: "0.75rem", sm: "0.82rem" },
                   color: "#7c3aed",
                   fontWeight: 600,
-                  mb: 0.5,
+                  mb: 0.3,
                 }}
               >
                 Select 5 to 10 property images
@@ -1621,29 +1710,33 @@ const PropertyPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
+                  fontSize: { xs: "0.65rem", sm: "0.72rem" },
                   color: "#94a3b8",
                 }}
               >
-                JPG, PNG format. Each image max 5MB.
+                JPG, PNG — Max 5MB each
               </Typography>
             </Box>
             <Button
               variant="outlined"
               component="label"
               fullWidth
-              startIcon={<CloudUploadIcon />}
+              size="small"
+              startIcon={
+                <CloudUploadIcon sx={{ fontSize: "14px !important" }} />
+              }
               sx={{
                 borderRadius: 2,
                 borderColor: "#7c3aed",
                 color: "#7c3aed",
                 fontFamily: "Inter, sans-serif",
                 textTransform: "none",
-                py: 1.2,
+                fontSize: { xs: "0.75rem", sm: "0.82rem" },
+                py: 1,
               }}
             >
               {selectedFiles.length > 0
-                ? `${selectedFiles.length} images selected`
+                ? `${selectedFiles.length} selected`
                 : "Choose Images (5-10)"}
               <input
                 type="file"
@@ -1658,19 +1751,19 @@ const PropertyPage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
                     fontWeight: 600,
                     color: "#64748b",
-                    mb: 1,
+                    mb: 0.8,
                   }}
                 >
-                  Preview ({imagePreviews.length} images):
+                  Preview ({imagePreviews.length}):
                 </Typography>
                 <Box
                   sx={{
                     display: "grid",
                     gridTemplateColumns: "repeat(5, 1fr)",
-                    gap: 1,
+                    gap: 0.8,
                   }}
                 >
                   {imagePreviews.map((src, i) => (
@@ -1686,7 +1779,7 @@ const PropertyPage = () => {
                       <Box
                         component="img"
                         src={src}
-                        alt={`preview-${i}`}
+                        alt={`p${i}`}
                         sx={{
                           width: "100%",
                           height: "100%",
@@ -1700,35 +1793,41 @@ const PropertyPage = () => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setImageUploadOpen(false);
               setSelectedFiles([]);
               setImagePreviews([]);
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleUploadImages}
             disabled={uploadingImages || selectedFiles.length < 5}
             startIcon={
               uploadingImages ? (
-                <CircularProgress size={14} color="inherit" />
+                <CircularProgress size={12} color="inherit" />
               ) : (
-                <CloudUploadIcon fontSize="small" />
+                <CloudUploadIcon sx={{ fontSize: "13px !important" }} />
               )
             }
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#7c3aed",
               borderRadius: 2,
               "&:hover": { bgcolor: "#6d28d9" },
@@ -1736,7 +1835,7 @@ const PropertyPage = () => {
           >
             {uploadingImages
               ? "Uploading..."
-              : `Upload ${selectedFiles.length} Images`}
+              : `Upload ${selectedFiles.length}`}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1748,36 +1847,54 @@ const PropertyPage = () => {
           setGalleryOpen(false);
           setGalleryImages([]);
         }}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, bgcolor: "#0f172a" } } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: 3, bgcolor: "#0f172a", mx: { xs: 1, sm: 3 } },
+          },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "0.9rem",
+            fontSize: { xs: "0.8rem", sm: "0.9rem" },
             color: "white",
             borderBottom: "1px solid #1e293b",
-            py: 1.5,
+            py: 1.2,
+            px: 2,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ImageIcon sx={{ color: "#d97706", fontSize: 18 }} />
-            {galleryPostTitle}
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}
+          >
+            <ImageIcon sx={{ color: "#d97706", fontSize: 16, flexShrink: 0 }} />
+            <Typography
+              noWrap
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.78rem", sm: "0.88rem" },
+                color: "white",
+                fontWeight: 700,
+              }}
+            >
+              {galleryPostTitle}
+            </Typography>
             {galleryImages.length > 0 && (
               <Chip
-                label={`${galleryImages.length} photos`}
+                label={`${galleryImages.length}`}
                 size="small"
                 sx={{
                   bgcolor: "#1e293b",
                   color: "#94a3b8",
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.68rem",
-                  height: 20,
+                  fontSize: "0.62rem",
+                  height: 18,
+                  flexShrink: 0,
                 }}
               />
             )}
@@ -1788,31 +1905,31 @@ const PropertyPage = () => {
               setGalleryOpen(false);
               setGalleryImages([]);
             }}
-            sx={{ color: "white" }}
+            sx={{ color: "white", flexShrink: 0 }}
           >
             <CancelIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 2, bgcolor: "#0f172a" }}>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 }, bgcolor: "#0f172a" }}>
           {loadingGallery ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
               <CircularProgress sx={{ color: "#d97706" }} />
             </Box>
           ) : galleryImages.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6 }}>
-              <ImageIcon sx={{ fontSize: 48, color: "#334155", mb: 1 }} />
+            <Box sx={{ textAlign: "center", py: 5 }}>
+              <ImageIcon sx={{ fontSize: 40, color: "#334155", mb: 1 }} />
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   color: "#64748b",
-                  fontSize: "0.88rem",
+                  fontSize: { xs: "0.78rem", sm: "0.88rem" },
                 }}
               >
                 No images uploaded for this listing
               </Typography>
             </Box>
           ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               <Box sx={{ borderRadius: 2, overflow: "hidden" }}>
                 <Box
                   component="img"
@@ -1820,20 +1937,22 @@ const PropertyPage = () => {
                   alt="property"
                   sx={{
                     width: "100%",
-                    maxHeight: 400,
+                    maxHeight: { xs: 250, sm: 400 },
                     objectFit: "contain",
                     bgcolor: "#1e293b",
                   }}
                 />
               </Box>
-              <Box sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1 }}>
+              <Box
+                sx={{ display: "flex", gap: 0.8, overflowX: "auto", pb: 0.5 }}
+              >
                 {galleryImages.map((img, i) => (
                   <Box
                     key={img.id}
                     onClick={() => setGalleryIndex(i)}
                     sx={{
-                      width: 64,
-                      height: 64,
+                      width: { xs: 48, sm: 60 },
+                      height: { xs: 48, sm: 60 },
                       flexShrink: 0,
                       borderRadius: 1.5,
                       overflow: "hidden",
@@ -1849,7 +1968,7 @@ const PropertyPage = () => {
                     <Box
                       component="img"
                       src={img.imageUrl}
-                      alt={`thumb-${i}`}
+                      alt={`t${i}`}
                       sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   </Box>
@@ -1858,7 +1977,7 @@ const PropertyPage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
+                  fontSize: "0.68rem",
                   color: "#64748b",
                   textAlign: "center",
                 }}

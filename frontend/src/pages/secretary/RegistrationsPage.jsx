@@ -13,7 +13,6 @@ import {
   TableHead,
   TableRow,
   Skeleton,
-  // Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -23,7 +22,8 @@ import {
   Tooltip,
   Avatar,
   Button,
-  // Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -50,9 +50,9 @@ const StatusChip = ({ status }) => {
         bgcolor: s.bgcolor,
         color: s.color,
         fontWeight: 700,
-        fontSize: "0.7rem",
+        fontSize: "0.65rem",
         fontFamily: "Inter, sans-serif",
-        height: 22,
+        height: 20,
       }}
     />
   );
@@ -66,48 +66,53 @@ const TypeChip = ({ type }) => (
       bgcolor: type === "OWNER" ? "#e0f2fe" : "#f3e8ff",
       color: type === "OWNER" ? "#0891b2" : "#7c3aed",
       fontWeight: 700,
-      fontSize: "0.7rem",
+      fontSize: "0.65rem",
       fontFamily: "Inter, sans-serif",
-      height: 22,
+      height: 20,
     }}
   />
 );
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
-// Reusable detail row
 const DetailRow = ({ label, value }) => (
   <Box
     sx={{
       display: "flex",
       justifyContent: "space-between",
-      py: 1,
+      py: 0.8,
       borderBottom: "1px solid #f1f5f9",
-      alignItems: "center",
+      alignItems: "flex-start",
+      gap: 1,
     }}
   >
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "0.8rem",
+        fontSize: { xs: "0.72rem", sm: "0.8rem" },
         color: "#64748b",
         fontWeight: 500,
+        flexShrink: 0,
       }}
     >
       {label}
@@ -115,11 +120,11 @@ const DetailRow = ({ label, value }) => (
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "0.85rem",
+        fontSize: { xs: "0.75rem", sm: "0.85rem" },
         color: "#1e293b",
         fontWeight: 600,
         textAlign: "right",
-        maxWidth: "60%",
+        wordBreak: "break-word",
       }}
     >
       {value || "—"}
@@ -128,26 +133,21 @@ const DetailRow = ({ label, value }) => (
 );
 
 const RegistrationsPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [tab, setTab] = useState(0);
   const [pending, setPending] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Pending detail modal
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-
-  // History detail modal (issue 4)
   const [historyDetailOpen, setHistoryDetailOpen] = useState(false);
   const [historySelected, setHistorySelected] = useState(null);
-
-  // Reject modal
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
-
-  // Reason modal (issue 3)
   const [reasonOpen, setReasonOpen] = useState(false);
   const [fullReason, setFullReason] = useState("");
 
@@ -221,12 +221,12 @@ const RegistrationsPage = () => {
   };
 
   const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {[...Array(4)].map((_, i) => (
         <Skeleton
           key={i}
           variant="rounded"
-          height={48}
+          height={44}
           sx={{ mb: 1, borderRadius: 1.5 }}
         />
       ))}
@@ -234,13 +234,13 @@ const RegistrationsPage = () => {
   );
 
   const EmptyState = ({ message }) => (
-    <Box sx={{ textAlign: "center", py: 6 }}>
-      <PersonIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+    <Box sx={{ textAlign: "center", py: 5 }}>
+      <PersonIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
       <Typography
         sx={{
           fontFamily: "Inter, sans-serif",
           color: "#94a3b8",
-          fontSize: "0.88rem",
+          fontSize: "0.85rem",
         }}
       >
         {message}
@@ -251,26 +251,27 @@ const RegistrationsPage = () => {
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <HowToRegIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <HowToRegIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -279,7 +280,7 @@ const RegistrationsPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.68rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
@@ -294,7 +295,8 @@ const RegistrationsPage = () => {
             color: pending.length > 0 ? "#854d0e" : "#64748b",
             fontWeight: 700,
             fontFamily: "Inter, sans-serif",
-            fontSize: "0.72rem",
+            fontSize: "0.68rem",
+            flexShrink: 0,
           }}
         />
       </Box>
@@ -311,24 +313,25 @@ const RegistrationsPage = () => {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="fullWidth"
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.72rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
             },
             "& .Mui-selected": { color: "#0891b2" },
             "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
           }}
         >
-          <Tab label={`Pending Requests (${pending.length})`} />
+          <Tab label={`Pending (${pending.length})`} />
           <Tab
             label={`History (${history.length})`}
-            icon={<HistoryIcon sx={{ fontSize: 16 }} />}
+            icon={<HistoryIcon sx={{ fontSize: 14 }} />}
             iconPosition="start"
           />
         </Tabs>
@@ -340,7 +343,7 @@ const RegistrationsPage = () => {
             <EmptyState message="No pending registration requests" />
           ) : (
             <TableContainer sx={{ overflowX: "auto" }}>
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 520 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={headSx}>Name</TableCell>
@@ -363,16 +366,21 @@ const RegistrationsPage = () => {
                     >
                       <TableCell sx={cellSx}>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.8,
+                          }}
                         >
                           <Avatar
                             sx={{
-                              width: 28,
-                              height: 28,
+                              width: 24,
+                              height: 24,
                               bgcolor: "#e0f2fe",
-                              fontSize: "0.75rem",
+                              fontSize: "0.65rem",
                               color: "#0891b2",
                               fontWeight: 700,
+                              flexShrink: 0,
                             }}
                           >
                             {row.firstName?.[0]}
@@ -389,11 +397,14 @@ const RegistrationsPage = () => {
                       <TableCell sx={cellSx}>
                         {new Date(row.createdAt).toLocaleDateString("en-IN")}
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 1 }}>
+                      <TableCell
+                        align="center"
+                        sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                      >
                         <Box
                           sx={{
                             display: "flex",
-                            gap: 0.5,
+                            gap: 0.4,
                             justifyContent: "center",
                           }}
                         >
@@ -405,11 +416,11 @@ const RegistrationsPage = () => {
                                 color: "#0891b2",
                                 bgcolor: "#e0f2fe",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <VisibilityIcon sx={{ fontSize: 14 }} />
+                              <VisibilityIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Approve">
@@ -421,11 +432,11 @@ const RegistrationsPage = () => {
                                 color: "#059669",
                                 bgcolor: "#dcfce7",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <CheckCircleIcon sx={{ fontSize: 14 }} />
+                              <CheckCircleIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Reject">
@@ -436,11 +447,11 @@ const RegistrationsPage = () => {
                                 color: "#dc2626",
                                 bgcolor: "#fee2e2",
                                 borderRadius: 1.5,
-                                width: 28,
-                                height: 28,
+                                width: 26,
+                                height: 26,
                               }}
                             >
-                              <CancelIcon sx={{ fontSize: 14 }} />
+                              <CancelIcon sx={{ fontSize: 13 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -455,7 +466,7 @@ const RegistrationsPage = () => {
           <EmptyState message="No registration history yet" />
         ) : (
           <TableContainer sx={{ overflowX: "auto" }}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 560 }}>
               <TableHead>
                 <TableRow>
                   <TableCell sx={headSx}>Name</TableCell>
@@ -465,7 +476,6 @@ const RegistrationsPage = () => {
                   <TableCell sx={headSx}>Status</TableCell>
                   <TableCell sx={headSx}>Reason</TableCell>
                   <TableCell sx={headSx}>Date</TableCell>
-                  {/* Issue 4: Added Actions column */}
                   <TableCell sx={headSx} align="center">
                     Details
                   </TableCell>
@@ -480,16 +490,17 @@ const RegistrationsPage = () => {
                   >
                     <TableCell sx={cellSx}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        sx={{ display: "flex", alignItems: "center", gap: 0.8 }}
                       >
                         <Avatar
                           sx={{
-                            width: 28,
-                            height: 28,
+                            width: 24,
+                            height: 24,
                             bgcolor: "#e0f2fe",
-                            fontSize: "0.75rem",
+                            fontSize: "0.65rem",
                             color: "#0891b2",
                             fontWeight: 700,
+                            flexShrink: 0,
                           }}
                         >
                           {row.firstName?.[0]}
@@ -505,24 +516,22 @@ const RegistrationsPage = () => {
                     <TableCell sx={cellSx}>
                       <StatusChip status={row.status} />
                     </TableCell>
-
-                    {/* Issue 3: Reason with eye icon */}
-                    <TableCell sx={{ ...cellSx, maxWidth: 120 }}>
+                    <TableCell sx={{ ...cellSx, maxWidth: 100 }}>
                       {row.rejectionReason ? (
                         <Box
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 0.5,
+                            gap: 0.4,
                           }}
                         >
                           <Typography
                             noWrap
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.78rem",
+                              fontSize: "0.72rem",
                               color: "#94a3b8",
-                              maxWidth: 80,
+                              maxWidth: 60,
                             }}
                           >
                             {row.rejectionReason}
@@ -535,12 +544,12 @@ const RegistrationsPage = () => {
                                 color: "#0891b2",
                                 bgcolor: "#e0f2fe",
                                 borderRadius: 1,
-                                width: 22,
-                                height: 22,
+                                width: 20,
+                                height: 20,
                                 flexShrink: 0,
                               }}
                             >
-                              <InfoOutlinedIcon sx={{ fontSize: 12 }} />
+                              <InfoOutlinedIcon sx={{ fontSize: 11 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -548,7 +557,7 @@ const RegistrationsPage = () => {
                         <Typography
                           sx={{
                             fontFamily: "Inter, sans-serif",
-                            fontSize: "0.78rem",
+                            fontSize: "0.72rem",
                             color: "#cbd5e1",
                           }}
                         >
@@ -556,13 +565,10 @@ const RegistrationsPage = () => {
                         </Typography>
                       )}
                     </TableCell>
-
                     <TableCell sx={cellSx}>
                       {new Date(row.createdAt).toLocaleDateString("en-IN")}
                     </TableCell>
-
-                    {/* Issue 4: View full details */}
-                    <TableCell align="center" sx={{ py: 1 }}>
+                    <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
                       <Tooltip title="View Full Details">
                         <IconButton
                           size="small"
@@ -571,11 +577,11 @@ const RegistrationsPage = () => {
                             color: "#0891b2",
                             bgcolor: "#e0f2fe",
                             borderRadius: 1.5,
-                            width: 28,
-                            height: 28,
+                            width: 26,
+                            height: 26,
                           }}
                         >
-                          <VisibilityIcon sx={{ fontSize: 14 }} />
+                          <VisibilityIcon sx={{ fontSize: 13 }} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -591,43 +597,46 @@ const RegistrationsPage = () => {
       <Dialog
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Registration Request Details
         </DialogTitle>
         {selected && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             <DetailRow
               label="Full Name"
               value={`${selected.firstName} ${selected.lastName}`}
             />
-            <DetailRow label="Mobile Number" value={selected.mobileNumber} />
+            <DetailRow label="Mobile" value={selected.mobileNumber} />
             <DetailRow
               label="Aadhaar Last 4"
               value={selected.aadhaarLastFour}
             />
-            <DetailRow label="Resident Type" value={selected.residentType} />
+            <DetailRow label="Type" value={selected.residentType} />
             <DetailRow label="Wing" value={selected.wingName || "—"} />
-            <DetailRow label="Flat Number" value={selected.flatNumber} />
+            <DetailRow label="Flat" value={selected.flatNumber} />
             {selected.residentType === "TENANT" && (
               <>
-                <Box sx={{ mt: 1.5, mb: 0.5 }}>
+                <Box sx={{ mt: 1.2, mb: 0.5 }}>
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.7rem",
+                      fontSize: "0.65rem",
                       fontWeight: 700,
                       color: "#0891b2",
                       letterSpacing: "0.05em",
@@ -657,19 +666,30 @@ const RegistrationsPage = () => {
             />
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{
+            p: 1.5,
+            px: 2,
+            gap: 0.8,
+            borderTop: "1px solid #e0f2fe",
+            flexWrap: "wrap",
+          }}
+        >
           <Button
             onClick={() => setDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
           </Button>
           <Button
             variant="outlined"
+            size="small"
             onClick={() => {
               setDetailOpen(false);
               openReject(selected?.id);
@@ -677,6 +697,7 @@ const RegistrationsPage = () => {
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               borderColor: "#dc2626",
               color: "#dc2626",
               "&:hover": { bgcolor: "#fee2e2" },
@@ -686,11 +707,13 @@ const RegistrationsPage = () => {
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={() => handleApprove(selected?.id)}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#059669",
               "&:hover": { bgcolor: "#047857" },
             }}
@@ -700,59 +723,55 @@ const RegistrationsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* History Detail Modal (Issue 4) */}
+      {/* History Detail Modal */}
       <Dialog
         open={historyDetailOpen}
         onClose={() => setHistoryDetailOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <VisibilityIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <VisibilityIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Request Details
           {historySelected && <StatusChip status={historySelected.status} />}
         </DialogTitle>
         {historySelected && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             <DetailRow
               label="Full Name"
               value={`${historySelected.firstName} ${historySelected.lastName}`}
             />
-            <DetailRow
-              label="Mobile Number"
-              value={historySelected.mobileNumber}
-            />
+            <DetailRow label="Mobile" value={historySelected.mobileNumber} />
             <DetailRow
               label="Aadhaar Last 4"
               value={historySelected.aadhaarLastFour}
             />
-            <DetailRow
-              label="Resident Type"
-              value={historySelected.residentType}
-            />
+            <DetailRow label="Type" value={historySelected.residentType} />
             <DetailRow label="Wing" value={historySelected.wingName || "—"} />
-            <DetailRow label="Flat Number" value={historySelected.flatNumber} />
-
+            <DetailRow label="Flat" value={historySelected.flatNumber} />
             {historySelected.residentType === "TENANT" && (
               <>
-                <Box sx={{ mt: 1.5, mb: 0.5 }}>
+                <Box sx={{ mt: 1.2, mb: 0.5 }}>
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.7rem",
+                      fontSize: "0.65rem",
                       fontWeight: 700,
                       color: "#0891b2",
                       letterSpacing: "0.05em",
@@ -776,14 +795,12 @@ const RegistrationsPage = () => {
                 />
               </>
             )}
-
             <DetailRow
               label="Submitted On"
               value={new Date(historySelected.createdAt).toLocaleString(
                 "en-IN",
               )}
             />
-
             {historySelected.status === "REJECTED" &&
               historySelected.rejectionReason && (
                 <Box
@@ -798,7 +815,7 @@ const RegistrationsPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.7rem",
+                      fontSize: "0.65rem",
                       fontWeight: 700,
                       color: "#dc2626",
                       mb: 0.5,
@@ -811,7 +828,7 @@ const RegistrationsPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.85rem",
+                      fontSize: { xs: "0.78rem", sm: "0.85rem" },
                       color: "#991b1b",
                     }}
                   >
@@ -821,13 +838,15 @@ const RegistrationsPage = () => {
               )}
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setHistoryDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -835,30 +854,33 @@ const RegistrationsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Full Reason Modal (Issue 3) */}
+      {/* Full Reason Modal */}
       <Dialog
         open={reasonOpen}
         onClose={() => setReasonOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Rejection Reason
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
           <Box
             sx={{
-              p: 2,
+              p: 1.5,
               bgcolor: "#fef2f2",
               borderRadius: 2,
               border: "1px solid #fecaca",
@@ -867,7 +889,7 @@ const RegistrationsPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.88rem",
+                fontSize: { xs: "0.78rem", sm: "0.88rem" },
                 color: "#991b1b",
                 lineHeight: 1.6,
               }}
@@ -876,13 +898,15 @@ const RegistrationsPage = () => {
             </Typography>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions sx={{ p: 1.5, px: 2, borderTop: "1px solid #e0f2fe" }}>
           <Button
             onClick={() => setReasonOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -899,27 +923,30 @@ const RegistrationsPage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
           }}
         >
           Reject Registration
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.85rem",
+              fontSize: { xs: "0.75rem", sm: "0.85rem" },
               color: "#64748b",
-              mb: 2,
+              mb: 1.5,
             }}
           >
             Please provide a reason for rejection. This will be visible to the
@@ -933,10 +960,17 @@ const RegistrationsPage = () => {
             multiline
             rows={3}
             size="small"
+            InputLabelProps={{
+              sx: {
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.78rem", sm: "0.875rem" },
+              },
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
                 fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.78rem", sm: "0.875rem" },
                 "&.Mui-focused fieldset": { borderColor: "#dc2626" },
               },
               "& .MuiInputLabel-root.Mui-focused": { color: "#dc2626" },
@@ -944,27 +978,33 @@ const RegistrationsPage = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setRejectOpen(false);
               setRejectReason("");
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleReject}
             disabled={!rejectReason.trim() || actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#dc2626",
               "&:hover": { bgcolor: "#b91c1c" },
             }}
