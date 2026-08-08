@@ -176,4 +176,68 @@ public class SecretaryServiceImpl implements SecretaryService {
 
         return SecretaryMapper.toDTO(profile);
     }
+    
+ // ── Forgot Password: Send OTP (no auth — pre-login) ──────────────────────
+    @Override
+    public void sendForgotPasswordOtp(String email) {
+
+        // Verify this email belongs to the secretary
+        SecretaryProfile profile = secretaryRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Secretary not found."));
+
+        if (!profile.getEmail().equalsIgnoreCase(email.trim())) {
+            throw new BadRequestException("No secretary account found with this email.");
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new Random().nextInt(999999));
+
+        // Store with "forgot:" prefix to separate from profile-edit OTPs
+        otpStore.save("forgot:" + email.toLowerCase(), otp);
+
+        // Send email
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("malodeashu.dummydata@gmail.com");
+        message.setTo(profile.getEmail());
+        message.setSubject("UrbanSync — Password Reset OTP");
+        message.setText(
+                "Hello " + profile.getFirstName() + ",\n\n" +
+                "Your OTP for password reset is: " + otp + "\n\n" +
+                "This OTP is valid for 5 minutes.\n" +
+                "If you did not request this, please ignore this email.\n\n" +
+                "— UrbanSync System"
+        );
+
+        mailSender.send(message);
+    }
+
+    // ── Forgot Password: Reset with OTP ──────────────────────────────────────
+    @Override
+    @Transactional
+    public void resetPassword(ForgotPasswordRequest request) {
+
+        String email = request.getEmail().trim().toLowerCase();
+
+        // Verify OTP
+        if (!otpStore.verify("forgot:" + email, request.getOtp())) {
+            throw new BadRequestException("Invalid or expired OTP. Please request a new one.");
+        }
+
+        // Find secretary by email
+        SecretaryProfile profile = secretaryRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Secretary not found."));
+
+        if (!profile.getEmail().equalsIgnoreCase(email)) {
+            throw new BadRequestException("Email does not match registered secretary.");
+        }
+
+        // Update password in credentials
+        Credential credential = profile.getCredential();
+        credential.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        credentialRepository.save(credential);
+    }
 }

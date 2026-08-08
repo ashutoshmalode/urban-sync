@@ -1,6 +1,7 @@
 package com.urbansync.secretary;
 
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.constraints.Email;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -41,5 +42,20 @@ public class SecretaryController {
     public ResponseEntity<SecretaryDTO> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(secretaryService.updateProfile(request));
+    }
+    
+    // Forgot Password — PUBLIC (no auth needed)
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<String> sendForgotPasswordOtp(
+            @RequestParam @Email String email) {
+        secretaryService.sendForgotPasswordOtp(email);
+        return ResponseEntity.ok("OTP sent to your registered email");
+    }
+
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<String> resetPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        secretaryService.resetPassword(request);
+        return ResponseEntity.ok("Password reset successfully");
     }
 }

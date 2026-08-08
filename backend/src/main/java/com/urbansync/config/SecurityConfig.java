@@ -53,18 +53,20 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // ── PUBLIC ─────────────────────────────────────────────
-                .requestMatchers(
-                        "/api/auth/**",
-                        "/api/test/**",
-                        "/api/secretary/register",
-                        "/api/secretary/is-registered",
-                        "/api/registration/resident",
-                        "/api/registration/check-flat",
-                        "/api/registration/verify-owner",
-                        "/api/registration/fetch-owner-by-flat",
-                        "/api/registration/check-pending-tenant"
-                ).permitAll()
+            		// ── PUBLIC ─────────────────────────────────────────────
+            		.requestMatchers(
+            		        "/api/auth/**",
+            		        "/api/test/**",
+            		        "/api/secretary/register",
+            		        "/api/secretary/is-registered",
+            		        "/api/secretary/forgot-password/send-otp",
+            		        "/api/secretary/forgot-password/reset",
+            		        "/api/registration/resident",
+            		        "/api/registration/check-flat",
+            		        "/api/registration/verify-owner",
+            		        "/api/registration/fetch-owner-by-flat",
+            		        "/api/registration/check-pending-tenant"
+            		).permitAll()
 
              // ── RESIDENT ───────────────────────────────────────────
                 .requestMatchers(

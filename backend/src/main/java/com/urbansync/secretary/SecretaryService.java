@@ -6,7 +6,11 @@ public interface SecretaryService {
     SecretaryDTO getProfile();
     boolean isSecretaryRegistered();
 
-    // Fix 7
+    // Fix 7 — profile edit
     void sendEmailOtp();
     SecretaryDTO updateProfile(UpdateProfileRequest request);
+
+    // Forgot password
+    void sendForgotPasswordOtp(String email);
+    void resetPassword(ForgotPasswordRequest request);
 }
