@@ -12,7 +12,6 @@ import {
   Divider,
   useMediaQuery,
   useTheme,
-  Collapse,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
@@ -29,6 +28,7 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
+const MOBILE_DRAWER_WIDTH = 200;
 
 const menuItems = [
   {
@@ -117,29 +117,37 @@ const Sidebar = ({ open, onClose }) => {
       {/* Logo Header */}
       <Box
         sx={{
-          px: 2.5,
-          py: 2.5,
+          px: { xs: 2, sm: 2.5 },
+          py: { xs: 1.5, sm: 2.5 },
           background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
           flexShrink: 0,
-          minHeight: 80,
+          minHeight: { xs: 60, sm: 80 },
         }}
       >
         <Box
           component="img"
           src="/urbansync-logo.svg"
-          sx={{ width: 42, height: 42, borderRadius: 2 }}
+          sx={{
+            width: { xs: 32, sm: 42 },
+            height: { xs: 32, sm: 42 },
+            borderRadius: 2,
+            flexShrink: 0,
+          }}
         />
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 800,
-              fontSize: "1.1rem",
+              fontSize: { xs: "0.9rem", sm: "1.1rem" },
               color: "white",
               letterSpacing: 0.3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
             UrbanSync
@@ -147,10 +155,10 @@ const Sidebar = ({ open, onClose }) => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.7rem",
+              fontSize: { xs: "0.6rem", sm: "0.7rem" },
               color: "rgba(255,255,255,0.75)",
               fontWeight: 500,
-              mt: 0.2,
+              mt: 0.1,
             }}
           >
             Secretary Panel
@@ -161,8 +169,8 @@ const Sidebar = ({ open, onClose }) => {
       {/* Menu Items */}
       <List
         sx={{
-          px: 1,
-          pt: 1,
+          px: { xs: 0.8, sm: 1 },
+          pt: 0.8,
           flexGrow: 1,
           overflow: "auto",
           "&::-webkit-scrollbar": { width: "4px" },
@@ -176,14 +184,14 @@ const Sidebar = ({ open, onClose }) => {
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.path} disablePadding sx={{ mb: 0.3 }}>
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.2 }}>
               <ListItemButton
                 onClick={() => handleNavigate(item.path)}
                 onMouseDown={(e) => e.preventDefault()}
                 sx={{
                   borderRadius: 1.5,
-                  py: 0.8,
-                  px: 1.5,
+                  py: { xs: 0.6, sm: 0.8 },
+                  px: { xs: 1.2, sm: 1.5 },
                   bgcolor: isActive ? "#e0f2fe" : "transparent",
                   color: isActive ? "#0891b2" : "#475569",
                   transition: "all 0.15s ease",
@@ -194,7 +202,13 @@ const Sidebar = ({ open, onClose }) => {
                 }}
               >
                 <ListItemIcon
-                  sx={{ minWidth: 32, color: isActive ? "#0891b2" : "#94a3b8" }}
+                  sx={{
+                    minWidth: { xs: 28, sm: 32 },
+                    color: isActive ? "#0891b2" : "#94a3b8",
+                    "& .MuiSvgIcon-root": {
+                      fontSize: { xs: "1rem", sm: "1.25rem" },
+                    },
+                  }}
                 >
                   {item.icon}
                 </ListItemIcon>
@@ -202,7 +216,7 @@ const Sidebar = ({ open, onClose }) => {
                   primary={item.label}
                   slotProps={{
                     primary: {
-                      fontSize: "0.85rem",
+                      fontSize: { xs: "0.78rem", sm: "0.85rem" },
                       fontWeight: isActive ? 700 : 500,
                       fontFamily: "Inter, sans-serif",
                     },
@@ -212,10 +226,11 @@ const Sidebar = ({ open, onClose }) => {
                   <Box
                     sx={{
                       width: 3,
-                      height: 20,
+                      height: 18,
                       bgcolor: "#0891b2",
                       borderRadius: 4,
-                      ml: 1,
+                      ml: 0.5,
+                      flexShrink: 0,
                     }}
                   />
                 )}
@@ -228,28 +243,36 @@ const Sidebar = ({ open, onClose }) => {
       <Divider sx={{ borderColor: "#e0f2fe" }} />
 
       {/* Logout */}
-      <List sx={{ px: 1, py: 1 }} disablePadding>
+      <List sx={{ px: { xs: 0.8, sm: 1 }, py: 0.8 }} disablePadding>
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleLogout}
             onMouseDown={(e) => e.preventDefault()}
             sx={{
               borderRadius: 1.5,
-              py: 0.8,
-              px: 1.5,
+              py: { xs: 0.6, sm: 0.8 },
+              px: { xs: 1.2, sm: 1.5 },
               color: "#dc2626",
               transition: "all 0.15s ease",
               "&:hover": { bgcolor: "#fef2f2" },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 32, color: "#dc2626" }}>
+            <ListItemIcon
+              sx={{
+                minWidth: { xs: 28, sm: 32 },
+                color: "#dc2626",
+                "& .MuiSvgIcon-root": {
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                },
+              }}
+            >
               <LogoutIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="Logout"
               slotProps={{
                 primary: {
-                  fontSize: "0.85rem",
+                  fontSize: { xs: "0.78rem", sm: "0.85rem" },
                   fontWeight: 500,
                   fontFamily: "Inter, sans-serif",
                 },
@@ -263,7 +286,7 @@ const Sidebar = ({ open, onClose }) => {
 
   return (
     <>
-      {/* Mobile — temporary drawer slides over content */}
+      {/* Mobile — temporary drawer */}
       <Drawer
         variant="temporary"
         open={open}
@@ -277,7 +300,7 @@ const Sidebar = ({ open, onClose }) => {
           display: { xs: "block", md: "none" },
           zIndex: 1300,
           "& .MuiDrawer-paper": {
-            width: DRAWER_WIDTH,
+            width: MOBILE_DRAWER_WIDTH,
             border: "none",
             boxShadow: "4px 0 20px rgba(0,0,0,0.08)",
             transition: "transform 0.25s ease !important",
@@ -287,7 +310,7 @@ const Sidebar = ({ open, onClose }) => {
         {drawerContent}
       </Drawer>
 
-      {/* Desktop — inline box that animates width */}
+      {/* Desktop — inline box */}
       {!isMobile && (
         <Box
           sx={{
