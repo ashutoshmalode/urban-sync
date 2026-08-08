@@ -13,10 +13,6 @@ import {
   TableHead,
   TableRow,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import PaymentIcon from "@mui/icons-material/Payment";
@@ -26,20 +22,24 @@ import { showSuccess, showError } from "../../utils/toast";
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const MONTHS = [
@@ -63,8 +63,6 @@ const ResidentBillsPage = () => {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingBillId, setPayingBillId] = useState(null);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -91,21 +89,17 @@ const ResidentBillsPage = () => {
   const handlePayNow = async (bill) => {
     setPayingBillId(bill.id);
     try {
-      // Create Razorpay order
       const orderRes = await axiosInstance.post("/api/payment/create-order", {
         billId: bill.id,
       });
-      console.log("Order response:", orderRes.data);
-
       const { razorpayOrderId, amount, currency, keyId } = orderRes.data;
-
       const options = {
         key: keyId,
-        amount: amount, // already in paise from backend — don't multiply again
-        currency: currency,
+        amount,
+        currency,
         name: "UrbanSync",
         description: `Maintenance Bill — ${MONTHS[bill.billMonth - 1]} ${bill.billYear}`,
-        order_id: razorpayOrderId, // field is razorpayOrderId not orderId
+        order_id: razorpayOrderId,
         handler: async (response) => {
           try {
             await axiosInstance.post("/api/payment/verify", {
@@ -120,12 +114,9 @@ const ResidentBillsPage = () => {
             showError("Payment verification failed. Contact secretary.");
           }
         },
-        prefill: {
-          contact: profile?.mobileNumber,
-        },
+        prefill: { contact: profile?.mobileNumber },
         theme: { color: "#0891b2" },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
@@ -138,42 +129,30 @@ const ResidentBillsPage = () => {
   const pendingBills = bills.filter((b) => b.status === "PENDING");
   const paidBills = bills.filter((b) => b.status === "PAID");
 
-  const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
-      {[...Array(4)].map((_, i) => (
-        <Skeleton
-          key={i}
-          variant="rounded"
-          height={48}
-          sx={{ mb: 1, borderRadius: 1.5 }}
-        />
-      ))}
-    </Box>
-  );
-
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.2 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -182,7 +161,7 @@ const ResidentBillsPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
@@ -196,12 +175,12 @@ const ResidentBillsPage = () => {
         sx={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 2,
-          mb: 2.5,
+          gap: { xs: 1, sm: 2 },
+          mb: 2,
         }}
       >
         {[
-          { label: "Total Bills", value: bills.length, color: "#0891b2" },
+          { label: "Total", value: bills.length, color: "#0891b2" },
           { label: "Pending", value: pendingBills.length, color: "#dc2626" },
           { label: "Paid", value: paidBills.length, color: "#059669" },
         ].map((s) => (
@@ -209,7 +188,7 @@ const ResidentBillsPage = () => {
             key={s.label}
             elevation={0}
             sx={{
-              p: 2,
+              p: { xs: 1.2, sm: 2 },
               borderRadius: 3,
               border: "1px solid #e0f2fe",
               boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
@@ -218,11 +197,14 @@ const ResidentBillsPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.7rem",
+                fontSize: { xs: "0.58rem", sm: "0.7rem" },
                 fontWeight: 600,
                 color: "#94a3b8",
                 textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                letterSpacing: "0.04em",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {s.label}
@@ -230,7 +212,7 @@ const ResidentBillsPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "1.5rem",
+                fontSize: { xs: "1.2rem", sm: "1.5rem" },
                 fontWeight: 800,
                 color: s.color,
               }}
@@ -252,15 +234,24 @@ const ResidentBillsPage = () => {
         }}
       >
         {loading ? (
-          <LoadingSkeleton />
+          <Box sx={{ p: 2 }}>
+            {[...Array(4)].map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rounded"
+                height={44}
+                sx={{ mb: 1, borderRadius: 1.5 }}
+              />
+            ))}
+          </Box>
         ) : bills.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 6 }}>
-            <ReceiptIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+          <Box sx={{ textAlign: "center", py: 5 }}>
+            <ReceiptIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 color: "#94a3b8",
-                fontSize: "0.88rem",
+                fontSize: "0.85rem",
               }}
             >
               No bills found
@@ -268,14 +259,14 @@ const ResidentBillsPage = () => {
           </Box>
         ) : (
           <TableContainer sx={{ overflowX: "auto" }}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 500 }}>
               <TableHead>
                 <TableRow>
                   <TableCell sx={headSx}>Month</TableCell>
-                  <TableCell sx={headSx}>Base Amount</TableCell>
+                  <TableCell sx={headSx}>Base</TableCell>
                   <TableCell sx={headSx}>Fine</TableCell>
                   <TableCell sx={headSx}>Total</TableCell>
-                  <TableCell sx={headSx}>Due Date</TableCell>
+                  <TableCell sx={headSx}>Due</TableCell>
                   <TableCell sx={headSx}>Status</TableCell>
                   <TableCell sx={headSx} align="center">
                     Action
@@ -293,7 +284,7 @@ const ResidentBillsPage = () => {
                       <Typography
                         sx={{
                           fontFamily: "Inter, sans-serif",
-                          fontSize: "0.82rem",
+                          fontSize: "0.78rem",
                           fontWeight: 600,
                         }}
                       >
@@ -308,7 +299,7 @@ const ResidentBillsPage = () => {
                         <Typography
                           sx={{
                             fontFamily: "Inter, sans-serif",
-                            fontSize: "0.82rem",
+                            fontSize: "0.78rem",
                             color: "#dc2626",
                             fontWeight: 600,
                           }}
@@ -323,7 +314,7 @@ const ResidentBillsPage = () => {
                       <Typography
                         sx={{
                           fontFamily: "Inter, sans-serif",
-                          fontSize: "0.85rem",
+                          fontSize: "0.82rem",
                           fontWeight: 700,
                           color:
                             bill.status === "PENDING" ? "#dc2626" : "#059669",
@@ -346,28 +337,33 @@ const ResidentBillsPage = () => {
                             bill.status === "PAID" ? "#dcfce7" : "#fee2e2",
                           color: bill.status === "PAID" ? "#166534" : "#991b1b",
                           fontWeight: 700,
-                          fontSize: "0.7rem",
+                          fontSize: "0.62rem",
                           fontFamily: "Inter, sans-serif",
-                          height: 22,
+                          height: 20,
                         }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
+                    <TableCell
+                      align="center"
+                      sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                    >
                       {bill.status === "PENDING" ? (
                         <Button
                           variant="contained"
                           size="small"
                           onClick={() => handlePayNow(bill)}
                           disabled={payingBillId === bill.id}
-                          startIcon={<PaymentIcon sx={{ fontSize: 14 }} />}
+                          startIcon={
+                            <PaymentIcon sx={{ fontSize: "12px !important" }} />
+                          }
                           sx={{
                             bgcolor: "#0891b2",
                             borderRadius: 2,
                             fontFamily: "Inter, sans-serif",
                             fontWeight: 600,
-                            fontSize: "0.75rem",
+                            fontSize: { xs: "0.65rem", sm: "0.72rem" },
                             textTransform: "none",
-                            px: 1.5,
+                            px: { xs: 1, sm: 1.5 },
                             "&:hover": { bgcolor: "#0e7490" },
                           }}
                         >
@@ -378,17 +374,17 @@ const ResidentBillsPage = () => {
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 0.5,
+                            gap: 0.4,
                             justifyContent: "center",
                           }}
                         >
                           <CheckCircleIcon
-                            sx={{ fontSize: 16, color: "#059669" }}
+                            sx={{ fontSize: 14, color: "#059669" }}
                           />
                           <Typography
                             sx={{
                               fontFamily: "Inter, sans-serif",
-                              fontSize: "0.75rem",
+                              fontSize: { xs: "0.62rem", sm: "0.72rem" },
                               color: "#059669",
                               fontWeight: 600,
                             }}
