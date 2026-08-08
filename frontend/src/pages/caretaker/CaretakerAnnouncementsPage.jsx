@@ -18,11 +18,7 @@ import { showError } from "../../utils/toast";
 const TypeChip = ({ type }) => {
   const map = {
     ALERT: { label: "Alert", bgcolor: "#fee2e2", color: "#dc2626" },
-    NOTIFICATION: {
-      label: "Notification",
-      bgcolor: "#e0f2fe",
-      color: "#0891b2",
-    },
+    NOTIFICATION: { label: "Notif", bgcolor: "#e0f2fe", color: "#0891b2" },
     GENERAL: { label: "General", bgcolor: "#f1f5f9", color: "#475569" },
   };
   const t = map[type] || map.GENERAL;
@@ -34,9 +30,10 @@ const TypeChip = ({ type }) => {
         bgcolor: t.bgcolor,
         color: t.color,
         fontWeight: 700,
-        fontSize: "0.7rem",
+        fontSize: "0.62rem",
         fontFamily: "Inter, sans-serif",
-        height: 22,
+        height: 20,
+        flexShrink: 0,
       }}
     />
   );
@@ -46,11 +43,12 @@ const AnnouncementCard = ({ a }) => (
   <Paper
     elevation={0}
     sx={{
-      p: 2,
-      mb: 1.5,
+      p: { xs: 1.5, sm: 2 },
+      mb: { xs: 1, sm: 1.5 },
       borderRadius: 3,
       border: `1px solid ${a.type === "ALERT" ? "#fecaca" : "#e0f2fe"}`,
       bgcolor: a.type === "ALERT" ? "#fef2f2" : "white",
+      boxShadow: "0 2px 8px rgba(8,145,178,0.04)",
     }}
   >
     <Box
@@ -58,23 +56,53 @@ const AnnouncementCard = ({ a }) => (
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "space-between",
-        mb: 1,
+        mb: 0.8,
+        gap: 1,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 0.8,
+          minWidth: 0,
+        }}
+      >
         {a.type === "ALERT" ? (
-          <WarningAmberIcon sx={{ color: "#dc2626", fontSize: 18 }} />
+          <WarningAmberIcon
+            sx={{
+              color: "#dc2626",
+              fontSize: { xs: 15, sm: 18 },
+              flexShrink: 0,
+              mt: 0.1,
+            }}
+          />
         ) : a.type === "NOTIFICATION" ? (
-          <NotificationsIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <NotificationsIcon
+            sx={{
+              color: "#0891b2",
+              fontSize: { xs: 15, sm: 18 },
+              flexShrink: 0,
+              mt: 0.1,
+            }}
+          />
         ) : (
-          <InfoIcon sx={{ color: "#64748b", fontSize: 18 }} />
+          <InfoIcon
+            sx={{
+              color: "#64748b",
+              fontSize: { xs: 15, sm: 18 },
+              flexShrink: 0,
+              mt: 0.1,
+            }}
+          />
         )}
         <Typography
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "0.88rem",
+            fontSize: { xs: "0.78rem", sm: "0.88rem" },
             color: "#1e293b",
+            lineHeight: 1.3,
           }}
         >
           {a.title}
@@ -85,10 +113,10 @@ const AnnouncementCard = ({ a }) => (
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "0.82rem",
+        fontSize: { xs: "0.72rem", sm: "0.82rem" },
         color: "#475569",
         lineHeight: 1.6,
-        ml: 3.5,
+        ml: { xs: 2.8, sm: 3.5 },
       }}
     >
       {a.message}
@@ -96,10 +124,10 @@ const AnnouncementCard = ({ a }) => (
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "0.68rem",
+        fontSize: { xs: "0.6rem", sm: "0.68rem" },
         color: "#94a3b8",
-        mt: 1,
-        ml: 3.5,
+        mt: 0.8,
+        ml: { xs: 2.8, sm: 3.5 },
       }}
     >
       {a.createdAt ? new Date(a.createdAt).toLocaleString("en-IN") : "—"}
@@ -134,26 +162,28 @@ const CaretakerAnnouncementsPage = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      {/* Header */}
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.2 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#fef3c7",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <CampaignIcon sx={{ color: "#d97706", fontSize: 20 }} />
+          <CampaignIcon sx={{ color: "#d97706", fontSize: 18 }} />
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -162,7 +192,7 @@ const CaretakerAnnouncementsPage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
@@ -171,27 +201,32 @@ const CaretakerAnnouncementsPage = () => {
         </Box>
       </Box>
 
+      {/* Tabs */}
       <Paper
         elevation={0}
         sx={{
           borderRadius: 3,
           border: "1px solid #e0f2fe",
           overflow: "hidden",
-          mb: 2,
+          mb: { xs: 1.5, sm: 2 },
         }}
       >
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.68rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
+              px: { xs: 1.2, sm: 2 },
             },
             "& .Mui-selected": { color: "#d97706" },
             "& .MuiTabs-indicator": { bgcolor: "#d97706" },
@@ -199,30 +234,31 @@ const CaretakerAnnouncementsPage = () => {
         >
           <Tab label={`All (${announcements.length})`} />
           <Tab label={`Alerts (${alerts.length})`} />
-          <Tab label={`Notifications (${notifications.length})`} />
+          <Tab label={`Notifs (${notifications.length})`} />
           <Tab label={`General (${general.length})`} />
         </Tabs>
       </Paper>
 
+      {/* Content */}
       {loading ? (
         <Box>
           {[...Array(3)].map((_, i) => (
             <Skeleton
               key={i}
               variant="rounded"
-              height={90}
-              sx={{ mb: 1.5, borderRadius: 3 }}
+              height={{ xs: 70, sm: 90 }}
+              sx={{ mb: { xs: 1, sm: 1.5 }, borderRadius: 3 }}
             />
           ))}
         </Box>
       ) : data.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 6 }}>
-          <CampaignIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+        <Box sx={{ textAlign: "center", py: 5 }}>
+          <CampaignIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#94a3b8",
-              fontSize: "0.88rem",
+              fontSize: "0.85rem",
             }}
           >
             No announcements

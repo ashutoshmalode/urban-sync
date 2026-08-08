@@ -31,6 +31,7 @@ import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import { logout } from "../features/auth/authSlice";
 
 const DRAWER_WIDTH = 220;
+const MOBILE_DRAWER_WIDTH = 200;
 
 const menuItems = [
   {
@@ -98,29 +99,37 @@ const ResidentAppLayout = ({ children }) => {
       {/* Logo Header */}
       <Box
         sx={{
-          px: 2.5,
-          py: 2.5,
+          px: { xs: 2, sm: 2.5 },
+          py: { xs: 1.5, sm: 2.5 },
           background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
           flexShrink: 0,
-          minHeight: 80,
+          minHeight: { xs: 60, sm: 80 },
         }}
       >
         <Box
           component="img"
           src="/urbansync-logo-purple.svg"
-          sx={{ width: 42, height: 42, borderRadius: 2 }}
+          sx={{
+            width: { xs: 30, sm: 42 },
+            height: { xs: 30, sm: 42 },
+            borderRadius: 2,
+            flexShrink: 0,
+          }}
         />
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 800,
-              fontSize: "1.1rem",
+              fontSize: { xs: "0.9rem", sm: "1.1rem" },
               color: "white",
               letterSpacing: 0.3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
             UrbanSync
@@ -128,10 +137,10 @@ const ResidentAppLayout = ({ children }) => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.7rem",
+              fontSize: { xs: "0.6rem", sm: "0.7rem" },
               color: "rgba(255,255,255,0.75)",
               fontWeight: 500,
-              mt: 0.2,
+              mt: 0.1,
             }}
           >
             Resident Panel
@@ -142,31 +151,35 @@ const ResidentAppLayout = ({ children }) => {
       {/* Resident Info */}
       <Box
         sx={{
-          p: 2,
+          px: { xs: 1.5, sm: 2 },
+          py: { xs: 1, sm: 1.5 },
           bgcolor: "#f5f3ff",
           borderBottom: "1px solid #e9d5ff",
           flexShrink: 0,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
           <Avatar
             sx={{
-              width: 36,
-              height: 36,
+              width: { xs: 28, sm: 36 },
+              height: { xs: 28, sm: 36 },
               bgcolor: "#7c3aed",
-              fontSize: "0.9rem",
+              fontSize: { xs: "0.75rem", sm: "0.9rem" },
               fontWeight: 700,
             }}
           >
             {loginIdentifier?.[0]}
           </Avatar>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.78rem",
+                fontSize: { xs: "0.72rem", sm: "0.78rem" },
                 fontWeight: 700,
                 color: "#1e293b",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {flatNumber || "Resident"}
@@ -174,8 +187,11 @@ const ResidentAppLayout = ({ children }) => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.68rem",
+                fontSize: { xs: "0.62rem", sm: "0.68rem" },
                 color: "#64748b",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               +91{loginIdentifier}
@@ -188,8 +204,8 @@ const ResidentAppLayout = ({ children }) => {
       <List
         sx={{
           flexGrow: 1,
-          px: 1,
-          py: 1,
+          px: { xs: 0.8, sm: 1 },
+          py: 0.8,
           overflow: "auto",
           "&::-webkit-scrollbar": { width: "4px" },
           "&::-webkit-scrollbar-thumb": {
@@ -201,7 +217,7 @@ const ResidentAppLayout = ({ children }) => {
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.label} disablePadding sx={{ mb: 0.3 }}>
+            <ListItem key={item.label} disablePadding sx={{ mb: 0.2 }}>
               <ListItemButton
                 onClick={() => {
                   navigate(item.path);
@@ -209,14 +225,21 @@ const ResidentAppLayout = ({ children }) => {
                 }}
                 sx={{
                   borderRadius: 2,
-                  py: 1,
+                  py: { xs: 0.6, sm: 0.9 },
+                  px: { xs: 1, sm: 1.5 },
                   bgcolor: isActive ? "#f3e8ff" : "transparent",
                   transition: "all 0.15s ease",
                   "&:hover": { bgcolor: isActive ? "#f3e8ff" : "#faf5ff" },
                 }}
               >
                 <ListItemIcon
-                  sx={{ minWidth: 36, color: isActive ? "#7c3aed" : "#64748b" }}
+                  sx={{
+                    minWidth: { xs: 28, sm: 36 },
+                    color: isActive ? "#7c3aed" : "#64748b",
+                    "& .MuiSvgIcon-root": {
+                      fontSize: { xs: "1rem", sm: "1.25rem" },
+                    },
+                  }}
                 >
                   {item.icon}
                 </ListItemIcon>
@@ -225,7 +248,7 @@ const ResidentAppLayout = ({ children }) => {
                   slotProps={{
                     primary: {
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
+                      fontSize: { xs: "0.75rem", sm: "0.82rem" },
                       fontWeight: isActive ? 700 : 500,
                       color: isActive ? "#7c3aed" : "#475569",
                     },
@@ -240,13 +263,26 @@ const ResidentAppLayout = ({ children }) => {
       <Divider sx={{ borderColor: "#e9d5ff" }} />
 
       {/* Logout */}
-      <List sx={{ px: 1, py: 1 }}>
+      <List sx={{ px: { xs: 0.8, sm: 1 }, py: 0.8 }}>
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleLogout}
-            sx={{ borderRadius: 2, py: 1, "&:hover": { bgcolor: "#fee2e2" } }}
+            sx={{
+              borderRadius: 2,
+              py: { xs: 0.6, sm: 0.9 },
+              px: { xs: 1, sm: 1.5 },
+              "&:hover": { bgcolor: "#fee2e2" },
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 36, color: "#dc2626" }}>
+            <ListItemIcon
+              sx={{
+                minWidth: { xs: 28, sm: 36 },
+                color: "#dc2626",
+                "& .MuiSvgIcon-root": {
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                },
+              }}
+            >
               <LogoutIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
@@ -254,7 +290,7 @@ const ResidentAppLayout = ({ children }) => {
               slotProps={{
                 primary: {
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.82rem",
+                  fontSize: { xs: "0.75rem", sm: "0.82rem" },
                   fontWeight: 500,
                   color: "#dc2626",
                 },
@@ -276,7 +312,7 @@ const ResidentAppLayout = ({ children }) => {
         bgcolor: "#faf5ff",
       }}
     >
-      {/* Navbar — full width always */}
+      {/* Navbar */}
       <AppBar
         position="static"
         elevation={0}
@@ -286,7 +322,7 @@ const ResidentAppLayout = ({ children }) => {
           flexShrink: 0,
         }}
       >
-        <Toolbar sx={{ minHeight: "56px !important", px: { xs: 1.5, sm: 2 } }}>
+        <Toolbar sx={{ minHeight: "52px !important", px: { xs: 1.5, sm: 2 } }}>
           <IconButton
             onClick={() =>
               isMobile
@@ -296,17 +332,19 @@ const ResidentAppLayout = ({ children }) => {
             size="small"
             sx={{ mr: 1, color: "#7c3aed" }}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
           </IconButton>
-          <ApartmentIcon sx={{ color: "#7c3aed", fontSize: 22, mr: 0.8 }} />
+          <ApartmentIcon
+            sx={{ color: "#7c3aed", fontSize: { xs: 18, sm: 22 }, mr: 0.8 }}
+          />
           <Typography
-            variant="subtitle1"
-            fontWeight={700}
-            color="#7c3aed"
             sx={{
               flexGrow: 1,
               letterSpacing: 0.3,
               fontFamily: "Inter, sans-serif",
+              fontWeight: 700,
+              fontSize: { xs: "0.88rem", sm: "1rem" },
+              color: "#7c3aed",
             }}
           >
             UrbanSync
@@ -314,11 +352,11 @@ const ResidentAppLayout = ({ children }) => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.78rem",
+              fontSize: { xs: "0.68rem", sm: "0.78rem" },
               color: "#7c3aed",
               fontWeight: 700,
               bgcolor: "#f3e8ff",
-              px: 1.5,
+              px: { xs: 1, sm: 1.5 },
               py: 0.5,
               borderRadius: 2,
             }}
@@ -339,7 +377,7 @@ const ResidentAppLayout = ({ children }) => {
           sx={{
             display: { xs: "block", md: "none" },
             "& .MuiDrawer-paper": {
-              width: DRAWER_WIDTH,
+              width: MOBILE_DRAWER_WIDTH,
               bgcolor: "white",
               border: "none",
               boxShadow: "4px 0 20px rgba(124,58,237,0.12)",
@@ -350,7 +388,7 @@ const ResidentAppLayout = ({ children }) => {
           {drawerContent}
         </Drawer>
 
-        {/* Desktop Sidebar — animates width */}
+        {/* Desktop Sidebar */}
         {!isMobile && (
           <Box
             sx={{
@@ -385,7 +423,7 @@ const ResidentAppLayout = ({ children }) => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, md: 3 },
+            p: { xs: 1.5, sm: 2, md: 3 },
             overflow: "auto",
             minWidth: 0,
             transition: "all 0.25s ease",
