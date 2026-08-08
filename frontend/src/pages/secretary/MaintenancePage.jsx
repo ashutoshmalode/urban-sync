@@ -27,43 +27,56 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
 
 const headSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.72rem",
+  fontSize: "0.68rem",
   fontWeight: 700,
   color: "#64748b",
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   bgcolor: "#f8fbff",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
 const cellSx = {
   fontFamily: "Inter, sans-serif",
-  fontSize: "0.82rem",
+  fontSize: "0.78rem",
   color: "#1e293b",
-  py: 1.2,
+  py: 1,
+  px: 1,
+  whiteSpace: "nowrap",
 };
 
-const fieldStyle = {
+const fieldStyle = (isMobile) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
   },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+  },
   "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
-};
+  "& .MuiFormHelperText-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.6rem" : "0.7rem",
+  },
+});
 
 const StatusChip = ({ status }) => {
   const map = {
@@ -79,13 +92,50 @@ const StatusChip = ({ status }) => {
         bgcolor: s.bgcolor,
         color: s.color,
         fontWeight: 700,
-        fontSize: "0.7rem",
+        fontSize: "0.62rem",
         fontFamily: "Inter, sans-serif",
-        height: 22,
+        height: 20,
       }}
     />
   );
 };
+
+const DetailRow = ({ label, value, highlight }) => (
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-between",
+      py: 0.8,
+      borderBottom: "1px solid #f1f5f9",
+      alignItems: "flex-start",
+      gap: 1,
+    }}
+  >
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.72rem", sm: "0.8rem" },
+        color: "#64748b",
+        fontWeight: 500,
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </Typography>
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontSize: { xs: "0.75rem", sm: "0.85rem" },
+        color: highlight ? "#0891b2" : "#1e293b",
+        fontWeight: highlight ? 800 : 600,
+        textAlign: "right",
+        wordBreak: "break-word",
+      }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
 
 const MONTHS = [
   "January",
@@ -103,6 +153,9 @@ const MONTHS = [
 ];
 
 const MaintenancePage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [tab, setTab] = useState(0);
   const [allBills, setAllBills] = useState([]);
   const [pendingBills, setPendingBills] = useState([]);
@@ -113,12 +166,8 @@ const MaintenancePage = () => {
   const [flatInfo, setFlatInfo] = useState(null);
   const [flatInfoLoading, setFlatInfoLoading] = useState(false);
   const [flatInfoError, setFlatInfoError] = useState("");
-
-  // Bill detail modal
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
-
-  // Generate bill modal
   const [generateOpen, setGenerateOpen] = useState(false);
   const [generateForm, setGenerateForm] = useState({
     wingName: "",
@@ -127,8 +176,6 @@ const MaintenancePage = () => {
     billYear: new Date().getFullYear(),
   });
   const [generateErrors, setGenerateErrors] = useState({});
-
-  // Settings modal
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     maintenanceAmount: "",
@@ -171,19 +218,15 @@ const MaintenancePage = () => {
       const res = await axiosInstance.get("/api/maintenance/bills/flat-info", {
         params: { wingName, flatNumber },
       });
-      if (!res.data) {
-        setFlatInfoError(
-          `Flat ${wingName}-${flatNumber} is not registered in the system.`,
-        );
-      } else if (!res.data.residentId) {
+      if (!res.data)
+        setFlatInfoError(`Flat ${wingName}-${flatNumber} is not registered.`);
+      else if (!res.data.residentId)
         setFlatInfoError(
           `Flat ${wingName}-${flatNumber} has no resident assigned.`,
         );
-      } else {
-        setFlatInfo(res.data);
-      }
+      else setFlatInfo(res.data);
     } catch {
-      setFlatInfoError("Failed to fetch flat details. Please try again.");
+      setFlatInfoError("Failed to fetch flat details.");
     } finally {
       setFlatInfoLoading(false);
     }
@@ -193,7 +236,6 @@ const MaintenancePage = () => {
     loadData();
   }, []);
 
-  // Update settings
   const handleUpdateSettings = async () => {
     const e = {};
     if (!settingsForm.maintenanceAmount) e.maintenanceAmount = "Required";
@@ -201,7 +243,6 @@ const MaintenancePage = () => {
     if (!settingsForm.validityDays) e.validityDays = "Required";
     setSettingsErrors(e);
     if (Object.values(e).some((v) => v)) return;
-
     setActionLoading(true);
     try {
       await axiosInstance.put("/api/maintenance/settings", {
@@ -209,27 +250,25 @@ const MaintenancePage = () => {
         dueFinePerDay: Number(settingsForm.dueFinePerDay),
         validityDays: Number(settingsForm.validityDays),
       });
-      showSuccess("Settings updated successfully");
+      showSuccess("Settings updated");
       setSettingsOpen(false);
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to update settings");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Generate bill
   const handleGenerateBill = async () => {
     if (!generateForm.wingName || !generateForm.flatNumber) {
-      showError("Please enter wing and flat number");
+      showError("Enter wing and flat number");
       return;
     }
     if (!flatInfo) {
-      showError("Please wait for flat details to load");
+      showError("Wait for flat details to load");
       return;
     }
-
     setActionLoading(true);
     try {
       await axiosInstance.post("/api/maintenance/bills/generate", {
@@ -238,9 +277,7 @@ const MaintenancePage = () => {
         billMonth: Number(generateForm.billMonth),
         billYear: Number(generateForm.billYear),
       });
-      showSuccess(
-        `Bill generated for ${flatInfo.residentName} — ${flatInfo.flatNumber}`,
-      );
+      showSuccess(`Bill generated for ${flatInfo.residentName}`);
       setGenerateOpen(false);
       setGenerateForm({
         wingName: "",
@@ -252,13 +289,12 @@ const MaintenancePage = () => {
       setFlatInfoError("");
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to generate bill");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Mark as paid
   const handleMarkPaid = async (billId) => {
     setActionLoading(true);
     try {
@@ -267,19 +303,19 @@ const MaintenancePage = () => {
       setDetailOpen(false);
       loadData();
     } catch (err) {
-      showError(err.response?.data?.message || "Failed to mark as paid");
+      showError(err.response?.data?.message || "Failed");
     } finally {
       setActionLoading(false);
     }
   };
 
   const LoadingSkeleton = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {[...Array(5)].map((_, i) => (
         <Skeleton
           key={i}
           variant="rounded"
-          height={48}
+          height={44}
           sx={{ mb: 1, borderRadius: 1.5 }}
         />
       ))}
@@ -288,13 +324,13 @@ const MaintenancePage = () => {
 
   const BillsTable = ({ bills }) =>
     bills.length === 0 ? (
-      <Box sx={{ textAlign: "center", py: 6 }}>
-        <ReceiptIcon sx={{ fontSize: 48, color: "#cbd5e1", mb: 1 }} />
+      <Box sx={{ textAlign: "center", py: 5 }}>
+        <ReceiptIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
         <Typography
           sx={{
             fontFamily: "Inter, sans-serif",
             color: "#94a3b8",
-            fontSize: "0.88rem",
+            fontSize: "0.85rem",
           }}
         >
           No bills found
@@ -302,7 +338,7 @@ const MaintenancePage = () => {
       </Box>
     ) : (
       <TableContainer sx={{ overflowX: "auto" }}>
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: 580 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={headSx}>Flat</TableCell>
@@ -311,7 +347,7 @@ const MaintenancePage = () => {
               <TableCell sx={headSx}>Base</TableCell>
               <TableCell sx={headSx}>Fine</TableCell>
               <TableCell sx={headSx}>Total</TableCell>
-              <TableCell sx={headSx}>Due Date</TableCell>
+              <TableCell sx={headSx}>Due</TableCell>
               <TableCell sx={headSx}>Status</TableCell>
               <TableCell sx={headSx} align="center">
                 Actions
@@ -333,15 +369,16 @@ const MaintenancePage = () => {
                       bgcolor: "#e0f2fe",
                       color: "#0891b2",
                       fontWeight: 700,
-                      fontSize: "0.7rem",
+                      fontSize: "0.62rem",
                       fontFamily: "Inter, sans-serif",
-                      height: 22,
+                      height: 20,
                     }}
                   />
                 </TableCell>
                 <TableCell sx={cellSx}>{bill.residentName || "—"}</TableCell>
                 <TableCell sx={cellSx}>
-                  {MONTHS[(bill.billMonth || 1) - 1]} {bill.billYear}
+                  {MONTHS[(bill.billMonth || 1) - 1].slice(0, 3)}{" "}
+                  {bill.billYear}
                 </TableCell>
                 <TableCell sx={cellSx}>
                   ₹{bill.baseAmount?.toLocaleString("en-IN")}
@@ -350,7 +387,7 @@ const MaintenancePage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
+                      fontSize: "0.78rem",
                       color: bill.fineAmount > 0 ? "#dc2626" : "#1e293b",
                       fontWeight: bill.fineAmount > 0 ? 700 : 400,
                     }}
@@ -362,7 +399,7 @@ const MaintenancePage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
+                      fontSize: "0.78rem",
                       fontWeight: 700,
                       color: "#1e293b",
                     }}
@@ -378,9 +415,12 @@ const MaintenancePage = () => {
                 <TableCell sx={cellSx}>
                   <StatusChip status={bill.status} />
                 </TableCell>
-                <TableCell align="center" sx={{ py: 1 }}>
+                <TableCell
+                  align="center"
+                  sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
+                >
                   <Box
-                    sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}
+                    sx={{ display: "flex", gap: 0.4, justifyContent: "center" }}
                   >
                     <Tooltip title="View Details">
                       <IconButton
@@ -393,11 +433,11 @@ const MaintenancePage = () => {
                           color: "#0891b2",
                           bgcolor: "#e0f2fe",
                           borderRadius: 1.5,
-                          width: 28,
-                          height: 28,
+                          width: 26,
+                          height: 26,
                         }}
                       >
-                        <VisibilityIcon sx={{ fontSize: 14 }} />
+                        <VisibilityIcon sx={{ fontSize: 13 }} />
                       </IconButton>
                     </Tooltip>
                     {bill.status === "PENDING" && (
@@ -410,11 +450,11 @@ const MaintenancePage = () => {
                             color: "#059669",
                             bgcolor: "#dcfce7",
                             borderRadius: 1.5,
-                            width: 28,
-                            height: 28,
+                            width: 26,
+                            height: 26,
                           }}
                         >
-                          <CheckCircleIcon sx={{ fontSize: 14 }} />
+                          <CheckCircleIcon sx={{ fontSize: 13 }} />
                         </IconButton>
                       </Tooltip>
                     )}
@@ -430,26 +470,35 @@ const MaintenancePage = () => {
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.2,
+          flexWrap: "nowrap",
+        }}
+      >
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -458,49 +507,57 @@ const MaintenancePage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            Manage maintenance bills and settings
+            {isMobile
+              ? "Bills & Settings"
+              : "Manage maintenance bills and settings"}
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<SettingsIcon fontSize="small" />}
-          onClick={() => setSettingsOpen(true)}
-          sx={{
-            borderRadius: 2,
-            borderColor: "#0891b2",
-            color: "#0891b2",
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
-            mr: 1,
-          }}
-        >
-          Settings
-        </Button>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={() => setGenerateOpen(true)}
-          sx={{
-            bgcolor: "#0891b2",
-            borderRadius: 2,
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 600,
-            fontSize: "0.8rem",
-            px: 2,
-            boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
-            "&:hover": { bgcolor: "#0e7490" },
-          }}
-        >
-          Generate Bill
-        </Button>
+        <Box sx={{ display: "flex", gap: 0.8, flexShrink: 0 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<SettingsIcon sx={{ fontSize: "13px !important" }} />}
+            onClick={() => setSettingsOpen(true)}
+            sx={{
+              borderRadius: 2,
+              borderColor: "#0891b2",
+              color: "#0891b2",
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: { xs: "0.68rem", sm: "0.78rem" },
+              px: { xs: 1, sm: 1.5 },
+              whiteSpace: "nowrap",
+            }}
+          >
+            {isMobile ? "Settings" : "Settings"}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon sx={{ fontSize: "13px !important" }} />}
+            onClick={() => setGenerateOpen(true)}
+            sx={{
+              bgcolor: "#0891b2",
+              borderRadius: 2,
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: { xs: "0.68rem", sm: "0.78rem" },
+              px: { xs: 1, sm: 1.5 },
+              whiteSpace: "nowrap",
+              boxShadow: "0 2px 6px rgba(8,145,178,0.25)",
+              "&:hover": { bgcolor: "#0e7490" },
+            }}
+          >
+            {isMobile ? "Bill" : "Generate Bill"}
+          </Button>
+        </Box>
       </Box>
 
       {/* Stats Row */}
@@ -508,32 +565,32 @@ const MaintenancePage = () => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 2,
-            mb: 2.5,
+            gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+            gap: { xs: 1, sm: 1.5, md: 2 },
+            mb: 2,
           }}
         >
           {[
             {
-              label: "Monthly Amount",
+              label: "Monthly Amt",
               value: `₹${Number(settings.maintenanceAmount).toLocaleString("en-IN")}`,
               color: "#0891b2",
               bg: "#e0f2fe",
             },
             {
-              label: "Fine Per Day",
+              label: "Fine/Day",
               value: `₹${Number(settings.dueFinePerDay).toLocaleString("en-IN")}`,
               color: "#dc2626",
               bg: "#fee2e2",
             },
             {
-              label: "Pending Bills",
+              label: "Pending",
               value: pendingBills.length,
               color: "#d97706",
               bg: "#fef3c7",
             },
             {
-              label: "Paid Bills",
+              label: "Paid",
               value: paidBills.length,
               color: "#059669",
               bg: "#dcfce7",
@@ -543,7 +600,7 @@ const MaintenancePage = () => {
               key={stat.label}
               elevation={0}
               sx={{
-                p: 2,
+                p: { xs: 1.2, sm: 2 },
                 borderRadius: 3,
                 border: "1px solid #e0f2fe",
                 boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
@@ -552,12 +609,15 @@ const MaintenancePage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.7rem",
+                  fontSize: { xs: "0.6rem", sm: "0.7rem" },
                   fontWeight: 600,
                   color: "#94a3b8",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  mb: 0.5,
+                  mb: 0.4,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {stat.label}
@@ -565,9 +625,12 @@ const MaintenancePage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "1.4rem",
+                  fontSize: { xs: "1rem", sm: "1.2rem", md: "1.4rem" },
                   fontWeight: 800,
                   color: stat.color,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {loading ? "—" : stat.value}
@@ -589,21 +652,25 @@ const MaintenancePage = () => {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             bgcolor: "#f8fbff",
             borderBottom: "1px solid #e0f2fe",
             "& .MuiTab-root": {
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
-              fontSize: "0.8rem",
+              fontSize: { xs: "0.7rem", sm: "0.8rem" },
               textTransform: "none",
-              minHeight: 44,
+              minHeight: 42,
+              px: { xs: 1.5, sm: 2 },
             },
             "& .Mui-selected": { color: "#0891b2" },
             "& .MuiTabs-indicator": { bgcolor: "#0891b2" },
           }}
         >
-          <Tab label={`All Bills (${allBills.length})`} />
+          <Tab label={`All (${allBills.length})`} />
           <Tab label={`Pending (${pendingBills.length})`} />
           <Tab label={`Paid (${paidBills.length})`} />
         </Tabs>
@@ -625,27 +692,30 @@ const MaintenancePage = () => {
         onClose={() => setDetailOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <ReceiptIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Bill Details
           {selectedBill && <StatusChip status={selectedBill.status} />}
         </DialogTitle>
         {selectedBill && (
-          <DialogContent sx={{ pt: 2 }}>
+          <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
               ["Flat Number", selectedBill.flatNumber || "—"],
               ["Resident", selectedBill.residentName || "—"],
@@ -670,6 +740,7 @@ const MaintenancePage = () => {
               [
                 "Total Amount",
                 `₹${selectedBill.totalAmount?.toLocaleString("en-IN")}`,
+                true,
               ],
               ["Status", selectedBill.status],
               ...(selectedBill.paidAt
@@ -684,48 +755,27 @@ const MaintenancePage = () => {
                 "Generated On",
                 new Date(selectedBill.createdAt).toLocaleString("en-IN"),
               ],
-            ].map(([label, value]) => (
-              <Box
+            ].map(([label, value, highlight]) => (
+              <DetailRow
                 key={label}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 1,
-                  borderBottom: "1px solid #f1f5f9",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "0.85rem",
-                    color: label === "Total Amount" ? "#0891b2" : "#1e293b",
-                    fontWeight: label === "Total Amount" ? 800 : 600,
-                  }}
-                >
-                  {value}
-                </Typography>
-              </Box>
+                label={label}
+                value={value}
+                highlight={highlight}
+              />
             ))}
           </DialogContent>
         )}
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => setDetailOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Close
@@ -733,12 +783,16 @@ const MaintenancePage = () => {
           {selectedBill?.status === "PENDING" && (
             <Button
               variant="contained"
+              size="small"
               onClick={() => handleMarkPaid(selectedBill?.id)}
               disabled={actionLoading}
-              startIcon={<CheckCircleIcon fontSize="small" />}
+              startIcon={
+                <CheckCircleIcon sx={{ fontSize: "13px !important" }} />
+              }
               sx={{
                 fontFamily: "Inter, sans-serif",
                 textTransform: "none",
+                fontSize: "0.78rem",
                 bgcolor: "#059669",
                 borderRadius: 2,
                 "&:hover": { bgcolor: "#047857" },
@@ -756,26 +810,29 @@ const MaintenancePage = () => {
         onClose={() => setSettingsOpen(false)}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <SettingsIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <SettingsIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Maintenance Settings
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <TextField
               label="Monthly Amount (₹) *"
               value={settingsForm.maintenanceAmount}
@@ -790,7 +847,7 @@ const MaintenancePage = () => {
               fullWidth
               error={!!settingsErrors.maintenanceAmount}
               helperText={settingsErrors.maintenanceAmount}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Fine Per Day (₹) *"
@@ -806,7 +863,7 @@ const MaintenancePage = () => {
               fullWidth
               error={!!settingsErrors.dueFinePerDay}
               helperText={settingsErrors.dueFinePerDay}
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
             <TextField
               label="Payment Validity Days *"
@@ -825,28 +882,34 @@ const MaintenancePage = () => {
                 settingsErrors.validityDays ||
                 "Bill due on this day of each month"
               }
-              sx={fieldStyle}
+              sx={fieldStyle(isMobile)}
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => setSettingsOpen(false)}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleUpdateSettings}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               borderRadius: 2,
               "&:hover": { bgcolor: "#0e7490" },
@@ -874,30 +937,33 @@ const MaintenancePage = () => {
         }}
         maxWidth="xs"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, mx: { xs: 1.5, sm: 3 } } },
+        }}
       >
         <DialogTitle
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: { xs: "0.88rem", sm: "1rem" },
             color: "#1e293b",
             borderBottom: "1px solid #e0f2fe",
-            py: 2,
+            py: 1.5,
+            px: 2,
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <AddIcon sx={{ color: "#0891b2", fontSize: 18 }} />
+          <AddIcon sx={{ color: "#0891b2", fontSize: 16 }} />
           Generate Maintenance Bill
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <DialogContent sx={{ pt: 1.5, px: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {/* Settings info */}
             <Box
               sx={{
-                p: 1.5,
+                p: 1.2,
                 bgcolor: "#f0f9ff",
                 borderRadius: 2,
                 border: "1px solid #e0f2fe",
@@ -906,7 +972,7 @@ const MaintenancePage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.75rem",
+                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
                   color: "#64748b",
                   mb: 0.3,
                 }}
@@ -916,23 +982,28 @@ const MaintenancePage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.82rem",
+                  fontSize: { xs: "0.72rem", sm: "0.82rem" },
                   fontWeight: 600,
                   color: "#0891b2",
                 }}
               >
-                ₹{settings?.maintenanceAmount?.toLocaleString("en-IN")} / month
-                • Fine ₹{settings?.dueFinePerDay}/day after{" "}
+                ₹{settings?.maintenanceAmount?.toLocaleString("en-IN")}/mo •
+                Fine ₹{settings?.dueFinePerDay}/day after{" "}
                 {settings?.validityDays}th
               </Typography>
             </Box>
 
-            {/* Wing + Flat Number */}
+            {/* Wing + Flat */}
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
-              <FormControl size="small" sx={fieldStyle}>
-                <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+              <FormControl size="small" sx={fieldStyle(isMobile)}>
+                <InputLabel
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
+                >
                   Wing *
                 </InputLabel>
                 <Select
@@ -944,30 +1015,40 @@ const MaintenancePage = () => {
                     });
                     setFlatInfo(null);
                     setFlatInfoError("");
-                    if (generateForm.flatNumber) {
+                    if (generateForm.flatNumber)
                       fetchFlatInfo(e.target.value, generateForm.flatNumber);
-                    }
                   }}
                   label="Wing *"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: isMobile ? "0.78rem" : "0.875rem",
+                  }}
                 >
-                  <MenuItem value="" sx={{ fontFamily: "Inter, sans-serif" }}>
-                    <em>Select Wing</em>
+                  <MenuItem
+                    value=""
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    <em>Select</em>
                   </MenuItem>
                   {["A", "B", "C", "D", "E"].map((w) => (
                     <MenuItem
                       key={w}
                       value={w}
-                      sx={{ fontFamily: "Inter, sans-serif" }}
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.82rem",
+                      }}
                     >
                       Wing {w}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-
               <TextField
-                label="Flat Number *"
+                label="Flat No. *"
                 value={generateForm.flatNumber}
                 onChange={(e) => {
                   if (
@@ -983,28 +1064,25 @@ const MaintenancePage = () => {
                   setFlatInfoError("");
                 }}
                 onBlur={() => {
-                  if (generateForm.wingName && generateForm.flatNumber) {
+                  if (generateForm.wingName && generateForm.flatNumber)
                     fetchFlatInfo(
                       generateForm.wingName,
                       generateForm.flatNumber,
                     );
-                  }
                 }}
                 size="small"
-                inputprops={{ maxLength: 4 }}
-                helperText="1-4 digits e.g. 201"
-                sx={fieldStyle}
+                helperText="e.g. 201"
+                sx={fieldStyle(isMobile)}
               />
             </Box>
 
-            {/* Flat loading */}
             {flatInfoLoading && (
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                  px: 1.5,
+                  px: 1.2,
                   py: 0.8,
                   bgcolor: "#f8fbff",
                   borderRadius: 1.5,
@@ -1015,7 +1093,7 @@ const MaintenancePage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
                     color: "#64748b",
                   }}
                 >
@@ -1024,11 +1102,10 @@ const MaintenancePage = () => {
               </Box>
             )}
 
-            {/* Flat error */}
             {flatInfoError && (
               <Box
                 sx={{
-                  px: 1.5,
+                  px: 1.2,
                   py: 0.8,
                   bgcolor: "#fef2f2",
                   borderRadius: 1.5,
@@ -1038,7 +1115,7 @@ const MaintenancePage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
                     color: "#991b1b",
                     fontWeight: 600,
                   }}
@@ -1048,11 +1125,10 @@ const MaintenancePage = () => {
               </Box>
             )}
 
-            {/* Flat info — auto fetched */}
             {flatInfo && (
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 1.2,
                   bgcolor: "#f0fdf4",
                   borderRadius: 2,
                   border: "1px solid #bbf7d0",
@@ -1061,75 +1137,60 @@ const MaintenancePage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.7rem",
+                    fontSize: "0.62rem",
                     fontWeight: 700,
                     color: "#059669",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    mb: 1,
+                    mb: 0.8,
                   }}
                 >
-                  ✓ Flat Found — Bill will be generated for:
+                  ✓ Flat Found
                 </Typography>
+                {[
+                  ["Flat", flatInfo.flatNumber],
+                  ["Resident", flatInfo.residentName],
+                ].map(([l, v]) => (
+                  <Box
+                    key={l}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 0.4,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: { xs: "0.72rem", sm: "0.8rem" },
+                        color: "#64748b",
+                      }}
+                    >
+                      {l}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: { xs: "0.72rem", sm: "0.8rem" },
+                        fontWeight: 700,
+                        color: "#1e293b",
+                      }}
+                    >
+                      {v}
+                    </Typography>
+                  </Box>
+                ))}
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    mb: 0.5,
+                    alignItems: "center",
                   }}
                 >
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.8rem",
-                      color: "#64748b",
-                    }}
-                  >
-                    Flat
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.8rem",
-                      fontWeight: 700,
-                      color: "#1e293b",
-                    }}
-                  >
-                    {flatInfo.flatNumber}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 0.5,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.8rem",
-                      color: "#64748b",
-                    }}
-                  >
-                    Resident
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.8rem",
-                      fontWeight: 700,
-                      color: "#1e293b",
-                    }}
-                  >
-                    {flatInfo.residentName}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.8rem",
+                      fontSize: { xs: "0.72rem", sm: "0.8rem" },
                       color: "#64748b",
                     }}
                   >
@@ -1148,9 +1209,9 @@ const MaintenancePage = () => {
                           ? "#7c3aed"
                           : "#0891b2",
                       fontWeight: 700,
-                      fontSize: "0.68rem",
+                      fontSize: "0.6rem",
                       fontFamily: "Inter, sans-serif",
-                      height: 20,
+                      height: 18,
                     }}
                   />
                 </Box>
@@ -1159,7 +1220,7 @@ const MaintenancePage = () => {
 
             {/* Month + Year */}
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <TextField
                 label="Month *"
@@ -1172,7 +1233,7 @@ const MaintenancePage = () => {
                 size="small"
                 type="number"
                 slotProps={{ htmlInput: { min: 1, max: 12 } }}
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
               <TextField
                 label="Year *"
@@ -1185,38 +1246,46 @@ const MaintenancePage = () => {
                     });
                 }}
                 size="small"
-                sx={fieldStyle}
+                sx={fieldStyle(isMobile)}
               />
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, borderTop: "1px solid #e0f2fe" }}>
+        <DialogActions
+          sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
+        >
           <Button
             onClick={() => {
               setGenerateOpen(false);
               setGenerateForm({
-                flatId: "",
-                residentId: "",
+                wingName: "",
+                flatNumber: "",
                 billMonth: new Date().getMonth() + 1,
                 billYear: new Date().getFullYear(),
               });
               setGenerateErrors({});
+              setFlatInfo(null);
+              setFlatInfoError("");
             }}
+            size="small"
             sx={{
               fontFamily: "Inter, sans-serif",
               color: "#64748b",
               textTransform: "none",
+              fontSize: "0.78rem",
             }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
+            size="small"
             onClick={handleGenerateBill}
             disabled={actionLoading}
             sx={{
               fontFamily: "Inter, sans-serif",
               textTransform: "none",
+              fontSize: "0.78rem",
               bgcolor: "#0891b2",
               borderRadius: 2,
               "&:hover": { bgcolor: "#0e7490" },

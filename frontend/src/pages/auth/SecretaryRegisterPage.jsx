@@ -32,13 +32,20 @@ const fieldStyle = {
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
+    fontSize: "0.82rem",
     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
   },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "0.82rem",
+  },
   "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
+  "& .MuiFormHelperText-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "0.62rem",
+  },
 };
 
-// Password strength checker
 const getPasswordStrength = (password) => {
   if (!password) return { score: 0, label: "", color: "" };
   let score = 0;
@@ -47,7 +54,6 @@ const getPasswordStrength = (password) => {
   if (/[a-z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
   if (/[@$!%*#?&]/.test(password)) score++;
-
   if (score <= 2)
     return {
       score,
@@ -92,37 +98,26 @@ const SecretaryRegisterPage = () => {
     ifscCode: "",
   });
   const [errors, setErrors] = useState({});
-
   const passwordStrength = getPasswordStrength(form.password);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // First name, Last name, Bank name — only letters and spaces
-    if (["firstName", "lastName", "bankName"].includes(name)) {
-      if (value && !/^[a-zA-Z\s]*$/.test(value)) return;
-    }
-
-    // Mobile — only digits, max 10
-    if (name === "mobileNumber") {
-      if (!/^\d*$/.test(value) || value.length > 10) return;
-    }
-
-    // Account number — only digits
-    if (name === "accountNumber") {
-      if (!/^\d*$/.test(value)) return;
-    }
-
-    // IFSC — only alphanumeric, no special chars, max 11
-    if (name === "ifscCode") {
-      if (!/^[a-zA-Z0-9]*$/.test(value) || value.length > 11) return;
-    }
-
-    // Flat number — only digits, max 4
-    if (name === "flatNumber") {
-      if (!/^\d*$/.test(value) || value.length > 4) return;
-    }
-
+    if (
+      ["firstName", "lastName", "bankName"].includes(name) &&
+      value &&
+      !/^[a-zA-Z\s]*$/.test(value)
+    )
+      return;
+    if (name === "mobileNumber" && (!/^\d*$/.test(value) || value.length > 10))
+      return;
+    if (name === "accountNumber" && !/^\d*$/.test(value)) return;
+    if (
+      name === "ifscCode" &&
+      (!/^[a-zA-Z0-9]*$/.test(value) || value.length > 11)
+    )
+      return;
+    if (name === "flatNumber" && (!/^\d*$/.test(value) || value.length > 4))
+      return;
     setForm({ ...form, [name]: value });
     setErrors({ ...errors, [name]: "" });
     setError("");
@@ -130,32 +125,25 @@ const SecretaryRegisterPage = () => {
 
   const validateForm = () => {
     const e = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const pwRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,15}$/;
-
     if (!form.firstName.trim()) e.firstName = "Required";
     if (!form.lastName.trim()) e.lastName = "Required";
-    if (!emailRegex.test(form.email)) e.email = "Enter a valid email address";
-    if (!pwRegex.test(form.password))
-      e.password =
-        "8-15 chars: uppercase, lowercase, number, special character";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = "Valid email required";
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,15}$/.test(
+        form.password,
+      )
+    )
+      e.password = "8-15 chars: upper, lower, number, special (@$!%*#?&)";
     if (!/^\d{10}$/.test(form.mobileNumber))
-      e.mobileNumber = "Must be exactly 10 digits";
-    if (!form.wingName) e.wingName = "Please select a wing";
-
-    // Flat number validation — 3 or 4 digits, not all zeros
-    const flatNum = form.flatNumber;
-    if (!flatNum || flatNum.length < 3) {
-      e.flatNumber = "Must be 3 or 4 digits";
-    } else if (/^0+$/.test(flatNum)) {
-      e.flatNumber = "Invalid flat number";
-    }
-
+      e.mobileNumber = "Must be 10 digits";
+    if (!form.wingName) e.wingName = "Select a wing";
+    if (!form.flatNumber || form.flatNumber.length < 3)
+      e.flatNumber = "3-4 digits required";
+    else if (/^0+$/.test(form.flatNumber)) e.flatNumber = "Invalid flat number";
     if (!form.bankName.trim()) e.bankName = "Required";
     if (!form.accountNumber) e.accountNumber = "Required";
     if (!form.ifscCode.trim()) e.ifscCode = "Required";
-
     setErrors(e);
     return Object.values(e).every((v) => !v);
   };
@@ -164,7 +152,6 @@ const SecretaryRegisterPage = () => {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      // Combine wing + flat number for backend
       const payload = {
         ...form,
         flatNumber: `${form.wingName}-${form.flatNumber}`,
@@ -179,7 +166,6 @@ const SecretaryRegisterPage = () => {
     }
   };
 
-  // ── Success screen ─────────────────────────────────────────────
   if (success)
     return (
       <Box
@@ -197,18 +183,20 @@ const SecretaryRegisterPage = () => {
             elevation={0}
             sx={{
               borderRadius: 3,
-              p: 4,
+              p: { xs: 3, sm: 4 },
               textAlign: "center",
               border: "1px solid #e0f2fe",
               boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
             }}
           >
-            <CheckCircleIcon sx={{ fontSize: 56, color: "#059669", mb: 2 }} />
+            <CheckCircleIcon
+              sx={{ fontSize: { xs: 44, sm: 56 }, color: "#059669", mb: 1.5 }}
+            />
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "1.1rem",
+                fontSize: { xs: "1rem", sm: "1.1rem" },
                 color: "#1e293b",
                 mb: 1,
               }}
@@ -218,14 +206,13 @@ const SecretaryRegisterPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.85rem",
+                fontSize: { xs: "0.78rem", sm: "0.85rem" },
                 color: "#64748b",
-                mb: 3,
+                mb: 2.5,
               }}
             >
               Society administrator account created successfully.
             </Typography>
-            {/* Fix: Go to Landing Page, not login */}
             <Button
               variant="contained"
               fullWidth
@@ -253,7 +240,7 @@ const SecretaryRegisterPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: { xs: 2, sm: 3 },
+        p: { xs: 1.5, sm: 3 },
       }}
     >
       <Container maxWidth="sm">
@@ -270,27 +257,29 @@ const SecretaryRegisterPage = () => {
           <Box
             sx={{
               background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-              py: 3,
+              py: { xs: 2, sm: 3 },
               px: 3,
               textAlign: "center",
             }}
           >
             <Avatar
               sx={{
-                width: 48,
-                height: 48,
+                width: { xs: 38, sm: 48 },
+                height: { xs: 38, sm: 48 },
                 mx: "auto",
-                mb: 1,
+                mb: 0.8,
                 bgcolor: "rgba(255,255,255,0.2)",
               }}
             >
-              <AdminPanelSettingsIcon sx={{ color: "white", fontSize: 24 }} />
+              <AdminPanelSettingsIcon
+                sx={{ color: "white", fontSize: { xs: 20, sm: 24 } }}
+              />
             </Avatar>
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "1.1rem",
+                fontSize: { xs: "0.95rem", sm: "1.1rem" },
                 color: "white",
               }}
             >
@@ -299,16 +288,23 @@ const SecretaryRegisterPage = () => {
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
-                fontSize: "0.78rem",
+                fontSize: { xs: "0.65rem", sm: "0.78rem" },
                 color: "rgba(255,255,255,0.8)",
-                mt: 0.3,
+                mt: 0.2,
               }}
             >
               Create the society administrator account
             </Typography>
           </Box>
 
-          <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              p: { xs: 2, sm: 3 },
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: 1.2, sm: 1.8 },
+            }}
+          >
             {error && (
               <Alert
                 severity="error"
@@ -316,19 +312,19 @@ const SecretaryRegisterPage = () => {
                 sx={{
                   borderRadius: 2,
                   fontFamily: "Inter, sans-serif",
-                  py: 0.5,
+                  py: 0.4,
+                  fontSize: { xs: "0.72rem", sm: "0.82rem" },
                 }}
               >
                 {error}
               </Alert>
             )}
 
-            {/* Personal Details */}
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.72rem",
+                fontSize: "0.65rem",
                 color: "#0891b2",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -338,7 +334,7 @@ const SecretaryRegisterPage = () => {
             </Typography>
 
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <TextField
                 label="First Name *"
@@ -375,7 +371,6 @@ const SecretaryRegisterPage = () => {
               sx={fieldStyle}
             />
 
-            {/* Password with strength indicator */}
             <Box>
               <TextField
                 label="Password *"
@@ -396,15 +391,14 @@ const SecretaryRegisterPage = () => {
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 0.5,
+                            gap: 0.4,
                           }}
                         >
-                          {/* Password strength badge */}
                           {form.password && (
                             <Box
                               sx={{
-                                px: 1,
-                                py: 0.2,
+                                px: 0.8,
+                                py: 0.1,
                                 borderRadius: 1,
                                 bgcolor: passwordStrength.bg,
                                 border: `1px solid ${passwordStrength.color}20`,
@@ -413,7 +407,7 @@ const SecretaryRegisterPage = () => {
                               <Typography
                                 sx={{
                                   fontFamily: "Inter, sans-serif",
-                                  fontSize: "0.65rem",
+                                  fontSize: "0.6rem",
                                   fontWeight: 700,
                                   color: passwordStrength.color,
                                 }}
@@ -427,9 +421,9 @@ const SecretaryRegisterPage = () => {
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
-                              <VisibilityOff sx={{ fontSize: 18 }} />
+                              <VisibilityOff sx={{ fontSize: 16 }} />
                             ) : (
-                              <Visibility sx={{ fontSize: 18 }} />
+                              <Visibility sx={{ fontSize: 16 }} />
                             )}
                           </IconButton>
                         </Box>
@@ -438,14 +432,13 @@ const SecretaryRegisterPage = () => {
                   },
                 }}
               />
-              {/* Password strength bar */}
               {form.password && (
-                <Box sx={{ mt: 0.8 }}>
+                <Box sx={{ mt: 0.6 }}>
                   <LinearProgress
                     variant="determinate"
                     value={passwordStrength.progress}
                     sx={{
-                      height: 4,
+                      height: 3,
                       borderRadius: 2,
                       bgcolor: "#f1f5f9",
                       "& .MuiLinearProgress-bar": {
@@ -457,13 +450,13 @@ const SecretaryRegisterPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.68rem",
+                      fontSize: "0.6rem",
                       color: "#94a3b8",
                       mt: 0.3,
                     }}
                   >
                     8-15 chars • uppercase • lowercase • number • special
-                    character (@$!%*#?&)
+                    (@$!%*#?&)
                   </Typography>
                 </Box>
               )}
@@ -476,22 +469,22 @@ const SecretaryRegisterPage = () => {
               onChange={handleChange}
               size="small"
               fullWidth
-              inputprops={{ maxLength: 10 }}
               error={!!errors.mobileNumber}
               helperText={errors.mobileNumber}
               sx={fieldStyle}
             />
 
-            {/* Wing + Flat Number */}
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <FormControl
                 size="small"
                 error={!!errors.wingName}
                 sx={fieldStyle}
               >
-                <InputLabel sx={{ fontFamily: "Inter, sans-serif" }}>
+                <InputLabel
+                  sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
+                >
                   Wing *
                 </InputLabel>
                 <Select
@@ -499,13 +492,16 @@ const SecretaryRegisterPage = () => {
                   value={form.wingName}
                   onChange={handleChange}
                   label="Wing *"
-                  sx={{ fontFamily: "Inter, sans-serif" }}
+                  sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
                 >
                   {wings.map((w) => (
                     <MenuItem
                       key={w}
                       value={w}
-                      sx={{ fontFamily: "Inter, sans-serif" }}
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "0.82rem",
+                      }}
                     >
                       Wing {w}
                     </MenuItem>
@@ -515,8 +511,8 @@ const SecretaryRegisterPage = () => {
                   <Typography
                     sx={{
                       color: "#d32f2f",
-                      fontSize: "0.72rem",
-                      mt: 0.5,
+                      fontSize: "0.62rem",
+                      mt: 0.4,
                       ml: 1.5,
                       fontFamily: "Inter, sans-serif",
                     }}
@@ -525,21 +521,18 @@ const SecretaryRegisterPage = () => {
                   </Typography>
                 )}
               </FormControl>
-
               <TextField
                 label="Flat Number *"
                 name="flatNumber"
                 value={form.flatNumber}
                 onChange={handleChange}
                 size="small"
-                inputprops={{ maxLength: 4 }}
                 error={!!errors.flatNumber}
-                helperText={errors.flatNumber || "3-4 digits e.g. 101"}
+                helperText={errors.flatNumber || "3-4 digits"}
                 sx={fieldStyle}
               />
             </Box>
 
-            {/* Preview flat number */}
             {form.wingName && form.flatNumber && (
               <Box
                 sx={{
@@ -549,23 +542,23 @@ const SecretaryRegisterPage = () => {
                   bgcolor: "#f0f9ff",
                   borderRadius: 1.5,
                   px: 1.5,
-                  py: 0.8,
+                  py: 0.7,
                   border: "1px solid #e0f2fe",
                 }}
               >
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.75rem",
+                    fontSize: "0.72rem",
                     color: "#64748b",
                   }}
                 >
-                  Flat will be saved as:
+                  Flat saved as:
                 </Typography>
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.8rem",
+                    fontSize: "0.75rem",
                     fontWeight: 700,
                     color: "#0891b2",
                   }}
@@ -577,12 +570,11 @@ const SecretaryRegisterPage = () => {
 
             <Divider sx={{ borderColor: "#e0f2fe" }} />
 
-            {/* Bank Details */}
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.72rem",
+                fontSize: "0.65rem",
                 color: "#0891b2",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -604,7 +596,7 @@ const SecretaryRegisterPage = () => {
             />
 
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
             >
               <TextField
                 label="Account Number *"
@@ -623,7 +615,7 @@ const SecretaryRegisterPage = () => {
                 onChange={handleChange}
                 size="small"
                 error={!!errors.ifscCode}
-                helperText={errors.ifscCode || "Alphanumeric only"}
+                helperText={errors.ifscCode || "Alphanumeric"}
                 sx={fieldStyle}
               />
             </Box>
@@ -635,18 +627,20 @@ const SecretaryRegisterPage = () => {
               disabled={loading}
               startIcon={
                 loading ? (
-                  <CircularProgress size={16} color="inherit" />
+                  <CircularProgress size={14} color="inherit" />
                 ) : (
-                  <AdminPanelSettingsIcon fontSize="small" />
+                  <AdminPanelSettingsIcon
+                    sx={{ fontSize: "16px !important" }}
+                  />
                 )
               }
               sx={{
-                py: 1.2,
+                py: { xs: 0.9, sm: 1.2 },
                 borderRadius: 2,
                 bgcolor: "#0891b2",
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.9rem",
+                fontSize: { xs: "0.82rem", sm: "0.9rem" },
                 mt: 0.5,
                 boxShadow: "0 2px 8px rgba(8,145,178,0.25)",
                 "&:hover": { bgcolor: "#0e7490" },
@@ -658,12 +652,15 @@ const SecretaryRegisterPage = () => {
             <Box sx={{ textAlign: "center" }}>
               <Button
                 size="small"
-                startIcon={<ArrowBackIcon fontSize="small" />}
+                startIcon={
+                  <ArrowBackIcon sx={{ fontSize: "14px !important" }} />
+                }
                 onClick={() => navigate("/")}
                 sx={{
                   color: "#0891b2",
                   fontFamily: "Inter, sans-serif",
                   textTransform: "none",
+                  fontSize: { xs: "0.72rem", sm: "0.78rem" },
                 }}
               >
                 Back to Home

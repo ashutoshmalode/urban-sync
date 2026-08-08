@@ -27,10 +27,18 @@ const fieldStyle = {
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
+    fontSize: "0.82rem",
     "&.Mui-focused fieldset": { borderColor: "#0891b2" },
   },
+  "& .MuiInputLabel-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "0.82rem",
+  },
   "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
-  "& .MuiInputLabel-root": { fontFamily: "Inter, sans-serif" },
+  "& .MuiFormHelperText-root": {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "0.65rem",
+  },
 };
 
 const wings = ["A", "B", "C", "D", "E"];
@@ -38,7 +46,6 @@ const wings = ["A", "B", "C", "D", "E"];
 const ResidentLoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const [step, setStep] = useState(0);
   const [mobile, setMobile] = useState("");
   const [wingName, setWingName] = useState("");
@@ -57,11 +64,9 @@ const ResidentLoginPage = () => {
 
   const validateStep0 = () => {
     const e = {};
-    if (!/^\d{10}$/.test(mobile))
-      e.mobile = "Mobile number must be exactly 10 digits";
-    if (!wingName) e.wingName = "Please select a wing";
-    if (!/^\d{3,4}$/.test(flatNumber))
-      e.flatNumber = "Flat number must be 3 or 4 digits";
+    if (!/^\d{10}$/.test(mobile)) e.mobile = "Must be 10 digits";
+    if (!wingName) e.wingName = "Select a wing";
+    if (!/^\d{3,4}$/.test(flatNumber)) e.flatNumber = "3 or 4 digits";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -81,9 +86,7 @@ const ResidentLoginPage = () => {
       setOtp("");
       showSuccess("OTP sent! Use 123456 to login");
     } catch (err) {
-      showError(
-        err.response?.data?.message || "Resident not found with these details",
-      );
+      showError(err.response?.data?.message || "Resident not found");
     } finally {
       setLoading(false);
     }
@@ -128,7 +131,7 @@ const ResidentLoginPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
       }}
     >
       <Container maxWidth="xs">
@@ -141,35 +144,54 @@ const ResidentLoginPage = () => {
             boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
           }}
         >
+          {/* Header */}
           <Box
             sx={{
               background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-              py: 3,
+              py: { xs: 1.8, sm: 2.5 },
               px: 3,
               textAlign: "center",
             }}
           >
-            <ApartmentIcon sx={{ fontSize: 36, color: "white", mb: 0.5 }} />
-            <Typography variant="h6" fontWeight={700} color="white">
+            <ApartmentIcon
+              sx={{ fontSize: { xs: 26, sm: 32 }, color: "white", mb: 0.3 }}
+            />
+            <Typography
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 700,
+                fontSize: { xs: "0.95rem", sm: "1.05rem" },
+                color: "white",
+              }}
+            >
               UrbanSync
             </Typography>
             <Typography
-              variant="caption"
-              sx={{ color: "rgba(255,255,255,0.85)" }}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.65rem", sm: "0.72rem" },
+                color: "rgba(255,255,255,0.85)",
+              }}
             >
               Resident Login
             </Typography>
           </Box>
 
-          <Box sx={{ px: 3, pt: 2.5, pb: 3 }}>
-            <Stepper activeStep={step} sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              px: { xs: 2, sm: 3 },
+              pt: { xs: 1.8, sm: 2.5 },
+              pb: { xs: 2, sm: 3 },
+            }}
+          >
+            <Stepper activeStep={step} sx={{ mb: { xs: 2, sm: 3 } }}>
               {["Your Details", "Verify OTP"].map((label) => (
                 <Step key={label}>
                   <StepLabel
                     sx={{
                       "& .MuiStepLabel-label": {
                         fontFamily: "Inter, sans-serif",
-                        fontSize: "0.75rem",
+                        fontSize: { xs: "0.65rem", sm: "0.72rem" },
                       },
                     }}
                   >
@@ -180,7 +202,13 @@ const ResidentLoginPage = () => {
             </Stepper>
 
             {step === 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: { xs: 1.2, sm: 1.8 },
+                }}
+              >
                 <TextField
                   label="Mobile Number *"
                   value={mobile}
@@ -188,16 +216,15 @@ const ResidentLoginPage = () => {
                     const v = e.target.value;
                     if (/^\d*$/.test(v) && v.length <= 10) {
                       setMobile(v);
-                      setErrors((prev) => ({ ...prev, mobile: "" }));
+                      setErrors((p) => ({ ...p, mobile: "" }));
                     }
                   }}
                   size="small"
                   fullWidth
-                  placeholder="10 digit mobile number"
+                  placeholder="10 digit mobile"
                   error={!!errors.mobile}
                   helperText={errors.mobile}
                   sx={fieldStyle}
-                  inputprops={{ maxLength: 10 }}
                 />
 
                 <FormControl
@@ -205,20 +232,34 @@ const ResidentLoginPage = () => {
                   error={!!errors.wingName}
                   sx={fieldStyle}
                 >
-                  <InputLabel>Wing *</InputLabel>
+                  <InputLabel
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    Wing *
+                  </InputLabel>
                   <Select
                     value={wingName}
                     onChange={(e) => {
                       setWingName(e.target.value);
-                      setErrors((prev) => ({ ...prev, wingName: "" }));
+                      setErrors((p) => ({ ...p, wingName: "" }));
                     }}
                     label="Wing *"
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontSize: "0.82rem",
+                    }}
                   >
                     {wings.map((w) => (
                       <MenuItem
                         key={w}
                         value={w}
-                        sx={{ fontFamily: "Inter, sans-serif" }}
+                        sx={{
+                          fontFamily: "Inter, sans-serif",
+                          fontSize: "0.82rem",
+                        }}
                       >
                         Wing {w}
                       </MenuItem>
@@ -228,8 +269,8 @@ const ResidentLoginPage = () => {
                     <Typography
                       sx={{
                         color: "#d32f2f",
-                        fontSize: "0.72rem",
-                        mt: 0.5,
+                        fontSize: "0.65rem",
+                        mt: 0.4,
                         ml: 1.5,
                         fontFamily: "Inter, sans-serif",
                       }}
@@ -246,18 +287,15 @@ const ResidentLoginPage = () => {
                     const v = e.target.value;
                     if (/^\d*$/.test(v) && v.length <= 4) {
                       setFlatNumber(v);
-                      setErrors((prev) => ({ ...prev, flatNumber: "" }));
+                      setErrors((p) => ({ ...p, flatNumber: "" }));
                     }
                   }}
                   size="small"
                   fullWidth
-                  placeholder="3 or 4 digit flat number e.g. 150"
+                  placeholder="e.g. 150"
                   error={!!errors.flatNumber}
-                  helperText={
-                    errors.flatNumber || "Enter 3-4 digit flat number"
-                  }
+                  helperText={errors.flatNumber || "3-4 digit flat number"}
                   sx={fieldStyle}
-                  inputprops={{ maxLength: 4 }}
                 />
 
                 <Button
@@ -267,9 +305,9 @@ const ResidentLoginPage = () => {
                   disabled={loading}
                   startIcon={
                     loading ? (
-                      <CircularProgress size={16} color="inherit" />
+                      <CircularProgress size={14} color="inherit" />
                     ) : (
-                      <HomeIcon />
+                      <HomeIcon sx={{ fontSize: "16px !important" }} />
                     )
                   }
                   sx={{
@@ -277,7 +315,8 @@ const ResidentLoginPage = () => {
                     borderRadius: 2,
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 600,
-                    py: 1.1,
+                    py: { xs: 0.8, sm: 1 },
+                    fontSize: { xs: "0.82rem", sm: "0.875rem" },
                     "&:hover": { bgcolor: "#0e7490" },
                   }}
                 >
@@ -285,10 +324,16 @@ const ResidentLoginPage = () => {
                 </Button>
               </Box>
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: { xs: 1.2, sm: 1.8 },
+                }}
+              >
                 <Box
                   sx={{
-                    p: 1.5,
+                    p: 1.2,
                     bgcolor: "#f0f9ff",
                     borderRadius: 2,
                     border: "1px solid #e0f2fe",
@@ -298,7 +343,7 @@ const ResidentLoginPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.78rem",
+                      fontSize: { xs: "0.72rem", sm: "0.78rem" },
                       color: "#0891b2",
                       fontWeight: 600,
                     }}
@@ -308,7 +353,7 @@ const ResidentLoginPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.72rem",
+                      fontSize: { xs: "0.65rem", sm: "0.72rem" },
                       color: "#64748b",
                     }}
                   >
@@ -317,13 +362,13 @@ const ResidentLoginPage = () => {
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      fontSize: "0.72rem",
+                      fontSize: { xs: "0.68rem", sm: "0.72rem" },
                       color: "#059669",
                       fontWeight: 700,
-                      mt: 0.5,
+                      mt: 0.3,
                     }}
                   >
-                    Your OTP: 123456
+                    Dev OTP: 123456
                   </Typography>
                 </Box>
 
@@ -336,13 +381,12 @@ const ResidentLoginPage = () => {
                   }}
                   size="small"
                   fullWidth
-                  placeholder="Enter 6 digit OTP"
+                  placeholder="6 digit OTP"
                   helperText={
                     otp.length > 0 && otp.length < 6
-                      ? `${6 - otp.length} more digits needed`
+                      ? `${6 - otp.length} more digits`
                       : ""
                   }
-                  inputprops={{ maxLength: 6 }}
                   sx={fieldStyle}
                 />
 
@@ -353,7 +397,7 @@ const ResidentLoginPage = () => {
                   disabled={loading || otp.length !== 6}
                   startIcon={
                     loading ? (
-                      <CircularProgress size={16} color="inherit" />
+                      <CircularProgress size={14} color="inherit" />
                     ) : null
                   }
                   sx={{
@@ -361,7 +405,8 @@ const ResidentLoginPage = () => {
                     borderRadius: 2,
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 600,
-                    py: 1.1,
+                    py: { xs: 0.8, sm: 1 },
+                    fontSize: { xs: "0.82rem", sm: "0.875rem" },
                     "&:hover": { bgcolor: "#0e7490" },
                   }}
                 >
@@ -386,7 +431,7 @@ const ResidentLoginPage = () => {
                       fontFamily: "Inter, sans-serif",
                       color: "#64748b",
                       textTransform: "none",
-                      fontSize: "0.78rem",
+                      fontSize: { xs: "0.7rem", sm: "0.78rem" },
                     }}
                   >
                     ← Change Details
@@ -402,7 +447,7 @@ const ResidentLoginPage = () => {
                       fontFamily: "Inter, sans-serif",
                       color: "#0891b2",
                       textTransform: "none",
-                      fontSize: "0.78rem",
+                      fontSize: { xs: "0.7rem", sm: "0.78rem" },
                     }}
                   >
                     {timer > 0 ? `Resend in ${timer}s` : "Resend OTP"}
@@ -415,11 +460,11 @@ const ResidentLoginPage = () => {
               fullWidth
               onClick={() => navigate("/")}
               sx={{
-                mt: 1.5,
+                mt: { xs: 1, sm: 1.5 },
                 fontFamily: "Inter, sans-serif",
                 color: "#94a3b8",
                 textTransform: "none",
-                fontSize: "0.78rem",
+                fontSize: { xs: "0.7rem", sm: "0.78rem" },
               }}
             >
               ← Back to Home
@@ -430,15 +475,17 @@ const ResidentLoginPage = () => {
             sx={{
               bgcolor: "#f8fafc",
               px: 3,
-              py: 1.5,
+              py: { xs: 1, sm: 1.5 },
               textAlign: "center",
               borderTop: "1px solid #e0f2fe",
             }}
           >
             <Typography
-              variant="caption"
-              color="text.secondary"
-              fontSize="0.65rem"
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "0.6rem",
+                color: "#94a3b8",
+              }}
             >
               © 2026 UrbanSync — CDAC Final Project
             </Typography>

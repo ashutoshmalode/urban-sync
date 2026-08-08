@@ -55,10 +55,45 @@ const LandingPage = () => {
           bgcolor: "#f0f9ff",
         }}
       >
-        <CircularProgress size={36} sx={{ color: "#0891b2" }} />
+        <CircularProgress size={32} sx={{ color: "#0891b2" }} />
       </Box>
     );
   }
+
+  const LoginBtn = ({
+    label,
+    icon,
+    onClick,
+    disabled,
+    color = "#0891b2",
+    hoverColor = "#0e7490",
+    disabledBg = "#e0f2fe",
+    disabledColor = "#7dd3fc",
+  }) => (
+    <Button
+      variant="contained"
+      size="small"
+      fullWidth
+      disabled={disabled}
+      onClick={onClick}
+      startIcon={icon}
+      sx={{
+        py: { xs: 0.7, sm: 0.9 },
+        borderRadius: 1.5,
+        fontWeight: 600,
+        fontSize: { xs: "0.75rem", sm: "0.8rem" },
+        justifyContent: "flex-start",
+        bgcolor: color,
+        "&:hover": { bgcolor: hoverColor },
+        "&.Mui-disabled": { bgcolor: disabledBg, color: disabledColor },
+        boxShadow: !disabled ? `0 2px 6px ${color}33` : "none",
+        fontFamily: "Inter, sans-serif",
+        textTransform: "none",
+      }}
+    >
+      {label}
+    </Button>
+  );
 
   return (
     <Box
@@ -68,7 +103,7 @@ const LandingPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: { xs: 2, sm: 3 },
+        p: { xs: 1.5, sm: 3 },
       }}
     >
       <Container maxWidth="xs">
@@ -85,30 +120,45 @@ const LandingPage = () => {
           <Box
             sx={{
               background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-              py: 3,
+              py: { xs: 2, sm: 3 },
               px: 3,
               textAlign: "center",
             }}
           >
-            <ApartmentIcon sx={{ fontSize: 36, color: "white", mb: 0.5 }} />
+            <ApartmentIcon
+              sx={{ fontSize: { xs: 28, sm: 36 }, color: "white", mb: 0.3 }}
+            />
             <Typography
-              variant="h6"
-              fontWeight={700}
-              color="white"
-              letterSpacing={0.5}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 800,
+                fontSize: { xs: "1rem", sm: "1.15rem" },
+                color: "white",
+                letterSpacing: 0.5,
+              }}
             >
               UrbanSync
             </Typography>
             <Typography
-              variant="caption"
-              sx={{ color: "rgba(255,255,255,0.85)" }}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.68rem", sm: "0.75rem" },
+                color: "rgba(255,255,255,0.85)",
+              }}
             >
               Society Management System
             </Typography>
           </Box>
 
           {/* Status */}
-          <Box sx={{ px: 3, pt: 2, display: "flex", justifyContent: "center" }}>
+          <Box
+            sx={{
+              px: 3,
+              pt: { xs: 1.2, sm: 2 },
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
             <Chip
               label={
                 isSecretaryRegistered ? "✓ Society Active" : "⚠ Setup Required"
@@ -118,7 +168,9 @@ const LandingPage = () => {
                 bgcolor: isSecretaryRegistered ? "#dcfce7" : "#fef9c3",
                 color: isSecretaryRegistered ? "#166534" : "#854d0e",
                 fontWeight: 600,
-                fontSize: "0.7rem",
+                fontSize: "0.68rem",
+                fontFamily: "Inter, sans-serif",
+                height: 22,
               }}
             />
           </Box>
@@ -126,22 +178,27 @@ const LandingPage = () => {
           {/* Buttons */}
           <Box
             sx={{
-              px: 3,
-              pt: 1.5,
-              pb: 2,
+              px: { xs: 2, sm: 3 },
+              pt: { xs: 1, sm: 1.5 },
+              pb: { xs: 1.5, sm: 2 },
               display: "flex",
               flexDirection: "column",
-              gap: 1,
+              gap: { xs: 0.8, sm: 1 },
             }}
           >
-            {/* Secretary Section */}
+            {/* Secretary */}
             <Typography
-              variant="caption"
-              color="text.secondary"
-              fontWeight={600}
-              sx={{ mt: 0.5 }}
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.6rem", sm: "0.68rem" },
+                color: "#94a3b8",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                mt: { xs: 0.3, sm: 0.5 },
+              }}
             >
-              SECRETARY
+              Secretary
             </Typography>
 
             <Button
@@ -150,13 +207,17 @@ const LandingPage = () => {
               fullWidth
               disabled={isSecretaryRegistered}
               onClick={() => navigate("/secretary/register")}
-              startIcon={<AdminPanelSettingsIcon fontSize="small" />}
+              startIcon={
+                <AdminPanelSettingsIcon sx={{ fontSize: "15px !important" }} />
+              }
               sx={{
-                py: 0.9,
+                py: { xs: 0.7, sm: 0.9 },
                 borderRadius: 1.5,
                 fontWeight: 600,
-                fontSize: "0.8rem",
+                fontSize: { xs: "0.75rem", sm: "0.8rem" },
                 justifyContent: "flex-start",
+                textTransform: "none",
+                fontFamily: "Inter, sans-serif",
                 bgcolor: !isSecretaryRegistered ? "#0891b2" : undefined,
                 color: !isSecretaryRegistered ? "white" : undefined,
                 borderColor: "#bae6fd",
@@ -175,123 +236,74 @@ const LandingPage = () => {
                 : "Register as Secretary"}
             </Button>
 
-            <Button
-              variant="contained"
-              size="small"
-              fullWidth
-              disabled={!isSecretaryRegistered}
+            <LoginBtn
+              label="Login as Secretary"
+              icon={
+                <AdminPanelSettingsIcon sx={{ fontSize: "15px !important" }} />
+              }
               onClick={() => navigate("/secretary/login")}
-              startIcon={<AdminPanelSettingsIcon fontSize="small" />}
+              disabled={!isSecretaryRegistered}
+            />
+
+            <Divider
+              sx={{ my: { xs: 0.3, sm: 0.5 }, borderColor: "#e0f2fe" }}
+            />
+
+            {/* Resident */}
+            <Typography
               sx={{
-                py: 0.9,
-                borderRadius: 1.5,
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                justifyContent: "flex-start",
-                bgcolor: "#0891b2",
-                "&:hover": { bgcolor: "#0e7490" },
-                "&.Mui-disabled": { bgcolor: "#e0f2fe", color: "#7dd3fc" },
-                boxShadow: isSecretaryRegistered
-                  ? "0 2px 6px rgba(8,145,178,0.2)"
-                  : "none",
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.6rem", sm: "0.68rem" },
+                color: "#94a3b8",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
               }}
             >
-              Login as Secretary
-            </Button>
-
-            <Divider sx={{ my: 0.5 }} />
-
-            {/* Resident Section */}
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              fontWeight={600}
-            >
-              RESIDENT
+              Resident
             </Typography>
 
-            <Button
-              variant="contained"
-              size="small"
-              fullWidth
-              disabled={!isSecretaryRegistered}
+            <LoginBtn
+              label="Register as Resident"
+              icon={<PersonAddIcon sx={{ fontSize: "15px !important" }} />}
               onClick={() => navigate("/resident/register")}
-              startIcon={<PersonAddIcon fontSize="small" />}
-              sx={{
-                py: 0.9,
-                borderRadius: 1.5,
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                justifyContent: "flex-start",
-                bgcolor: "#0891b2",
-                "&:hover": { bgcolor: "#0e7490" },
-                "&.Mui-disabled": { bgcolor: "#e0f2fe", color: "#7dd3fc" },
-                boxShadow: isSecretaryRegistered
-                  ? "0 2px 6px rgba(8,145,178,0.2)"
-                  : "none",
-              }}
-            >
-              Register as Resident
-            </Button>
-
-            <Button
-              variant="contained"
-              size="small"
-              fullWidth
               disabled={!isSecretaryRegistered}
+            />
+            <LoginBtn
+              label="Login as Resident"
+              icon={<HomeIcon sx={{ fontSize: "15px !important" }} />}
               onClick={() => navigate("/resident/login")}
-              startIcon={<HomeIcon fontSize="small" />}
+              disabled={!isSecretaryRegistered}
+            />
+
+            <Divider
+              sx={{ my: { xs: 0.3, sm: 0.5 }, borderColor: "#e0f2fe" }}
+            />
+
+            {/* Caretaker */}
+            <Typography
               sx={{
-                py: 0.9,
-                borderRadius: 1.5,
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                justifyContent: "flex-start",
-                bgcolor: "#0891b2",
-                "&:hover": { bgcolor: "#0e7490" },
-                "&.Mui-disabled": { bgcolor: "#e0f2fe", color: "#7dd3fc" },
-                boxShadow: isSecretaryRegistered
-                  ? "0 2px 6px rgba(8,145,178,0.2)"
-                  : "none",
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.6rem", sm: "0.68rem" },
+                color: "#94a3b8",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
               }}
             >
-              Login as Resident
-            </Button>
-
-            <Divider sx={{ my: 0.5 }} />
-
-            {/* Caretaker Section */}
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              fontWeight={600}
-            >
-              CARETAKER
+              Caretaker
             </Typography>
 
-            <Button
-              variant="contained"
-              size="small"
-              fullWidth
-              disabled={!isSecretaryRegistered}
+            <LoginBtn
+              label="Login as Caretaker"
+              icon={<EngineeringIcon sx={{ fontSize: "15px !important" }} />}
               onClick={() => navigate("/caretaker/login")}
-              startIcon={<EngineeringIcon fontSize="small" />}
-              sx={{
-                py: 0.9,
-                borderRadius: 1.5,
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                justifyContent: "flex-start",
-                bgcolor: "#059669",
-                "&:hover": { bgcolor: "#047857" },
-                "&.Mui-disabled": { bgcolor: "#dcfce7", color: "#86efac" },
-                boxShadow: isSecretaryRegistered
-                  ? "0 2px 6px rgba(5,150,105,0.2)"
-                  : "none",
-              }}
-            >
-              Login as Caretaker
-            </Button>
+              disabled={!isSecretaryRegistered}
+              color="#059669"
+              hoverColor="#047857"
+              disabledBg="#dcfce7"
+              disabledColor="#86efac"
+            />
           </Box>
 
           {/* Footer */}
@@ -299,15 +311,17 @@ const LandingPage = () => {
             sx={{
               bgcolor: "#f8fafc",
               px: 3,
-              py: 1.5,
+              py: { xs: 1, sm: 1.5 },
               textAlign: "center",
               borderTop: "1px solid #e0f2fe",
             }}
           >
             <Typography
-              variant="caption"
-              color="text.secondary"
-              fontSize="0.65rem"
+              sx={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: { xs: "0.6rem", sm: "0.65rem" },
+                color: "#94a3b8",
+              }}
             >
               © 2026 UrbanSync — CDAC Final Project
             </Typography>
