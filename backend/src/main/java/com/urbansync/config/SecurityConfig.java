@@ -66,13 +66,17 @@ public class SecurityConfig {
                         "/api/registration/check-pending-tenant"
                 ).permitAll()
 
-                // ── RESIDENT ───────────────────────────────────────────
+             // ── RESIDENT ───────────────────────────────────────────
                 .requestMatchers(
                         "/api/resident/**",
                         "/api/maintenance/bills/resident/**",
                         "/api/complaint/resident/**",
-                        "/api/permission/resident/**"
-                ).hasAnyRole("RESIDENT", "SECRETARY")
+                        "/api/complaint/raise",
+                        "/api/complaint/media",
+                        "/api/complaint/*/media",
+                        "/api/permission/resident/**",
+                        "/api/permission/raise"
+                ).hasAnyRole("RESIDENT", "SECRETARY")	
 
                 // ── CARETAKER — exact paths BEFORE secretary wildcard ──
                 .requestMatchers(HttpMethod.GET, "/api/caretaker/profile/me"
@@ -104,6 +108,9 @@ public class SecurityConfig {
                 ).hasAnyRole("RESIDENT", "SECRETARY")
 
                 .requestMatchers(HttpMethod.POST, "/api/payment/verify"
+                ).hasAnyRole("RESIDENT", "SECRETARY")
+                
+                .requestMatchers(HttpMethod.GET, "/api/complaint/*"
                 ).hasAnyRole("RESIDENT", "SECRETARY")
 
                 // ── SECRETARY only ─────────────────────────────────────
