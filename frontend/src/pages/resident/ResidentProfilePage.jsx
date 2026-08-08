@@ -13,16 +13,16 @@ const InfoRow = ({ icon, label, value }) => (
     sx={{
       display: "flex",
       alignItems: "flex-start",
-      gap: 1.5,
-      py: 1.5,
+      gap: { xs: 1.2, sm: 1.5 },
+      py: { xs: 1.2, sm: 1.5 },
       borderBottom: "1px solid #f1f5f9",
       "&:last-child": { borderBottom: "none" },
     }}
   >
     <Box
       sx={{
-        width: 32,
-        height: 32,
+        width: { xs: 28, sm: 32 },
+        height: { xs: 28, sm: 32 },
         borderRadius: 1.5,
         bgcolor: "#f0f9ff",
         border: "1px solid #e0f2fe",
@@ -34,11 +34,11 @@ const InfoRow = ({ icon, label, value }) => (
     >
       {icon}
     </Box>
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Typography
         sx={{
           fontFamily: "Inter, sans-serif",
-          fontSize: "0.68rem",
+          fontSize: { xs: "0.6rem", sm: "0.68rem" },
           fontWeight: 600,
           color: "#94a3b8",
           textTransform: "uppercase",
@@ -51,9 +51,10 @@ const InfoRow = ({ icon, label, value }) => (
       <Typography
         sx={{
           fontFamily: "Inter, sans-serif",
-          fontSize: "0.88rem",
+          fontSize: { xs: "0.8rem", sm: "0.88rem" },
           fontWeight: 600,
           color: "#1e293b",
+          wordBreak: "break-word",
         }}
       >
         {value || "—"}
@@ -64,7 +65,6 @@ const InfoRow = ({ icon, label, value }) => (
 
 const ResidentProfilePage = () => {
   const flatNumber = useSelector((state) => state.auth.flatNumber);
-  const loginIdentifier = useSelector((state) => state.auth.loginIdentifier);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -79,13 +79,13 @@ const ResidentProfilePage = () => {
 
   if (loading)
     return (
-      <Box sx={{ p: 3 }}>
-        <Skeleton variant="circular" width={80} height={80} sx={{ mb: 2 }} />
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Skeleton variant="circular" width={64} height={64} sx={{ mb: 2 }} />
         {[...Array(4)].map((_, i) => (
           <Skeleton
             key={i}
             variant="rounded"
-            height={48}
+            height={44}
             sx={{ mb: 1, borderRadius: 1.5 }}
           />
         ))}
@@ -94,26 +94,28 @@ const ResidentProfilePage = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
+      {/* Page Header */}
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.2 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 2,
             bgcolor: "#e0f2fe",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <PersonIcon sx={{ color: "#0891b2", fontSize: 20 }} />
+          <PersonIcon sx={{ color: "#0891b2", fontSize: 18 }} />
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
               fontWeight: 700,
-              fontSize: "1.05rem",
+              fontSize: { xs: "0.9rem", sm: "1.05rem" },
               color: "#1e293b",
             }}
           >
@@ -122,7 +124,7 @@ const ResidentProfilePage = () => {
           <Typography
             sx={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
               color: "#64748b",
             }}
           >
@@ -143,38 +145,43 @@ const ResidentProfilePage = () => {
         {/* Profile Header */}
         <Box
           sx={{
-            p: 3,
-            bgcolor: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+            p: { xs: 2, sm: 3 },
+            bgcolor: "#f0f9ff",
             borderBottom: "1px solid #e0f2fe",
             display: "flex",
             alignItems: "center",
-            gap: 2,
+            gap: { xs: 1.5, sm: 2 },
+            flexWrap: "nowrap",
           }}
         >
           <Avatar
             sx={{
-              width: 64,
-              height: 64,
+              width: { xs: 48, sm: 64 },
+              height: { xs: 48, sm: 64 },
               bgcolor: "#0891b2",
-              fontSize: "1.5rem",
+              fontSize: { xs: "1.1rem", sm: "1.5rem" },
               fontWeight: 700,
+              flexShrink: 0,
             }}
           >
             {profile?.firstName?.[0]}
             {profile?.lastName?.[0]}
           </Avatar>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 800,
-                fontSize: "1.1rem",
+                fontSize: { xs: "0.9rem", sm: "1.1rem" },
                 color: "#1e293b",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {profile?.firstName} {profile?.lastName}
             </Typography>
-            <Box sx={{ display: "flex", gap: 0.8, mt: 0.5 }}>
+            <Box sx={{ display: "flex", gap: 0.6, mt: 0.5, flexWrap: "wrap" }}>
               <Chip
                 label={profile?.residentType || "RESIDENT"}
                 size="small"
@@ -184,9 +191,9 @@ const ResidentProfilePage = () => {
                   color:
                     profile?.residentType === "OWNER" ? "#166534" : "#0891b2",
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: { xs: "0.58rem", sm: "0.68rem" },
                   fontFamily: "Inter, sans-serif",
-                  height: 20,
+                  height: { xs: 18, sm: 20 },
                 }}
               />
               <Chip
@@ -196,9 +203,9 @@ const ResidentProfilePage = () => {
                   bgcolor: "#e0f2fe",
                   color: "#0891b2",
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: { xs: "0.58rem", sm: "0.68rem" },
                   fontFamily: "Inter, sans-serif",
-                  height: 20,
+                  height: { xs: 18, sm: 20 },
                 }}
               />
               <Chip
@@ -208,9 +215,9 @@ const ResidentProfilePage = () => {
                   bgcolor: "#dcfce7",
                   color: "#166534",
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: { xs: "0.58rem", sm: "0.68rem" },
                   fontFamily: "Inter, sans-serif",
-                  height: 20,
+                  height: { xs: 18, sm: 20 },
                 }}
               />
             </Box>
@@ -218,24 +225,40 @@ const ResidentProfilePage = () => {
         </Box>
 
         {/* Profile Details */}
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ px: { xs: 1.5, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>
           <InfoRow
-            icon={<PhoneIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+            icon={
+              <PhoneIcon
+                sx={{ fontSize: { xs: 12, sm: 14 }, color: "#0891b2" }}
+              />
+            }
             label="Mobile Number"
             value={`+91 ${profile?.mobileNumber}`}
           />
           <InfoRow
-            icon={<HomeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+            icon={
+              <HomeIcon
+                sx={{ fontSize: { xs: 12, sm: 14 }, color: "#0891b2" }}
+              />
+            }
             label="Flat Number"
             value={flatNumber}
           />
           <InfoRow
-            icon={<BadgeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+            icon={
+              <BadgeIcon
+                sx={{ fontSize: { xs: 12, sm: 14 }, color: "#0891b2" }}
+              />
+            }
             label="Resident Type"
             value={profile?.residentType}
           />
           <InfoRow
-            icon={<PersonIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+            icon={
+              <PersonIcon
+                sx={{ fontSize: { xs: 12, sm: 14 }, color: "#0891b2" }}
+              />
+            }
             label="Aadhaar (Last 4)"
             value={
               profile?.aadhaarLastFour
@@ -244,7 +267,11 @@ const ResidentProfilePage = () => {
             }
           />
           <InfoRow
-            icon={<BadgeIcon sx={{ fontSize: 14, color: "#0891b2" }} />}
+            icon={
+              <BadgeIcon
+                sx={{ fontSize: { xs: 12, sm: 14 }, color: "#0891b2" }}
+              />
+            }
             label="Member Since"
             value={
               profile?.createdAt

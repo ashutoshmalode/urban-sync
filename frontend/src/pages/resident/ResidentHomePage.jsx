@@ -6,7 +6,6 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import axiosInstance from "../../api/axiosInstance";
 import { showError } from "../../utils/toast";
 
@@ -15,12 +14,13 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
     elevation={0}
     onClick={onClick}
     sx={{
-      p: 2,
+      p: { xs: 1.2, sm: 1.8, md: 2 },
       borderRadius: 3,
       border: "1px solid #e0f2fe",
       boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
       cursor: onClick ? "pointer" : "default",
       transition: "all 0.2s",
+      height: "100%",
       "&:hover": onClick
         ? {
             transform: "translateY(-2px)",
@@ -34,18 +34,19 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "space-between",
-        mb: 1.5,
+        mb: { xs: 1, sm: 1.5 },
       }}
     >
       <Box
         sx={{
-          width: 40,
-          height: 40,
+          width: { xs: 32, sm: 38, md: 40 },
+          height: { xs: 32, sm: 38, md: 40 },
           borderRadius: 2,
           bgcolor,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          flexShrink: 0,
         }}
       >
         {icon}
@@ -58,9 +59,16 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
             bgcolor: "#f1f5f9",
             color: "#64748b",
             fontFamily: "Inter, sans-serif",
-            fontSize: "0.65rem",
+            fontSize: { xs: "0.55rem", sm: "0.62rem" },
             fontWeight: 600,
-            height: 20,
+            height: 18,
+            maxWidth: { xs: 72, sm: 110 },
+            "& .MuiChip-label": {
+              px: 0.8,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            },
           }}
         />
       )}
@@ -68,7 +76,7 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "1.6rem",
+        fontSize: { xs: "1.1rem", sm: "1.4rem", md: "1.6rem" },
         fontWeight: 800,
         color,
         lineHeight: 1,
@@ -79,12 +87,13 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
     <Typography
       sx={{
         fontFamily: "Inter, sans-serif",
-        fontSize: "0.72rem",
+        fontSize: { xs: "0.6rem", sm: "0.68rem", md: "0.72rem" },
         fontWeight: 600,
         color: "#94a3b8",
         textTransform: "uppercase",
-        letterSpacing: "0.05em",
+        letterSpacing: "0.04em",
         mt: 0.5,
+        lineHeight: 1.3,
       }}
     >
       {label}
@@ -95,8 +104,6 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
 const ResidentHomePage = () => {
   const navigate = useNavigate();
   const flatNumber = useSelector((state) => state.auth.flatNumber);
-  const loginIdentifier = useSelector((state) => state.auth.loginIdentifier);
-
   const [profile, setProfile] = useState(null);
   const [bills, setBills] = useState([]);
   const [complaints, setComplaints] = useState([]);
@@ -112,7 +119,6 @@ const ResidentHomePage = () => {
           `/api/resident/profile?flatNumber=${flatNumber}`,
         );
         setProfile(profileRes.data);
-
         const [billsRes, complaintsRes, permissionsRes, announcementsRes] =
           await Promise.all([
             axiosInstance.get(
@@ -122,7 +128,6 @@ const ResidentHomePage = () => {
             axiosInstance.get(`/api/permission/resident/${profileRes.data.id}`),
             axiosInstance.get("/api/announcement/all"),
           ]);
-
         setBills(billsRes.data);
         setComplaints(complaintsRes.data);
         setPermissions(permissionsRes.data);
@@ -139,7 +144,6 @@ const ResidentHomePage = () => {
   const pendingBills = bills.filter((b) => b.status === "PENDING");
   const pendingComplaints = complaints.filter((c) => c.status === "PENDING");
   const pendingPermissions = permissions.filter((p) => p.status === "PENDING");
-
   const go = (path) => navigate(`/resident/dashboard/${path}`);
 
   if (loading)
@@ -147,15 +151,15 @@ const ResidentHomePage = () => {
       <Box>
         <Skeleton
           variant="rounded"
-          height={40}
-          sx={{ mb: 3, width: 200, borderRadius: 2 }}
+          height={36}
+          sx={{ mb: 2, width: { xs: 160, sm: 200 }, borderRadius: 2 }}
         />
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1, sm: 2 }}>
           {[...Array(4)].map((_, i) => (
             <Grid key={i} size={{ xs: 6, md: 3 }}>
               <Skeleton
                 variant="rounded"
-                height={110}
+                height={{ xs: 90, sm: 110 }}
                 sx={{ borderRadius: 3 }}
               />
             </Grid>
@@ -167,12 +171,12 @@ const ResidentHomePage = () => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
         <Typography
           sx={{
             fontFamily: "Inter, sans-serif",
             fontWeight: 800,
-            fontSize: "1.2rem",
+            fontSize: { xs: "1rem", sm: "1.15rem", md: "1.2rem" },
             color: "#1e293b",
           }}
         >
@@ -181,8 +185,11 @@ const ResidentHomePage = () => {
         <Typography
           sx={{
             fontFamily: "Inter, sans-serif",
-            fontSize: "0.78rem",
+            fontSize: { xs: "0.68rem", sm: "0.78rem" },
             color: "#64748b",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {profile?.firstName} {profile?.lastName} — Flat {flatNumber} —{" "}
@@ -196,8 +203,8 @@ const ResidentHomePage = () => {
           elevation={0}
           onClick={() => go("bills")}
           sx={{
-            p: 2,
-            mb: 2.5,
+            p: { xs: 1.5, sm: 2 },
+            mb: { xs: 1.5, sm: 2.5 },
             borderRadius: 3,
             border: "1px solid #fecaca",
             bgcolor: "#fef2f2",
@@ -205,14 +212,20 @@ const ResidentHomePage = () => {
             "&:hover": { boxShadow: "0 4px 12px rgba(220,38,38,0.1)" },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <ReceiptIcon sx={{ color: "#dc2626", fontSize: 20 }} />
-            <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+            <ReceiptIcon
+              sx={{
+                color: "#dc2626",
+                fontSize: { xs: 16, sm: 20 },
+                flexShrink: 0,
+              }}
+            />
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 700,
-                  fontSize: "0.85rem",
+                  fontSize: { xs: "0.78rem", sm: "0.85rem" },
                   color: "#dc2626",
                 }}
               >
@@ -222,15 +235,18 @@ const ResidentHomePage = () => {
               <Typography
                 sx={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: "0.72rem",
+                  fontSize: { xs: "0.65rem", sm: "0.72rem" },
                   color: "#991b1b",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
-                Total due: ₹
+                Due: ₹
                 {pendingBills
                   .reduce((s, b) => s + Number(b.totalAmount), 0)
                   .toLocaleString("en-IN")}{" "}
-                — Click to pay
+                — Tap to pay
               </Typography>
             </Box>
             <Chip
@@ -241,7 +257,9 @@ const ResidentHomePage = () => {
                 color: "white",
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.7rem",
+                fontSize: { xs: "0.6rem", sm: "0.7rem" },
+                height: { xs: 20, sm: 24 },
+                flexShrink: 0,
               }}
             />
           </Box>
@@ -249,50 +267,68 @@ const ResidentHomePage = () => {
       )}
 
       {/* Stat Cards */}
-      <Grid container spacing={2} sx={{ mb: 2.5 }}>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            icon={<ReceiptIcon sx={{ color: "#0891b2", fontSize: 20 }} />}
-            label="Total Bills"
-            value={bills.length}
-            sub={`${pendingBills.length} pending`}
-            color="#0891b2"
-            bgcolor="#e0f2fe"
-            onClick={() => go("bills")}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            icon={<ReportProblemIcon sx={{ color: "#dc2626", fontSize: 20 }} />}
-            label="Complaints"
-            value={complaints.length}
-            sub={`${pendingComplaints.length} pending`}
-            color="#dc2626"
-            bgcolor="#fee2e2"
-            onClick={() => go("complaints")}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            icon={<LockOpenIcon sx={{ color: "#7c3aed", fontSize: 20 }} />}
-            label="Permissions"
-            value={permissions.length}
-            sub={`${pendingPermissions.length} pending`}
-            color="#7c3aed"
-            bgcolor="#f3e8ff"
-            onClick={() => go("permissions")}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            icon={<CampaignIcon sx={{ color: "#d97706", fontSize: 20 }} />}
-            label="Announcements"
-            value={announcements.length}
-            color="#d97706"
-            bgcolor="#fef3c7"
-            onClick={() => go("announcements")}
-          />
-        </Grid>
+      <Grid
+        container
+        spacing={{ xs: 1, sm: 1.5, md: 2 }}
+        sx={{ mb: { xs: 1.5, sm: 2.5 } }}
+      >
+        {[
+          {
+            icon: (
+              <ReceiptIcon
+                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
+              />
+            ),
+            label: "Total Bills",
+            value: bills.length,
+            sub: `${pendingBills.length} pending`,
+            color: "#0891b2",
+            bgcolor: "#e0f2fe",
+            path: "bills",
+          },
+          {
+            icon: (
+              <ReportProblemIcon
+                sx={{ color: "#dc2626", fontSize: { xs: 16, sm: 20 } }}
+              />
+            ),
+            label: "Complaints",
+            value: complaints.length,
+            sub: `${pendingComplaints.length} pending`,
+            color: "#dc2626",
+            bgcolor: "#fee2e2",
+            path: "complaints",
+          },
+          {
+            icon: (
+              <LockOpenIcon
+                sx={{ color: "#7c3aed", fontSize: { xs: 16, sm: 20 } }}
+              />
+            ),
+            label: "Permissions",
+            value: permissions.length,
+            sub: `${pendingPermissions.length} pending`,
+            color: "#7c3aed",
+            bgcolor: "#f3e8ff",
+            path: "permissions",
+          },
+          {
+            icon: (
+              <CampaignIcon
+                sx={{ color: "#d97706", fontSize: { xs: 16, sm: 20 } }}
+              />
+            ),
+            label: "Announcements",
+            value: announcements.length,
+            color: "#d97706",
+            bgcolor: "#fef3c7",
+            path: "announcements",
+          },
+        ].map((card, i) => (
+          <Grid key={i} size={{ xs: 6, md: 3 }}>
+            <StatCard {...card} onClick={() => go(card.path)} />
+          </Grid>
+        ))}
       </Grid>
 
       {/* Recent Announcements */}
@@ -308,8 +344,8 @@ const ResidentHomePage = () => {
         >
           <Box
             sx={{
-              px: 2.5,
-              py: 1.5,
+              px: { xs: 2, sm: 2.5 },
+              py: { xs: 1.2, sm: 1.5 },
               bgcolor: "#f8fbff",
               borderBottom: "1px solid #e0f2fe",
             }}
@@ -318,7 +354,7 @@ const ResidentHomePage = () => {
               sx={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.85rem",
+                fontSize: { xs: "0.78rem", sm: "0.85rem" },
                 color: "#1e293b",
               }}
             >
@@ -329,20 +365,20 @@ const ResidentHomePage = () => {
             <Box
               key={a.id}
               sx={{
-                px: 2.5,
-                py: 1.5,
+                px: { xs: 2, sm: 2.5 },
+                py: { xs: 1.2, sm: 1.5 },
                 borderBottom: "1px solid #f1f5f9",
                 display: "flex",
                 alignItems: "flex-start",
-                gap: 1.5,
+                gap: { xs: 1, sm: 1.5 },
               }}
             >
               <Box
                 sx={{
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   borderRadius: "50%",
-                  mt: 0.7,
+                  mt: 0.6,
                   flexShrink: 0,
                   bgcolor:
                     a.type === "ALERT"
@@ -352,13 +388,16 @@ const ResidentHomePage = () => {
                         : "#94a3b8",
                 }}
               />
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.82rem",
+                    fontSize: { xs: "0.75rem", sm: "0.82rem" },
                     fontWeight: 600,
                     color: "#1e293b",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {a.title}
@@ -366,13 +405,14 @@ const ResidentHomePage = () => {
                 <Typography
                   sx={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: "0.72rem",
+                    fontSize: { xs: "0.65rem", sm: "0.72rem" },
                     color: "#64748b",
                     mt: 0.2,
+                    lineHeight: 1.4,
                   }}
                 >
-                  {a.message?.substring(0, 80)}
-                  {a.message?.length > 80 ? "..." : ""}
+                  {a.message?.substring(0, 60)}
+                  {a.message?.length > 60 ? "..." : ""}
                 </Typography>
               </Box>
             </Box>
