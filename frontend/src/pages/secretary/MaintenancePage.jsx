@@ -363,7 +363,7 @@ const MaintenancePage = () => {
               >
                 <TableCell sx={cellSx}>
                   <Chip
-                    label={bill.flatNumber || "—"}
+                    label={bill.flatNumber || "-"}
                     size="small"
                     sx={{
                       bgcolor: "#e0f2fe",
@@ -375,7 +375,7 @@ const MaintenancePage = () => {
                     }}
                   />
                 </TableCell>
-                <TableCell sx={cellSx}>{bill.residentName || "—"}</TableCell>
+                <TableCell sx={cellSx}>{bill.residentName || "-"}</TableCell>
                 <TableCell sx={cellSx}>
                   {MONTHS[(bill.billMonth || 1) - 1].slice(0, 3)}{" "}
                   {bill.billYear}
@@ -410,7 +410,7 @@ const MaintenancePage = () => {
                 <TableCell sx={cellSx}>
                   {bill.dueDate
                     ? new Date(bill.dueDate).toLocaleDateString("en-IN")
-                    : "—"}
+                    : "-"}
                 </TableCell>
                 <TableCell sx={cellSx}>
                   <StatusChip status={bill.status} />
@@ -633,7 +633,7 @@ const MaintenancePage = () => {
                   whiteSpace: "nowrap",
                 }}
               >
-                {loading ? "—" : stat.value}
+                {loading ? "-" : stat.value}
               </Typography>
             </Paper>
           ))}
@@ -717,8 +717,8 @@ const MaintenancePage = () => {
         {selectedBill && (
           <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
-              ["Flat Number", selectedBill.flatNumber || "—"],
-              ["Resident", selectedBill.residentName || "—"],
+              ["Flat Number", selectedBill.flatNumber || "-"],
+              ["Resident", selectedBill.residentName || "-"],
               [
                 "Bill Month",
                 `${MONTHS[(selectedBill.billMonth || 1) - 1]} ${selectedBill.billYear}`,
@@ -727,7 +727,7 @@ const MaintenancePage = () => {
                 "Due Date",
                 selectedBill.dueDate
                   ? new Date(selectedBill.dueDate).toLocaleDateString("en-IN")
-                  : "—",
+                  : "-",
               ],
               [
                 "Base Amount",

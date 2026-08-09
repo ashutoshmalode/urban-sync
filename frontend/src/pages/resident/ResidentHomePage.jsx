@@ -82,7 +82,7 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
         lineHeight: 1,
       }}
     >
-      {value ?? "—"}
+      {value ?? "-"}
     </Typography>
     <Typography
       sx={{
@@ -180,7 +180,7 @@ const ResidentHomePage = () => {
             color: "#1e293b",
           }}
         >
-          Welcome back 👋
+          Welcome back
         </Typography>
         <Typography
           sx={{
@@ -192,7 +192,7 @@ const ResidentHomePage = () => {
             whiteSpace: "nowrap",
           }}
         >
-          {profile?.firstName} {profile?.lastName} — Flat {flatNumber} —{" "}
+          {profile?.firstName} {profile?.lastName} - Flat {flatNumber} -{" "}
           {profile?.residentType}
         </Typography>
       </Box>
@@ -246,7 +246,7 @@ const ResidentHomePage = () => {
                 {pendingBills
                   .reduce((s, b) => s + Number(b.totalAmount), 0)
                   .toLocaleString("en-IN")}{" "}
-                — Tap to pay
+                - Tap to pay
               </Typography>
             </Box>
             <Chip

@@ -308,7 +308,7 @@ const AnnouncementsPage = () => {
                 <TableCell sx={cellSx}>
                   {a.createdAt
                     ? new Date(a.createdAt).toLocaleDateString("en-IN")
-                    : "—"}
+                    : "-"}
                 </TableCell>
                 <TableCell sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}>
                   <Box sx={{ display: "flex", gap: 0.4 }}>

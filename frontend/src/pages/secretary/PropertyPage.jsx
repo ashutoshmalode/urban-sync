@@ -279,7 +279,7 @@ const PropertyPage = () => {
 
   const openGallery = async (post) => {
     setGalleryPostTitle(
-      `${post.flatNumber || "Property"} — ${post.listingType}`,
+      `${post.flatNumber || "Property"} - ${post.listingType}`,
     );
     setGalleryIndex(0);
     setGalleryOpen(true);
@@ -626,7 +626,7 @@ const PropertyPage = () => {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={cellSx}>{flat.wingName || "—"}</TableCell>
+                      <TableCell sx={cellSx}>{flat.wingName || "-"}</TableCell>
                       <TableCell sx={cellSx}>
                         {flat.ownerName || (
                           <Typography
@@ -791,7 +791,7 @@ const PropertyPage = () => {
                       sx={{ "&:hover": { bgcolor: "#f8fbff" } }}
                     >
                       <TableCell sx={cellSx}>
-                        {post.flatNumber || "—"}
+                        {post.flatNumber || "-"}
                       </TableCell>
                       <TableCell sx={cellSx}>{post.ownerName}</TableCell>
                       <TableCell sx={cellSx}>{post.contactNumber}</TableCell>
@@ -814,7 +814,7 @@ const PropertyPage = () => {
                           ? new Date(post.availabilityDate).toLocaleDateString(
                               "en-IN",
                             )
-                          : "—"}
+                          : "-"}
                       </TableCell>
                       <TableCell
                         align="center"
@@ -938,7 +938,7 @@ const PropertyPage = () => {
                     hover
                     sx={{ "&:hover": { bgcolor: "#f8fbff" } }}
                   >
-                    <TableCell sx={cellSx}>{post.flatNumber || "—"}</TableCell>
+                    <TableCell sx={cellSx}>{post.flatNumber || "-"}</TableCell>
                     <TableCell sx={cellSx}>{post.ownerName}</TableCell>
                     <TableCell sx={cellSx}>
                       <ListingChip type={post.listingType} />
@@ -971,7 +971,7 @@ const PropertyPage = () => {
                     <TableCell sx={cellSx}>
                       {post.createdAt
                         ? new Date(post.createdAt).toLocaleDateString("en-IN")
-                        : "—"}
+                        : "-"}
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
                       <Tooltip title="View Images">
@@ -1025,7 +1025,7 @@ const PropertyPage = () => {
           <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
               ["Flat Number", selectedFlat.flatNumber],
-              ["Wing", selectedFlat.wingName || "—"],
+              ["Wing", selectedFlat.wingName || "-"],
               ["Owner", selectedFlat.ownerName || "Not assigned"],
               ["Tenant", selectedFlat.currentTenantName || "No tenant"],
               ["Status", selectedFlat.status],
@@ -1614,7 +1614,7 @@ const PropertyPage = () => {
         {selectedPost && (
           <DialogContent sx={{ pt: 1.5, px: 2 }}>
             {[
-              ["Flat Number", selectedPost.flatNumber || "—"],
+              ["Flat Number", selectedPost.flatNumber || "-"],
               ["Owner Name", selectedPost.ownerName],
               ["Contact", selectedPost.contactNumber],
               ["Type", selectedPost.listingType],
@@ -1625,14 +1625,14 @@ const PropertyPage = () => {
                   ? new Date(selectedPost.availabilityDate).toLocaleDateString(
                       "en-IN",
                     )
-                  : "—",
+                  : "-",
               ],
               ["Status", selectedPost.isActive ? "Active" : "Rented/Sold"],
               [
                 "Posted On",
                 selectedPost.createdAt
                   ? new Date(selectedPost.createdAt).toLocaleDateString("en-IN")
-                  : "—",
+                  : "-",
               ],
             ].map(([label, value]) => (
               <DetailRow key={label} label={label} value={value} />
@@ -1714,7 +1714,7 @@ const PropertyPage = () => {
                   color: "#94a3b8",
                 }}
               >
-                JPG, PNG — Max 5MB each
+                JPG, PNG - Max 5MB each
               </Typography>
             </Box>
             <Button

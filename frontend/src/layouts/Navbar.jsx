@@ -77,7 +77,7 @@ const Navbar = ({ onMenuClick }) => {
           UrbanSync
         </Typography>
 
-        {/* Fund Balance — Secretary only */}
+        {/* Fund Balance - Secretary only */}
         {role === "SECRETARY" && (
           <Box
             sx={{
@@ -95,7 +95,7 @@ const Navbar = ({ onMenuClick }) => {
                 label={
                   fundBalance !== null
                     ? `₹${Number(fundBalance).toLocaleString("en-IN")}`
-                    : "—"
+                    : "-"
                 }
                 size="small"
                 sx={{

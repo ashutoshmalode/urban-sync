@@ -135,7 +135,7 @@ const InfoRow = ({ icon, label, value }) => (
           wordBreak: "break-word",
         }}
       >
-        {value || "—"}
+        {value || "-"}
       </Typography>
     </Box>
   </Box>
@@ -397,7 +397,7 @@ const CaretakersPage = () => {
       <TableCell sx={cellSx}>{c.mobileNumber}</TableCell>
       <TableCell sx={cellSx}>{c.age}y</TableCell>
       <TableCell sx={cellSx}>
-        {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : "—"}
+        {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : "-"}
       </TableCell>
       <TableCell sx={cellSx}>
         {c.leftAt ? (
@@ -424,7 +424,7 @@ const CaretakersPage = () => {
             color: "#94a3b8",
           }}
         >
-          {c.leavingReason || "—"}
+          {c.leavingReason || "-"}
         </Typography>
       </TableCell>
       <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
@@ -1076,7 +1076,7 @@ const CaretakersPage = () => {
               value={
                 selected.createdAt
                   ? new Date(selected.createdAt).toLocaleDateString("en-IN")
-                  : "—"
+                  : "-"
               }
             />
             {selected.status === "INACTIVE" && (
@@ -1089,7 +1089,7 @@ const CaretakersPage = () => {
                   value={
                     selected.leftAt
                       ? new Date(selected.leftAt).toLocaleDateString("en-IN")
-                      : "—"
+                      : "-"
                   }
                 />
                 <Box
@@ -1121,7 +1121,7 @@ const CaretakersPage = () => {
                       color: "#991b1b",
                     }}
                   >
-                    {selected.leavingReason || "—"}
+                    {selected.leavingReason || "-"}
                   </Typography>
                 </Box>
               </>
@@ -1203,7 +1203,7 @@ const CaretakersPage = () => {
                   color: "#1e293b",
                 }}
               >
-                {deleteTarget.firstName} {deleteTarget.lastName} — #
+                {deleteTarget.firstName} {deleteTarget.lastName} - #
                 {deleteTarget.serialNumber}
               </Typography>
             </Box>
@@ -1416,7 +1416,7 @@ const CaretakersPage = () => {
                 >
                   {uploadedPhotoUrl
                     ? "✓ Uploaded successfully"
-                    : "JPG, PNG — Max 5MB"}
+                    : "JPG, PNG - Max 5MB"}
                 </Typography>
               </Box>
             </Box>

@@ -309,7 +309,7 @@ const ResidentComplaintsPage = () => {
                 color: s.color,
               }}
             >
-              {loading ? "—" : s.value}
+              {loading ? "-" : s.value}
             </Typography>
           </Paper>
         ))}
@@ -432,7 +432,7 @@ const ResidentComplaintsPage = () => {
                     <TableCell sx={cellSx}>
                       {c.createdAt
                         ? new Date(c.createdAt).toLocaleDateString("en-IN")
-                        : "—"}
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

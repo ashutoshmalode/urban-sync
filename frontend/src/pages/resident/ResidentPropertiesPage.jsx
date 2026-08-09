@@ -341,7 +341,7 @@ const ResidentPropertiesPage = () => {
                         color: "#1e293b",
                       }}
                     >
-                      Flat {post.flatNumber || "—"}
+                      Flat {post.flatNumber || "-"}
                     </Typography>
                   </Box>
                   <Typography
@@ -458,7 +458,7 @@ const ResidentPropertiesPage = () => {
                 color: "#1e293b",
               }}
             >
-              Flat {selected?.flatNumber} — {selected?.listingType}
+              Flat {selected?.flatNumber} - {selected?.listingType}
             </Typography>
           </Box>
           <Button
@@ -567,7 +567,7 @@ const ResidentPropertiesPage = () => {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
               <DetailRow
                 label="Flat Number"
-                value={selected.flatNumber || "—"}
+                value={selected.flatNumber || "-"}
               />
               <DetailRow label="Listing Type" value={selected.listingType} />
               <DetailRow
@@ -584,7 +584,7 @@ const ResidentPropertiesPage = () => {
                     ? new Date(selected.availabilityDate).toLocaleDateString(
                         "en-IN",
                       )
-                    : "—"
+                    : "-"
                 }
               />
             </Box>

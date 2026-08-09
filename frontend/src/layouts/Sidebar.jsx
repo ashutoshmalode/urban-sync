@@ -286,7 +286,7 @@ const Sidebar = ({ open, onClose }) => {
 
   return (
     <>
-      {/* Mobile — temporary drawer */}
+      {/* Mobile - temporary drawer */}
       <Drawer
         variant="temporary"
         open={open}
@@ -310,7 +310,7 @@ const Sidebar = ({ open, onClose }) => {
         {drawerContent}
       </Drawer>
 
-      {/* Desktop — inline box */}
+      {/* Desktop - inline box */}
       {!isMobile && (
         <Box
           sx={{

@@ -110,7 +110,7 @@ const InfoRow = ({ icon, label, value }) => (
           wordBreak: "break-word",
         }}
       >
-        {value || "—"}
+        {value || "-"}
       </Typography>
     </Box>
   </Box>
@@ -169,7 +169,7 @@ const SectionCard = ({ title, icon, children }) => (
   </Paper>
 );
 
-// ── Edit modal — 3 steps ─────────────────────────────────────────────────────
+// ── Edit modal - 3 steps ─────────────────────────────────────────────────────
 // Step 1: Fill all fields
 // Step 2: Send OTP to email + enter current password + OTP
 // Step 3: Success
@@ -801,7 +801,7 @@ const EditModal = ({ open, onClose, profile, onSaved }) => {
                 "&:hover": { bgcolor: "#0e7490" },
               }}
             >
-              Next — Verify
+              Next - Verify
             </Button>
           </>
         )}

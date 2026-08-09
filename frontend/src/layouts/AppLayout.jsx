@@ -20,15 +20,15 @@ const AppLayout = ({ children }) => {
         bgcolor: "#f0f9ff",
       }}
     >
-      {/* Navbar — always full width on top */}
+      {/* Navbar - always full width on top */}
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Body — sidebar + content */}
+      {/* Body - sidebar + content */}
       <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
         {/* Sidebar */}
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Main Content — shifts smoothly */}
+        {/* Main Content - shifts smoothly */}
         <Box
           component="main"
           sx={{

@@ -17,12 +17,18 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import HomeIcon from "@mui/icons-material/Home";
 import axiosInstance from "../../api/axiosInstance";
+import CityBackground from "../../components/CityBackground";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, role } = useSelector((state) => state.auth);
-  const [isSecretaryRegistered, setIsSecretaryRegistered] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isSecretaryRegistered, setIsSecretaryRegistered] = useState(() => {
+    const cached = localStorage.getItem("sec_registered");
+    return cached !== null ? cached === "true" : null;
+  });
+  const [loading, setLoading] = useState(() => {
+    return localStorage.getItem("sec_registered") === null;
+  });
 
   useEffect(() => {
     if (isAuthenticated && role === "SECRETARY") {
@@ -37,9 +43,16 @@ const LandingPage = () => {
       navigate("/caretaker/dashboard");
       return;
     }
+
+    // Already cached - skip API call
+    if (localStorage.getItem("sec_registered") !== null) return;
+
     axiosInstance
       .get("/api/secretary/is-registered")
-      .then((res) => setIsSecretaryRegistered(res.data))
+      .then((res) => {
+        setIsSecretaryRegistered(res.data);
+        localStorage.setItem("sec_registered", String(res.data));
+      })
       .catch(() => setIsSecretaryRegistered(false))
       .finally(() => setLoading(false));
   }, [isAuthenticated, role, navigate]);
@@ -104,9 +117,11 @@ const LandingPage = () => {
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 1.5, sm: 3 },
+        position: "relative",
       }}
     >
-      <Container maxWidth="xs">
+      <CityBackground />
+      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{
@@ -299,10 +314,10 @@ const LandingPage = () => {
               icon={<EngineeringIcon sx={{ fontSize: "15px !important" }} />}
               onClick={() => navigate("/caretaker/login")}
               disabled={!isSecretaryRegistered}
-              color="#059669"
-              hoverColor="#047857"
-              disabledBg="#dcfce7"
-              disabledColor="#86efac"
+              color="#0891b2"
+              hoverColor="#0e7490"
+              disabledBg="#e0f2fe"
+              disabledColor="#7dd3fc"
             />
           </Box>
 
@@ -323,7 +338,7 @@ const LandingPage = () => {
                 color: "#94a3b8",
               }}
             >
-              © 2026 UrbanSync — CDAC Final Project
+              © 2026 UrbanSync - All rights reserved.
             </Typography>
           </Box>
         </Paper>

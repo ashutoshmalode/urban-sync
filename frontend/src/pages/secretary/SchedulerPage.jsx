@@ -478,7 +478,7 @@ const SchedulerPage = () => {
                 fontSize: "0.85rem",
               }}
             >
-              No logs yet — run a job to see logs
+              No logs yet - run a job to see logs
             </Typography>
           </Box>
         ) : (
@@ -562,7 +562,7 @@ const SchedulerPage = () => {
                           color: "#64748b",
                         }}
                       >
-                        {log.message || "—"}
+                        {log.message || "-"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={cellSx}>
@@ -574,7 +574,7 @@ const SchedulerPage = () => {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
-                        : "—"}
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

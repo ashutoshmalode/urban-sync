@@ -130,7 +130,7 @@ const AnnouncementCard = ({ a }) => (
         ml: { xs: 2.8, sm: 3.5 },
       }}
     >
-      {a.createdAt ? new Date(a.createdAt).toLocaleString("en-IN") : "—"}
+      {a.createdAt ? new Date(a.createdAt).toLocaleString("en-IN") : "-"}
     </Typography>
   </Paper>
 );

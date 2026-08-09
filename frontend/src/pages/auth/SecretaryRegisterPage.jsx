@@ -25,6 +25,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axiosInstance from "../../api/axiosInstance";
+import CityBackground from "../../components/CityBackground";
 
 const wings = ["A", "B", "C", "D", "E"];
 
@@ -158,6 +159,7 @@ const SecretaryRegisterPage = () => {
       };
       delete payload.wingName;
       await axiosInstance.post("/api/secretary/register", payload);
+      localStorage.removeItem("sec_registered");
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
@@ -176,9 +178,11 @@ const SecretaryRegisterPage = () => {
           alignItems: "center",
           justifyContent: "center",
           p: 2,
+          position: "relative",
         }}
       >
-        <Container maxWidth="xs">
+        <CityBackground />
+        <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
           <Paper
             elevation={0}
             sx={{
@@ -241,9 +245,11 @@ const SecretaryRegisterPage = () => {
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 1.5, sm: 3 },
+        position: "relative",
       }}
     >
-      <Container maxWidth="sm">
+      <CityBackground />
+      <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{

@@ -87,7 +87,7 @@ const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
         lineHeight: 1,
       }}
     >
-      {value ?? "—"}
+      {value ?? "-"}
     </Typography>
     <Typography
       sx={{
@@ -197,7 +197,7 @@ const DashboardHome = () => {
             color: "#94a3b8",
           }}
         >
-          Live stats — tap any card to navigate
+          Live stats - tap any card to navigate
         </Typography>
       </Box>
 

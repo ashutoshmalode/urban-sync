@@ -18,6 +18,7 @@ import EngineeringIcon from "@mui/icons-material/Engineering";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
+import CityBackground from "../../components/CityBackground";
 
 const fieldStyle = {
   "& .MuiOutlinedInput-root": {
@@ -114,9 +115,11 @@ const CaretakerLoginPage = () => {
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 1.5, sm: 2 },
+        position: "relative",
       }}
     >
-      <Container maxWidth="xs">
+      <CityBackground />
+      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{
@@ -388,7 +391,7 @@ const CaretakerLoginPage = () => {
                 color: "#94a3b8",
               }}
             >
-              © 2026 UrbanSync — CDAC Final Project
+              © 2026 UrbanSync - All rights reserved.
             </Typography>
           </Box>
         </Paper>
