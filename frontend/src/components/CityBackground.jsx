@@ -1,0 +1,1328 @@
+const CityBackground = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      zIndex: 0,
+      pointerEvents: "none",
+    }}
+    viewBox="0 0 1400 800"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <defs>
+      <pattern
+        id="urbandots"
+        x="0"
+        y="0"
+        width="30"
+        height="30"
+        patternUnits="userSpaceOnUse"
+      >
+        <circle cx="2" cy="2" r="1.3" fill="#bae6fd" opacity="0.5" />
+      </pattern>
+    </defs>
+    <rect width="1400" height="800" fill="#f0f9ff" />
+    <rect width="1400" height="800" fill="url(#urbandots)" />
+
+    {/* Clouds */}
+    <ellipse cx="200" cy="80" rx="55" ry="22" fill="#e0f2fe" opacity="0.7" />
+    <ellipse cx="165" cy="88" rx="38" ry="19" fill="#e0f2fe" opacity="0.7" />
+    <ellipse cx="240" cy="87" rx="42" ry="18" fill="#e0f2fe" opacity="0.7" />
+    <ellipse cx="700" cy="60" rx="62" ry="24" fill="#e0f2fe" opacity="0.6" />
+    <ellipse cx="655" cy="70" rx="44" ry="20" fill="#e0f2fe" opacity="0.6" />
+    <ellipse cx="750" cy="68" rx="46" ry="19" fill="#e0f2fe" opacity="0.6" />
+    <ellipse cx="1200" cy="75" rx="58" ry="22" fill="#e0f2fe" opacity="0.7" />
+    <ellipse cx="1160" cy="84" rx="40" ry="19" fill="#e0f2fe" opacity="0.7" />
+    <ellipse cx="1245" cy="82" rx="44" ry="18" fill="#e0f2fe" opacity="0.7" />
+
+    {/* Stars */}
+    <circle cx="400" cy="45" r="2.5" fill="#0891b2" opacity="0.2" />
+    <circle cx="520" cy="30" r="2" fill="#0891b2" opacity="0.18" />
+    <circle cx="900" cy="40" r="2.5" fill="#0891b2" opacity="0.2" />
+    <circle cx="1050" cy="25" r="2" fill="#0891b2" opacity="0.18" />
+    <circle cx="80" cy="50" r="2" fill="#0891b2" opacity="0.18" />
+    <circle cx="1320" cy="45" r="2" fill="#0891b2" opacity="0.18" />
+
+    {/* ── FAR BACKGROUND (very faint) ── */}
+    <g opacity="0.07">
+      <rect x="480" y="380" width="30" height="420" fill="#0891b2" />
+      <rect x="520" y="400" width="22" height="400" fill="#0e7490" />
+      <rect x="840" y="370" width="32" height="430" fill="#0891b2" />
+      <rect x="880" y="410" width="20" height="390" fill="#0e7490" />
+      <rect x="600" y="360" width="28" height="440" fill="#0891b2" />
+      <rect x="770" y="390" width="25" height="410" fill="#0e7490" />
+    </g>
+
+    {/* ── MID BACKGROUND ── */}
+    <g opacity="0.13">
+      <rect x="300" y="330" width="80" height="470" fill="#0891b2" />
+      <rect
+        x="308"
+        y="345"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="332"
+        y="345"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="356"
+        y="345"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="308"
+        y="378"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="332"
+        y="378"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="356"
+        y="378"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="308"
+        y="411"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="332"
+        y="411"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="356"
+        y="411"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="308"
+        y="444"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="332"
+        y="444"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect x="308" y="310" width="58" height="22" fill="#0891b2" />
+      <rect x="318" y="292" width="38" height="20" fill="#0891b2" />
+
+      <rect x="1020" y="320" width="82" height="480" fill="#0e7490" />
+      <rect
+        x="1028"
+        y="336"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1052"
+        y="336"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1076"
+        y="336"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1028"
+        y="369"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1052"
+        y="369"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1076"
+        y="369"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1028"
+        y="402"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1052"
+        y="402"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1076"
+        y="402"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1028"
+        y="435"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect
+        x="1052"
+        y="435"
+        width="16"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.8"
+      />
+      <rect x="1028" y="300" width="60" height="22" fill="#0e7490" />
+      <rect x="1038" y="282" width="40" height="20" fill="#0e7490" />
+    </g>
+
+    {/* ══════════════════════════════════════════════════════════
+        FOREGROUND - 6 MAIN BUILDINGS (3 left, 3 right)
+    ══════════════════════════════════════════════════════════ */}
+
+    {/* ── LEFT B1: Tall pointed glass tower ── */}
+    <g opacity="0.3">
+      <polygon points="10,230 52,165 94,230" fill="#0891b2" />
+      <rect x="10" y="230" width="84" height="570" fill="#0891b2" />
+      <line
+        x1="38"
+        y1="230"
+        x2="38"
+        y2="800"
+        stroke="#0e7490"
+        strokeWidth="1.2"
+        opacity="0.5"
+      />
+      <line
+        x1="66"
+        y1="230"
+        x2="66"
+        y2="800"
+        stroke="#0e7490"
+        strokeWidth="1.2"
+        opacity="0.5"
+      />
+      <rect
+        x="16"
+        y="242"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="38"
+        y="242"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="60"
+        y="242"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="16"
+        y="272"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="38"
+        y="272"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="60"
+        y="272"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="16"
+        y="302"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="38"
+        y="302"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="60"
+        y="302"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="16"
+        y="332"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="38"
+        y="332"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="60"
+        y="332"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="16"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="38"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="60"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="16"
+        y="392"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="38"
+        y="392"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="60"
+        y="392"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="16"
+        y="422"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="38"
+        y="422"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="60"
+        y="422"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+    </g>
+
+    {/* ── LEFT B2: Wide stepped building ── */}
+    <g opacity="0.26">
+      <rect x="98" y="270" width="130" height="530" fill="#0e7490" />
+      <rect x="106" y="242" width="105" height="30" fill="#0e7490" />
+      <rect x="118" y="216" width="80" height="28" fill="#0e7490" />
+      <rect x="132" y="192" width="52" height="26" fill="#0e7490" />
+      <line
+        x1="98"
+        y1="168"
+        x2="98"
+        y2="192"
+        stroke="#0e7490"
+        strokeWidth="2.5"
+        opacity="0.5"
+      />
+      <circle cx="98" cy="166" r="4" fill="#0891b2" opacity="0.5" />
+      <rect
+        x="106"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="132"
+        y="280"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="158"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="184"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="106"
+        y="314"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="132"
+        y="314"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="158"
+        y="314"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="184"
+        y="314"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="106"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="132"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="158"
+        y="348"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="184"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="106"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="132"
+        y="382"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="158"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="184"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="106"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="132"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="158"
+        y="416"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="184"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+    </g>
+
+    {/* ── LEFT B3: Shorter chunky building ── */}
+    <g opacity="0.22">
+      <rect x="234" y="390" width="90" height="410" fill="#0891b2" />
+      <rect x="242" y="364" width="72" height="28" fill="#0891b2" />
+      <rect x="252" y="344" width="50" height="22" fill="#0891b2" />
+      <rect
+        x="242"
+        y="400"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="265"
+        y="400"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="288"
+        y="400"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="242"
+        y="430"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="265"
+        y="430"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="288"
+        y="430"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="242"
+        y="460"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="265"
+        y="460"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="288"
+        y="460"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="242"
+        y="490"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="265"
+        y="490"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="288"
+        y="490"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="255"
+        y="690"
+        width="28"
+        height="60"
+        fill="#e0f2fe"
+        opacity="0.6"
+        rx="3"
+      />
+    </g>
+
+    {/* ── Trees left ── */}
+    <g opacity="0.28">
+      <circle cx="338" cy="650" r="26" fill="#0e7490" />
+      <rect x="333" y="672" width="10" height="30" fill="#0e7490" />
+      <circle cx="368" cy="660" r="20" fill="#0891b2" />
+      <rect x="363" y="676" width="8" height="22" fill="#0891b2" />
+    </g>
+
+    {/* ── RIGHT B4: Tall pointed glass tower ── */}
+    <g opacity="0.3">
+      <polygon points="1306,230 1348,165 1390,230" fill="#0891b2" />
+      <rect x="1306" y="230" width="84" height="570" fill="#0891b2" />
+      <line
+        x1="1334"
+        y1="230"
+        x2="1334"
+        y2="800"
+        stroke="#0e7490"
+        strokeWidth="1.2"
+        opacity="0.5"
+      />
+      <line
+        x1="1362"
+        y1="230"
+        x2="1362"
+        y2="800"
+        stroke="#0e7490"
+        strokeWidth="1.2"
+        opacity="0.5"
+      />
+      <rect
+        x="1312"
+        y="242"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1334"
+        y="242"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="1356"
+        y="242"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1312"
+        y="272"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="1334"
+        y="272"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1356"
+        y="272"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1312"
+        y="302"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1334"
+        y="302"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1356"
+        y="302"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="1312"
+        y="332"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1334"
+        y="332"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="1356"
+        y="332"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1312"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1334"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1356"
+        y="362"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1312"
+        y="392"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+      <rect
+        x="1334"
+        y="392"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1356"
+        y="392"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1312"
+        y="422"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1334"
+        y="422"
+        width="14"
+        height="18"
+        fill="#e0f2fe"
+        opacity="0.9"
+      />
+      <rect
+        x="1356"
+        y="422"
+        width="14"
+        height="18"
+        fill="#bae6fd"
+        opacity="0.75"
+      />
+    </g>
+
+    {/* ── RIGHT B5: Wide stepped building ── */}
+    <g opacity="0.26">
+      <rect x="1172" y="270" width="130" height="530" fill="#0e7490" />
+      <rect x="1189" y="242" width="105" height="30" fill="#0e7490" />
+      <rect x="1202" y="216" width="80" height="28" fill="#0e7490" />
+      <rect x="1218" y="192" width="52" height="26" fill="#0e7490" />
+      <line
+        x1="1302"
+        y1="168"
+        x2="1302"
+        y2="192"
+        stroke="#0e7490"
+        strokeWidth="2.5"
+        opacity="0.5"
+      />
+      <circle cx="1302" cy="166" r="4" fill="#0891b2" opacity="0.5" />
+      <rect
+        x="1180"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1206"
+        y="280"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1232"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1258"
+        y="280"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1180"
+        y="314"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1206"
+        y="314"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1232"
+        y="314"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1258"
+        y="314"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1180"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1206"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1232"
+        y="348"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1258"
+        y="348"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1180"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1206"
+        y="382"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1232"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1258"
+        y="382"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1180"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1206"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1232"
+        y="416"
+        width="18"
+        height="22"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1258"
+        y="416"
+        width="18"
+        height="22"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+    </g>
+
+    {/* ── RIGHT B6: Shorter chunky building ── */}
+    <g opacity="0.22">
+      <rect x="1076" y="390" width="90" height="410" fill="#0891b2" />
+      <rect x="1086" y="364" width="72" height="28" fill="#0891b2" />
+      <rect x="1098" y="344" width="50" height="22" fill="#0891b2" />
+      <rect
+        x="1086"
+        y="400"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1109"
+        y="400"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1132"
+        y="400"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1086"
+        y="430"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1109"
+        y="430"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1132"
+        y="430"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1086"
+        y="460"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1109"
+        y="460"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1132"
+        y="460"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1086"
+        y="490"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1109"
+        y="490"
+        width="17"
+        height="20"
+        fill="#bae6fd"
+        opacity="0.7"
+      />
+      <rect
+        x="1132"
+        y="490"
+        width="17"
+        height="20"
+        fill="#e0f2fe"
+        opacity="0.85"
+      />
+      <rect
+        x="1099"
+        y="690"
+        width="28"
+        height="60"
+        fill="#e0f2fe"
+        opacity="0.6"
+        rx="3"
+      />
+    </g>
+
+    {/* ── Trees right ── */}
+    <g opacity="0.28">
+      <circle cx="1032" cy="650" r="26" fill="#0e7490" />
+      <rect x="1027" y="672" width="10" height="30" fill="#0e7490" />
+      <circle cx="1062" cy="660" r="20" fill="#0891b2" />
+      <rect x="1057" y="676" width="8" height="22" fill="#0891b2" />
+    </g>
+
+    {/* Outlines cartoon style */}
+    <g fill="none" stroke="#0e7490" strokeWidth="1.8" opacity="0.18">
+      <polygon points="10,230 52,165 94,230" />
+      <rect x="10" y="230" width="84" height="570" />
+      <rect x="98" y="270" width="130" height="530" />
+      <rect x="106" y="242" width="105" height="30" />
+      <rect x="118" y="216" width="80" height="28" />
+      <rect x="132" y="192" width="52" height="26" />
+      <rect x="234" y="390" width="90" height="410" />
+      <polygon points="1306,230 1348,165 1390,230" />
+      <rect x="1306" y="230" width="84" height="570" />
+      <rect x="1172" y="270" width="130" height="530" />
+      <rect x="1189" y="242" width="105" height="30" />
+      <rect x="1202" y="216" width="80" height="28" />
+      <rect x="1218" y="192" width="52" height="26" />
+      <rect x="1076" y="390" width="90" height="410" />
+    </g>
+
+    {/* Ground */}
+    <rect
+      x="0"
+      y="785"
+      width="1400"
+      height="15"
+      fill="#0891b2"
+      opacity="0.1"
+      rx="2"
+    />
+    <line
+      x1="0"
+      y1="788"
+      x2="1400"
+      y2="788"
+      stroke="#0891b2"
+      strokeWidth="1.5"
+      opacity="0.14"
+    />
+
+    {/* Road dashes left */}
+    <rect
+      x="100"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+    <rect
+      x="175"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+    <rect
+      x="250"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+    {/* Road dashes right */}
+    <rect
+      x="1060"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+    <rect
+      x="1135"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+    <rect
+      x="1210"
+      y="789"
+      width="36"
+      height="5"
+      fill="#e0f2fe"
+      opacity="0.28"
+      rx="2"
+    />
+  </svg>
+);
+
+export default CityBackground;

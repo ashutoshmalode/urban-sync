@@ -57,7 +57,7 @@ const InfoRow = ({ icon, label, value }) => (
           wordBreak: "break-word",
         }}
       >
-        {value || "—"}
+        {value || "-"}
       </Typography>
     </Box>
   </Box>
@@ -238,7 +238,7 @@ const CaretakerProfilePage = () => {
             value={
               profile?.aadhaarNumber
                 ? `XXXX XXXX ${profile.aadhaarNumber.slice(-4)}`
-                : "—"
+                : "-"
             }
           />
           <InfoRow
@@ -260,7 +260,7 @@ const CaretakerProfilePage = () => {
             value={
               profile?.createdAt
                 ? new Date(profile.createdAt).toLocaleDateString("en-IN")
-                : "—"
+                : "-"
             }
           />
         </Box>

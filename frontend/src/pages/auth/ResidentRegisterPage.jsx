@@ -25,6 +25,7 @@ import SendIcon from "@mui/icons-material/Send";
 import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlined";
 import axiosInstance from "../../api/axiosInstance";
+import CityBackground from "../../components/CityBackground";
 
 const wings = ["A", "B", "C", "D", "E"];
 
@@ -116,14 +117,19 @@ const PageWrapper = ({ children }) => (
   <Box
     sx={{
       bgcolor: "#f0f9ff",
+      minHeight: "100vh",
       py: { xs: 2, sm: 4 },
       px: { xs: 1.5, sm: 3 },
-      "&::-webkit-scrollbar": { width: 6 },
-      "&::-webkit-scrollbar-track": { bgcolor: "#e0f2fe", borderRadius: 3 },
-      "&::-webkit-scrollbar-thumb": { bgcolor: "#0891b2", borderRadius: 3 },
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     }}
   >
-    {children}
+    <CityBackground />
+    <Box sx={{ position: "relative", zIndex: 1, width: "100%" }}>
+      {children}
+    </Box>
   </Box>
 );
 
@@ -750,10 +756,10 @@ const ResidentRegisterPage = () => {
               borderRadius: 3,
               border: "1px solid #e0f2fe",
               boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
-              // No overflow:hidden here — that was blocking scroll
+              // No overflow:hidden here - that was blocking scroll
             }}
           >
-            {/* Header — needs borderRadius on top corners since no overflow:hidden */}
+            {/* Header - needs borderRadius on top corners since no overflow:hidden */}
             <Box
               sx={{
                 background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
@@ -1091,7 +1097,7 @@ const ResidentRegisterPage = () => {
                           fontStyle: "italic",
                         }}
                       >
-                        Enter your flat number above — owner details will be
+                        Enter your flat number above - owner details will be
                         fetched automatically.
                       </Typography>
                     )}
@@ -1201,7 +1207,7 @@ const ResidentRegisterPage = () => {
                 {loading
                   ? "Submitting..."
                   : tab === 1 && !otpVerified
-                    ? "Next — Verify Owner OTP"
+                    ? "Next - Verify Owner OTP"
                     : "Submit Registration Request"}
               </Button>
 

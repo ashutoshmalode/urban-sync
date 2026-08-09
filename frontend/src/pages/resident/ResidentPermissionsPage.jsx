@@ -314,7 +314,7 @@ const ResidentPermissionsPage = () => {
                 color: s.color,
               }}
             >
-              {loading ? "—" : s.value}
+              {loading ? "-" : s.value}
             </Typography>
           </Paper>
         ))}
@@ -421,7 +421,7 @@ const ResidentPermissionsPage = () => {
                     <TableCell sx={cellSx}>
                       {p.requestDate
                         ? new Date(p.requestDate).toLocaleDateString("en-IN")
-                        : "—"}
+                        : "-"}
                     </TableCell>
                     <TableCell sx={cellSx}>
                       <StatusChip status={p.status} />
@@ -429,7 +429,7 @@ const ResidentPermissionsPage = () => {
                     <TableCell sx={cellSx}>
                       {p.createdAt
                         ? new Date(p.createdAt).toLocaleDateString("en-IN")
-                        : "—"}
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -475,7 +475,7 @@ const ResidentPermissionsPage = () => {
               value={
                 selected.requestDate
                   ? new Date(selected.requestDate).toLocaleDateString("en-IN")
-                  : "—"
+                  : "-"
               }
             />
             <DetailRow label="Status" value={selected.status} />

@@ -613,7 +613,7 @@ const ComplaintsPage = () => {
                 color: stat.color,
               }}
             >
-              {loading ? "—" : stat.value}
+              {loading ? "-" : stat.value}
             </Typography>
           </Paper>
         ))}
@@ -766,7 +766,7 @@ const ComplaintsPage = () => {
                                 ? new Date(c.createdAt).toLocaleDateString(
                                     "en-IN",
                                   )
-                                : "—"}
+                                : "-"}
                             </TableCell>
                             <TableCell
                               sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
@@ -889,7 +889,7 @@ const ComplaintsPage = () => {
                                   fontWeight: 600,
                                 }}
                               >
-                                {issue.assignedToName || "—"}
+                                {issue.assignedToName || "-"}
                               </Typography>
                             </Box>
                           </TableCell>
@@ -905,7 +905,7 @@ const ComplaintsPage = () => {
                             </Typography>
                           </TableCell>
                           <TableCell sx={cellSx}>
-                            {issue.assignedByName || "—"}
+                            {issue.assignedByName || "-"}
                           </TableCell>
                           <TableCell sx={cellSx}>
                             <StatusChip status={issue.status} />
@@ -915,7 +915,7 @@ const ComplaintsPage = () => {
                               ? new Date(issue.createdAt).toLocaleDateString(
                                   "en-IN",
                                 )
-                              : "—"}
+                              : "-"}
                           </TableCell>
                           <TableCell
                             sx={{ py: 0.8, px: 1, whiteSpace: "nowrap" }}
@@ -1139,11 +1139,11 @@ const ComplaintsPage = () => {
           <DialogContent sx={{ pt: 1.5, px: 2 }}>
             <DetailRow
               label="Assigned To"
-              value={selectedIssue.assignedToName || "—"}
+              value={selectedIssue.assignedToName || "-"}
             />
             <DetailRow
               label="Assigned By"
-              value={selectedIssue.assignedByName || "—"}
+              value={selectedIssue.assignedByName || "-"}
             />
             <DetailRow label="Title" value={selectedIssue.title} />
             <DetailRow label="Status" value={selectedIssue.status} />
@@ -1982,7 +1982,7 @@ const ComplaintsPage = () => {
                     textAlign: "center",
                   }}
                 >
-                  {g.index + 1} / {g.media.length} —{" "}
+                  {g.index + 1} / {g.media.length} -{" "}
                   {g.media[g.index]?.mediaType}
                 </Typography>
               </Box>
@@ -1991,7 +1991,7 @@ const ComplaintsPage = () => {
         </Dialog>
       ))}
 
-      {/* Issue Gallery Modal — separate since it has filter toggle */}
+      {/* Issue Gallery Modal - separate since it has filter toggle */}
       <Dialog
         open={issueGalleryOpen}
         onClose={() => {
@@ -2236,7 +2236,7 @@ const ComplaintsPage = () => {
                         textAlign: "center",
                       }}
                     >
-                      {safeIdx + 1} / {filtered.length} —{" "}
+                      {safeIdx + 1} / {filtered.length} -{" "}
                       {filtered[safeIdx]?.mediaType}
                     </Typography>
                   </>

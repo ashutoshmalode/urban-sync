@@ -30,6 +30,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
+import CityBackground from "../../components/CityBackground";
 
 const fs = (isMobile) => ({
   "& .MuiOutlinedInput-root": {
@@ -225,7 +226,7 @@ const ForgotPasswordModal = ({ open, onClose }) => {
       </DialogTitle>
 
       <DialogContent sx={{ px: 2, pt: 2, pb: 1 }}>
-        {/* Step 1 — Enter email */}
+        {/* Step 1 - Enter email */}
         {step === 1 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <Box
@@ -265,7 +266,7 @@ const ForgotPasswordModal = ({ open, onClose }) => {
           </Box>
         )}
 
-        {/* Step 2 — OTP + new password */}
+        {/* Step 2 - OTP + new password */}
         {step === 2 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             <Box
@@ -437,7 +438,7 @@ const ForgotPasswordModal = ({ open, onClose }) => {
           </Box>
         )}
 
-        {/* Step 3 — Success */}
+        {/* Step 3 - Success */}
         {step === 3 && (
           <Box sx={{ textAlign: "center", py: 1.5 }}>
             <CheckCircleIcon
@@ -626,9 +627,11 @@ const SecretaryLoginPage = () => {
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 1.5, sm: 3 },
+        position: "relative",
       }}
     >
-      <Container maxWidth="xs">
+      <CityBackground />
+      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{
@@ -737,7 +740,7 @@ const SecretaryLoginPage = () => {
               }}
             />
 
-            {/* Forgot Password link — now clickable */}
+            {/* Forgot Password link - now clickable */}
             <Box sx={{ textAlign: "right", mt: -0.5 }}>
               <Typography
                 onClick={() => setForgotOpen(true)}
@@ -817,7 +820,7 @@ const SecretaryLoginPage = () => {
                 color: "#94a3b8",
               }}
             >
-              © 2026 UrbanSync — CDAC Final Project
+              © 2026 UrbanSync - All rights reserved.
             </Typography>
           </Box>
         </Paper>

@@ -98,7 +98,7 @@ const ResidentBillsPage = () => {
         amount,
         currency,
         name: "UrbanSync",
-        description: `Maintenance Bill — ${MONTHS[bill.billMonth - 1]} ${bill.billYear}`,
+        description: `Maintenance Bill - ${MONTHS[bill.billMonth - 1]} ${bill.billYear}`,
         order_id: razorpayOrderId,
         handler: async (response) => {
           try {
@@ -165,7 +165,7 @@ const ResidentBillsPage = () => {
               color: "#64748b",
             }}
           >
-            Flat {flatNumber} — Maintenance history
+            Flat {flatNumber} - Maintenance history
           </Typography>
         </Box>
       </Box>
@@ -217,7 +217,7 @@ const ResidentBillsPage = () => {
                 color: s.color,
               }}
             >
-              {loading ? "—" : s.value}
+              {loading ? "-" : s.value}
             </Typography>
           </Paper>
         ))}
@@ -307,7 +307,7 @@ const ResidentBillsPage = () => {
                           +₹{Number(bill.fineAmount).toLocaleString("en-IN")}
                         </Typography>
                       ) : (
-                        "—"
+                        "-"
                       )}
                     </TableCell>
                     <TableCell sx={cellSx}>
@@ -326,7 +326,7 @@ const ResidentBillsPage = () => {
                     <TableCell sx={cellSx}>
                       {bill.dueDate
                         ? new Date(bill.dueDate).toLocaleDateString("en-IN")
-                        : "—"}
+                        : "-"}
                     </TableCell>
                     <TableCell sx={cellSx}>
                       <Chip

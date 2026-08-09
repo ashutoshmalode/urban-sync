@@ -304,7 +304,7 @@ const CaretakerIssuesPage = () => {
                 color: s.color,
               }}
             >
-              {loading ? "—" : s.value}
+              {loading ? "-" : s.value}
             </Typography>
           </Paper>
         ))}
@@ -449,13 +449,13 @@ const CaretakerIssuesPage = () => {
                   Assigned:{" "}
                   {issue.createdAt
                     ? new Date(issue.createdAt).toLocaleDateString("en-IN")
-                    : "—"}
+                    : "-"}
                   {issue.resolvedAt
                     ? ` · Resolved: ${new Date(issue.resolvedAt).toLocaleDateString("en-IN")}`
                     : ""}
                 </Typography>
 
-                {/* Action Buttons — horizontal on mobile */}
+                {/* Action Buttons - horizontal on mobile */}
                 <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
                   {issue.status !== "RESOLVED" && (
                     <Button
@@ -718,7 +718,7 @@ const CaretakerIssuesPage = () => {
               </Typography>
             </Box>
 
-            {/* Upload buttons — side by side */}
+            {/* Upload buttons - side by side */}
             <Box
               sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}
             >
@@ -1137,7 +1137,7 @@ const CaretakerIssuesPage = () => {
                         textAlign: "center",
                       }}
                     >
-                      {safeIdx + 1} / {filtered.length} —{" "}
+                      {safeIdx + 1} / {filtered.length} -{" "}
                       {filtered[safeIdx]?.mediaType}
                     </Typography>
                   </>

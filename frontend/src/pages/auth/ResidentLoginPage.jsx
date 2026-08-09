@@ -22,19 +22,20 @@ import HomeIcon from "@mui/icons-material/Home";
 import { setCredentials } from "../../features/auth/authSlice";
 import axiosInstance from "../../api/axiosInstance";
 import { showSuccess, showError } from "../../utils/toast";
+import CityBackground from "../../components/CityBackground";
 
 const fieldStyle = {
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
     fontFamily: "Inter, sans-serif",
     fontSize: "0.82rem",
-    "&.Mui-focused fieldset": { borderColor: "#0891b2" },
+    "&.Mui-focused fieldset": { borderColor: "#7c3aed" },
   },
   "& .MuiInputLabel-root": {
     fontFamily: "Inter, sans-serif",
     fontSize: "0.82rem",
   },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#0891b2" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#7c3aed" },
   "& .MuiFormHelperText-root": {
     fontFamily: "Inter, sans-serif",
     fontSize: "0.65rem",
@@ -127,27 +128,29 @@ const ResidentLoginPage = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#f0f9ff",
+        bgcolor: "#f5f3ff",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: { xs: 1.5, sm: 2 },
+        p: { xs: 1.5, sm: 3 },
+        position: "relative",
       }}
     >
-      <Container maxWidth="xs">
+      <CityBackground />
+      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            border: "1px solid #e0f2fe",
-            boxShadow: "0 4px 20px rgba(8,145,178,0.08)",
+            border: "1px solid #ede9fe",
+            boxShadow: "0 4px 20px rgba(124,58,237,0.08)",
           }}
         >
           {/* Header */}
           <Box
             sx={{
-              background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
+              background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
               py: { xs: 1.8, sm: 2.5 },
               px: 3,
               textAlign: "center",
@@ -184,7 +187,14 @@ const ResidentLoginPage = () => {
               pb: { xs: 2, sm: 3 },
             }}
           >
-            <Stepper activeStep={step} sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Stepper
+              activeStep={step}
+              sx={{
+                mb: { xs: 2, sm: 3 },
+                "& .MuiStepIcon-root.Mui-active": { color: "#7c3aed" },
+                "& .MuiStepIcon-root.Mui-completed": { color: "#7c3aed" },
+              }}
+            >
               {["Your Details", "Verify OTP"].map((label) => (
                 <Step key={label}>
                   <StepLabel
@@ -311,13 +321,14 @@ const ResidentLoginPage = () => {
                     )
                   }
                   sx={{
-                    bgcolor: "#0891b2",
+                    bgcolor: "#7c3aed",
                     borderRadius: 2,
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 600,
                     py: { xs: 0.8, sm: 1 },
                     fontSize: { xs: "0.82rem", sm: "0.875rem" },
-                    "&:hover": { bgcolor: "#0e7490" },
+                    "&:hover": { bgcolor: "#6d28d9" },
+                    "&.Mui-disabled": { bgcolor: "#ede9fe", color: "#a78bfa" },
                   }}
                 >
                   {loading ? "Verifying..." : "Send OTP"}
@@ -334,9 +345,9 @@ const ResidentLoginPage = () => {
                 <Box
                   sx={{
                     p: 1.2,
-                    bgcolor: "#f0f9ff",
+                    bgcolor: "#f5f3ff",
                     borderRadius: 2,
-                    border: "1px solid #e0f2fe",
+                    border: "1px solid #ede9fe",
                     textAlign: "center",
                   }}
                 >
@@ -344,7 +355,7 @@ const ResidentLoginPage = () => {
                     sx={{
                       fontFamily: "Inter, sans-serif",
                       fontSize: { xs: "0.72rem", sm: "0.78rem" },
-                      color: "#0891b2",
+                      color: "#7c3aed",
                       fontWeight: 600,
                     }}
                   >
@@ -357,13 +368,13 @@ const ResidentLoginPage = () => {
                       color: "#64748b",
                     }}
                   >
-                    Wing {wingName} — Flat {flatNumber}
+                    Wing {wingName} - Flat {flatNumber}
                   </Typography>
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
                       fontSize: { xs: "0.68rem", sm: "0.72rem" },
-                      color: "#059669",
+                      color: "#7c3aed",
                       fontWeight: 700,
                       mt: 0.3,
                     }}
@@ -401,13 +412,14 @@ const ResidentLoginPage = () => {
                     ) : null
                   }
                   sx={{
-                    bgcolor: "#0891b2",
+                    bgcolor: "#7c3aed",
                     borderRadius: 2,
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 600,
                     py: { xs: 0.8, sm: 1 },
                     fontSize: { xs: "0.82rem", sm: "0.875rem" },
-                    "&:hover": { bgcolor: "#0e7490" },
+                    "&:hover": { bgcolor: "#6d28d9" },
+                    "&.Mui-disabled": { bgcolor: "#ede9fe", color: "#a78bfa" },
                   }}
                 >
                   {loading ? "Verifying..." : "Verify & Login"}
@@ -445,7 +457,7 @@ const ResidentLoginPage = () => {
                     disabled={timer > 0 || loading}
                     sx={{
                       fontFamily: "Inter, sans-serif",
-                      color: "#0891b2",
+                      color: "#7c3aed",
                       textTransform: "none",
                       fontSize: { xs: "0.7rem", sm: "0.78rem" },
                     }}
@@ -471,13 +483,14 @@ const ResidentLoginPage = () => {
             </Button>
           </Box>
 
+          {/* Footer */}
           <Box
             sx={{
-              bgcolor: "#f8fafc",
+              bgcolor: "#f5f3ff",
               px: 3,
               py: { xs: 1, sm: 1.5 },
               textAlign: "center",
-              borderTop: "1px solid #e0f2fe",
+              borderTop: "1px solid #ede9fe",
             }}
           >
             <Typography
@@ -487,7 +500,7 @@ const ResidentLoginPage = () => {
                 color: "#94a3b8",
               }}
             >
-              © 2026 UrbanSync — CDAC Final Project
+              © 2026 UrbanSync - CDAC Final Project
             </Typography>
           </Box>
         </Paper>

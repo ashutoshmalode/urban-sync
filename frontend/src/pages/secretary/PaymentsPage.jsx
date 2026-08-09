@@ -266,7 +266,7 @@ const PaymentsPage = () => {
               >
                 <TableCell sx={cellSx}>
                   <Chip
-                    label={`#${t.billId || "—"}`}
+                    label={`#${t.billId || "-"}`}
                     size="small"
                     sx={{
                       bgcolor: "#f1f5f9",
@@ -287,7 +287,7 @@ const PaymentsPage = () => {
                       color: "#1e293b",
                     }}
                   >
-                    {t.residentName || "—"}
+                    {t.residentName || "-"}
                   </Typography>
                 </TableCell>
                 <TableCell sx={cellSx}>
@@ -305,7 +305,7 @@ const PaymentsPage = () => {
                       }}
                     />
                   ) : (
-                    "—"
+                    "-"
                   )}
                 </TableCell>
                 <TableCell sx={{ ...cellSx, maxWidth: 120 }}>
@@ -317,7 +317,7 @@ const PaymentsPage = () => {
                       color: "#64748b",
                     }}
                   >
-                    {t.razorpayOrderId || "—"}
+                    {t.razorpayOrderId || "-"}
                   </Typography>
                 </TableCell>
                 <TableCell sx={cellSx}>
@@ -331,7 +331,7 @@ const PaymentsPage = () => {
                   >
                     {t.amountPaid
                       ? `₹${Number(t.amountPaid).toLocaleString("en-IN")}`
-                      : "—"}
+                      : "-"}
                   </Typography>
                 </TableCell>
                 <TableCell sx={cellSx}>
@@ -343,7 +343,7 @@ const PaymentsPage = () => {
                         day: "2-digit",
                         month: "short",
                       })
-                    : "—"}
+                    : "-"}
                 </TableCell>
                 <TableCell align="center" sx={{ py: 0.8, px: 1 }}>
                   <IconButton
@@ -437,7 +437,7 @@ const PaymentsPage = () => {
               }
               label={isMobile ? "Fund Balance" : "Society Fund Balance"}
               value={
-                fund ? `₹${Number(fund.balance).toLocaleString("en-IN")}` : "—"
+                fund ? `₹${Number(fund.balance).toLocaleString("en-IN")}` : "-"
               }
               color="#0891b2"
               bgcolor="#e0f2fe"
@@ -601,7 +601,7 @@ const PaymentsPage = () => {
               Updated:{" "}
               {fund?.lastUpdated
                 ? new Date(fund.lastUpdated).toLocaleDateString("en-IN")
-                : "—"}
+                : "-"}
             </Typography>
           </Box>
         )}
@@ -638,32 +638,32 @@ const PaymentsPage = () => {
         {selected && (
           <DialogContent sx={{ pt: 1.5, px: 2 }}>
             <DetailRow label="Transaction ID" value={`#${selected.id}`} />
-            <DetailRow label="Bill ID" value={`#${selected.billId || "—"}`} />
-            <DetailRow label="Resident" value={selected.residentName || "—"} />
-            <DetailRow label="Flat" value={selected.flatNumber || "—"} />
+            <DetailRow label="Bill ID" value={`#${selected.billId || "-"}`} />
+            <DetailRow label="Resident" value={selected.residentName || "-"} />
+            <DetailRow label="Flat" value={selected.flatNumber || "-"} />
             <DetailRow
               label="Amount"
               value={
                 selected.amountPaid
                   ? `₹${Number(selected.amountPaid).toLocaleString("en-IN")}`
-                  : "—"
+                  : "-"
               }
             />
             <DetailRow label="Status" value={selected.status} />
             <DetailRow
               label="Order ID"
-              value={selected.razorpayOrderId || "—"}
+              value={selected.razorpayOrderId || "-"}
             />
             <DetailRow
               label="Payment ID"
-              value={selected.razorpayPaymentId || "—"}
+              value={selected.razorpayPaymentId || "-"}
             />
             <DetailRow
               label="Date"
               value={
                 selected.createdAt
                   ? new Date(selected.createdAt).toLocaleString("en-IN")
-                  : "—"
+                  : "-"
               }
             />
           </DialogContent>

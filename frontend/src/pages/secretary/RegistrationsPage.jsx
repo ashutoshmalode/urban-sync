@@ -127,7 +127,7 @@ const DetailRow = ({ label, value }) => (
         wordBreak: "break-word",
       }}
     >
-      {value || "—"}
+      {value || "-"}
     </Typography>
   </Box>
 );
@@ -392,7 +392,7 @@ const RegistrationsPage = () => {
                       <TableCell sx={cellSx}>
                         <TypeChip type={row.residentType} />
                       </TableCell>
-                      <TableCell sx={cellSx}>{row.wingName || "—"}</TableCell>
+                      <TableCell sx={cellSx}>{row.wingName || "-"}</TableCell>
                       <TableCell sx={cellSx}>{row.flatNumber}</TableCell>
                       <TableCell sx={cellSx}>
                         {new Date(row.createdAt).toLocaleDateString("en-IN")}
@@ -561,7 +561,7 @@ const RegistrationsPage = () => {
                             color: "#cbd5e1",
                           }}
                         >
-                          —
+                          -
                         </Typography>
                       )}
                     </TableCell>
@@ -628,7 +628,7 @@ const RegistrationsPage = () => {
               value={selected.aadhaarLastFour}
             />
             <DetailRow label="Type" value={selected.residentType} />
-            <DetailRow label="Wing" value={selected.wingName || "—"} />
+            <DetailRow label="Wing" value={selected.wingName || "-"} />
             <DetailRow label="Flat" value={selected.flatNumber} />
             {selected.residentType === "TENANT" && (
               <>
@@ -763,7 +763,7 @@ const RegistrationsPage = () => {
               value={historySelected.aadhaarLastFour}
             />
             <DetailRow label="Type" value={historySelected.residentType} />
-            <DetailRow label="Wing" value={historySelected.wingName || "—"} />
+            <DetailRow label="Wing" value={historySelected.wingName || "-"} />
             <DetailRow label="Flat" value={historySelected.flatNumber} />
             {historySelected.residentType === "TENANT" && (
               <>

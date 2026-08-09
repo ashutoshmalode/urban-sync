@@ -71,7 +71,7 @@ const CaretakerHomePage = () => {
             color: "#1e293b",
           }}
         >
-          Welcome, {profile?.firstName} 👋
+          Welcome, {profile?.firstName}
         </Typography>
         <Typography
           sx={{
@@ -80,7 +80,7 @@ const CaretakerHomePage = () => {
             color: "#64748b",
           }}
         >
-          Serial #{profile?.serialNumber} — {issues.length} total issues
+          Serial #{profile?.serialNumber} - {issues.length} total issues
           assigned
         </Typography>
       </Box>
@@ -146,7 +146,7 @@ const CaretakerHomePage = () => {
         </Paper>
       )}
 
-      {/* Stats — 3 columns on all screens */}
+      {/* Stats - 3 columns on all screens */}
       <Grid container spacing={{ xs: 1, sm: 2 }}>
         {[
           {
@@ -331,7 +331,7 @@ const CaretakerHomePage = () => {
               >
                 {issue.createdAt
                   ? new Date(issue.createdAt).toLocaleDateString("en-IN")
-                  : "—"}
+                  : "-"}
               </Typography>
             </Paper>
           ))}
