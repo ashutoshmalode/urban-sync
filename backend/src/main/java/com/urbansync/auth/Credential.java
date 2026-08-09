@@ -1,7 +1,6 @@
 package com.urbansync.auth;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,4 +29,6 @@ public class Credential {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "active_token", length = 1000)
+    private String activeToken;
 }
