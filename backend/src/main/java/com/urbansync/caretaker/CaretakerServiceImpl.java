@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.urbansync.auth.Credential;
 import com.urbansync.auth.CredentialRepository;
@@ -20,38 +21,67 @@ public class CaretakerServiceImpl implements CaretakerService {
     public CaretakerServiceImpl(
             CaretakerRepository caretakerRepository,
             CredentialRepository credentialRepository) {
-
         this.caretakerRepository = caretakerRepository;
         this.credentialRepository = credentialRepository;
     }
 
     @Override
+    @Transactional
     public CaretakerDTO create(CaretakerCreateRequest request) {
 
-        if (caretakerRepository.existsByMobileNumber(
-                request.getMobileNumber())) {
-            throw new BadRequestException(
-                    "Mobile number already registered.");
+        // Check if caretaker exists with this mobile
+        CaretakerProfile existing = caretakerRepository
+                .findByMobileNumber(request.getMobileNumber())
+                .orElse(null);
+
+        if (existing != null) {
+            // If ACTIVE — block
+            if (existing.getStatus().equals("ACTIVE")) {
+                throw new BadRequestException(
+                        "An active caretaker already exists "
+                        + "with this mobile number.");
+            }
+
+            // If INACTIVE — reactivate (rejoin)
+            existing.setFirstName(request.getFirstName());
+            existing.setLastName(request.getLastName());
+            existing.setAge(request.getAge());
+            existing.setAadhaarNumber(request.getAadhaarNumber());
+            existing.setPermanentAddress(request.getPermanentAddress());
+            existing.setStatus("ACTIVE");
+            existing.setLeavingReason(null);
+            existing.setLeftAt(null);
+            existing.setCreatedAt(LocalDateTime.now());
+            existing.setPhotoUrl(request.getPhotoUrl());
+
+            return CaretakerMapper.toDTO(
+                    caretakerRepository.save(existing));
         }
 
-        if (caretakerRepository.existsByAadhaarNumber(
-                request.getAadhaarNumber())) {
-            throw new BadRequestException(
-                    "Aadhaar number already registered.");
-        }
+        // Check aadhaar uniqueness for new caretakers only
+        caretakerRepository.findByAadhaarNumber(request.getAadhaarNumber())
+                .ifPresent(c -> {
+                    if (c.getStatus().equals("ACTIVE")) {
+                        throw new BadRequestException(
+                                "An active caretaker already exists "
+                                + "with this Aadhaar number.");
+                    }
+                });
 
-        // Auto serial number
-        int serialNumber = (int) caretakerRepository.count() + 1;
+        // New caretaker — create fresh
+        int serialNumber = caretakerRepository.findMaxSerialNumber() + 1;
 
-        // Auto-create credential
-        Credential credential = Credential.builder()
-                .loginIdentifier(request.getMobileNumber())
-                .passwordHash(null)
-                .role("CARETAKER")
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        credential = credentialRepository.save(credential);
+        Credential credential = credentialRepository
+                .findByLoginIdentifier(request.getMobileNumber())
+                .orElseGet(() -> {
+                    Credential newCred = Credential.builder()
+                            .loginIdentifier(request.getMobileNumber())
+                            .passwordHash(null)
+                            .role("CARETAKER")
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    return credentialRepository.save(newCred);
+                });
 
         CaretakerProfile caretaker = CaretakerProfile.builder()
                 .firstName(request.getFirstName())
@@ -64,6 +94,7 @@ public class CaretakerServiceImpl implements CaretakerService {
                 .status("ACTIVE")
                 .credential(credential)
                 .createdAt(LocalDateTime.now())
+                .photoUrl(request.getPhotoUrl())
                 .build();
 
         return CaretakerMapper.toDTO(
@@ -72,8 +103,18 @@ public class CaretakerServiceImpl implements CaretakerService {
 
     @Override
     public List<CaretakerDTO> getAllCaretakers() {
+        return caretakerRepository
+                .findAllByOrderBySerialNumberAsc()
+                .stream()
+                .filter(c -> "ACTIVE".equals(c.getStatus()))
+                .map(CaretakerMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
-        return caretakerRepository.findAll()
+    @Override
+    public List<CaretakerDTO> getAllCaretakersHistory() {
+        return caretakerRepository
+                .findAllByOrderBySerialNumberAsc()
                 .stream()
                 .map(CaretakerMapper::toDTO)
                 .collect(Collectors.toList());
@@ -81,12 +122,45 @@ public class CaretakerServiceImpl implements CaretakerService {
 
     @Override
     public CaretakerDTO getById(Long id) {
-
         return caretakerRepository.findById(id)
                 .map(CaretakerMapper::toDTO)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Caretaker not found."));
+    }
+
+    @Override
+    @Transactional
+    public CaretakerDTO deleteCaretaker(
+            Long id, DeleteCaretakerRequest request) {
+
+        CaretakerProfile caretaker = caretakerRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Caretaker not found."));
+
+        if ("INACTIVE".equals(caretaker.getStatus())) {
+            throw new BadRequestException(
+                    "Caretaker is already inactive.");
+        }
+
+        caretaker.setStatus("INACTIVE");
+        caretaker.setLeavingReason(request.getReason());
+        caretaker.setLeftAt(LocalDateTime.now());
+
+        return CaretakerMapper.toDTO(
+                caretakerRepository.save(caretaker));
+    }
+    
+    @Override
+    public CaretakerDTO getByMobile(String mobile) {
+        return caretakerRepository
+                .findByMobileNumber(mobile)
+                .map(CaretakerMapper::toDTO)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Caretaker profile not found."));
     }
 
 }

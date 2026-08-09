@@ -14,5 +14,7 @@ public class LoginResponse {
     private String loginIdentifier;
 
     private String role;
+    
+    private String flatNumber;
 
 }

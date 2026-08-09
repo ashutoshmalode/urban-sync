@@ -42,3 +42,9 @@ target/
 .idea/
 *.iml
 application-local.properties
+
+# Backend sensitive files
+backend/src/main/resources/application.properties
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/firebase-service-account.json
+backend/bin/src/main/resources/application.properties

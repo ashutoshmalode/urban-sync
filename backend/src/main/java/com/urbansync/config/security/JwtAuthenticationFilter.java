@@ -20,13 +20,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final ActiveTokenStore activeTokenStore;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            CustomUserDetailsService customUserDetailsService) {
+            CustomUserDetailsService customUserDetailsService,
+            ActiveTokenStore activeTokenStore) {
 
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
+        this.activeTokenStore = activeTokenStore;
     }
 
     @Override
@@ -39,7 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-
             filterChain.doFilter(request, response);
             return;
         }
@@ -47,7 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = authHeader.substring(7);
 
         try {
-
             String username = jwtService.extractUsername(jwt);
 
             if (username != null &&
@@ -57,6 +58,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         customUserDetailsService.loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+
+                    // ── Single session check ──────────────────────────────
+                    if (!activeTokenStore.isTokenActive(username, jwt)) {
+                        // Token is valid JWT but not the current active session
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("""
+                            {
+                                "status": 401,
+                                "error": "Session Expired",
+                                "message": "Your session has expired. Please login again."
+                            }
+                        """);
+                        return;
+                    }
+                    // ─────────────────────────────────────────────────────
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -75,10 +92,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception ex) {
-
-            // Malformed, expired, or otherwise invalid token — don't crash
-            // the request. Treat it as unauthenticated and let the normal
-            // authorization rules decide whether this route needs auth.
             SecurityContextHolder.clearContext();
         }
 
