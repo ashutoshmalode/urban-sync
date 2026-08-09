@@ -1,134 +1,216 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Paper, Skeleton, Grid, Chip } from "@mui/material";
+import { Box, Typography, Paper, Grid, Skeleton } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import EngineeringIcon from "@mui/icons-material/Engineering";
-import ReportProblemIcon from "@mui/icons-material/ReportProblem";
-import ReceiptIcon from "@mui/icons-material/Receipt";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import EngineeringIcon from "@mui/icons-material/Engineering";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import axiosInstance from "../../api/axiosInstance";
 import { showError } from "../../utils/toast";
 
-const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
+const C = "#0891b2";
+const CD = "#0e7490";
+
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+};
+
+const getDate = () =>
+  new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const ff = "Inter, sans-serif";
+
+const KpiCard = ({ label, value, trend, trendColor, borderColor }) => (
   <Paper
     elevation={0}
-    onClick={onClick}
     sx={{
-      p: { xs: 1.2, sm: 1.8, md: 2 },
-      borderRadius: 3,
-      border: "1px solid #e0f2fe",
-      boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
-      cursor: onClick ? "pointer" : "default",
-      transition: "all 0.2s",
+      p: { xs: 1, sm: 1.2 },
+      borderRadius: 2,
+      border: `1.5px solid ${borderColor || C}40`,
+      borderLeft: `3px solid ${borderColor || C}`,
+      boxShadow: `0 2px 8px ${borderColor || C}18`,
+      bgcolor: `${borderColor || C}04`,
       height: "100%",
-      "&:hover": onClick
-        ? {
-            boxShadow: "0 4px 20px rgba(8,145,178,0.15)",
-            transform: "translateY(-2px)",
-          }
-        : {},
     }}
   >
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        mb: { xs: 1, sm: 1.5 },
-      }}
-    >
-      <Box
-        sx={{
-          width: { xs: 32, sm: 38, md: 40 },
-          height: { xs: 32, sm: 38, md: 40 },
-          borderRadius: 2,
-          bgcolor,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </Box>
-      {sub && (
-        <Chip
-          label={sub}
-          size="small"
-          sx={{
-            bgcolor: "#f1f5f9",
-            color: "#64748b",
-            fontFamily: "Inter, sans-serif",
-            fontSize: { xs: "0.55rem", sm: "0.62rem" },
-            fontWeight: 600,
-            height: 18,
-            maxWidth: { xs: 80, sm: 120 },
-            "& .MuiChip-label": {
-              px: 0.8,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            },
-          }}
-        />
-      )}
-    </Box>
     <Typography
       sx={{
-        fontFamily: "Inter, sans-serif",
-        fontSize: { xs: "1.1rem", sm: "1.4rem", md: "1.6rem" },
+        fontFamily: ff,
         fontWeight: 800,
-        color,
+        fontSize: { xs: "1.1rem", sm: "1.3rem" },
+        color: "#0f172a",
         lineHeight: 1,
       }}
     >
-      {value ?? "-"}
+      {value ?? "—"}
     </Typography>
     <Typography
       sx={{
-        fontFamily: "Inter, sans-serif",
-        fontSize: { xs: "0.6rem", sm: "0.68rem", md: "0.72rem" },
+        fontFamily: ff,
+        fontSize: { xs: "0.55rem", sm: "0.6rem" },
         fontWeight: 600,
         color: "#94a3b8",
         textTransform: "uppercase",
         letterSpacing: "0.04em",
-        mt: 0.5,
-        lineHeight: 1.3,
+        mt: 0.4,
       }}
     >
       {label}
     </Typography>
+    {trend && (
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: { xs: "0.55rem", sm: "0.58rem" },
+          fontWeight: 600,
+          color: trendColor || C,
+          mt: 0.5,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {trend}
+      </Typography>
+    )}
   </Paper>
 );
 
-const SectionTitle = ({ title, subtitle }) => (
-  <Box sx={{ mb: 1.5, mt: { xs: 1.5, sm: 2 } }}>
-    <Typography
+const QuickCard = ({ icon, title, sub, subColor, onClick, accentColor }) => (
+  <Paper
+    elevation={0}
+    onClick={onClick}
+    sx={{
+      p: { xs: 1, sm: 1.2 },
+      borderRadius: 2,
+      border: "1px solid #e0f2fe",
+      bgcolor: "white",
+      cursor: "pointer",
+      transition: "all 0.18s",
+      "&:hover": {
+        boxShadow: "0 3px 12px rgba(8,145,178,0.1)",
+        transform: "translateY(-1px)",
+      },
+      display: "flex",
+      flexDirection: "column",
+      gap: 0.7,
+      height: "100%",
+    }}
+  >
+    <Box
       sx={{
-        fontFamily: "Inter, sans-serif",
-        fontWeight: 700,
-        fontSize: { xs: "0.78rem", sm: "0.85rem" },
-        color: "#1e293b",
+        width: { xs: 26, sm: 30 },
+        height: { xs: 26, sm: 30 },
+        borderRadius: 1.5,
+        bgcolor: `${accentColor}15`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {title}
-    </Typography>
-    {subtitle && (
+      {icon}
+    </Box>
+    <Box sx={{ flexGrow: 1 }}>
       <Typography
         sx={{
-          fontFamily: "Inter, sans-serif",
-          fontSize: { xs: "0.65rem", sm: "0.72rem" },
-          color: "#94a3b8",
+          fontFamily: ff,
+          fontWeight: 700,
+          fontSize: { xs: "0.68rem", sm: "0.75rem" },
+          color: "#0f172a",
+          lineHeight: 1.2,
         }}
       >
-        {subtitle}
+        {title}
       </Typography>
-    )}
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: { xs: "0.55rem", sm: "0.6rem" },
+          color: subColor || "#94a3b8",
+          mt: 0.3,
+          fontWeight: 600,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {sub}
+      </Typography>
+    </Box>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: "0.55rem",
+          fontWeight: 700,
+          color: accentColor,
+        }}
+      >
+        Open
+      </Typography>
+      <ArrowForwardIcon sx={{ fontSize: 9, color: accentColor }} />
+    </Box>
+  </Paper>
+);
+
+const BarRow = ({ label, pct, color }) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 0.8,
+      py: 0.6,
+      borderBottom: "1px solid #f8fafc",
+    }}
+  >
+    <Typography
+      sx={{
+        fontFamily: ff,
+        fontSize: { xs: "0.58rem", sm: "0.62rem" },
+        color: "#475569",
+        width: { xs: 38, sm: 46 },
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </Typography>
+    <Box sx={{ flex: 1, bgcolor: "#f1f5f9", borderRadius: 2, height: 5 }}>
+      <Box
+        sx={{
+          width: `${pct}%`,
+          bgcolor: pct >= 80 ? color : "#bae6fd",
+          height: 5,
+          borderRadius: 2,
+        }}
+      />
+    </Box>
+    <Typography
+      sx={{
+        fontFamily: ff,
+        fontSize: { xs: "0.55rem", sm: "0.6rem" },
+        fontWeight: 700,
+        color: "#64748b",
+        width: 24,
+        textAlign: "right",
+        flexShrink: 0,
+      }}
+    >
+      {pct}%
+    </Typography>
   </Box>
 );
 
@@ -136,39 +218,38 @@ const DashboardHome = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const go = (path) => navigate(`/secretary/dashboard/${path}`);
 
   useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
-      try {
-        const res = await axiosInstance.get("/api/dashboard/secretary");
-        setStats(res.data);
-      } catch {
-        showError("Failed to load dashboard stats");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadStats();
+    axiosInstance
+      .get("/api/dashboard/secretary")
+      .then((res) => setStats(res.data))
+      .catch(() => showError("Failed to load dashboard stats"))
+      .finally(() => setLoading(false));
   }, []);
-
-  const go = (path) => navigate(`/secretary/dashboard/${path}`);
 
   if (loading)
     return (
-      <Box>
-        <Skeleton
-          variant="rounded"
-          height={40}
-          sx={{ mb: 2, borderRadius: 2, width: { xs: 160, sm: 200 } }}
-        />
-        <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }}>
-          {[...Array(12)].map((_, i) => (
-            <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Skeleton variant="rounded" height={70} sx={{ borderRadius: 2.5 }} />
+        <Grid container spacing={1}>
+          {[...Array(4)].map((_, i) => (
+            <Grid key={i} size={{ xs: 6, sm: 3 }}>
               <Skeleton
                 variant="rounded"
-                height={{ xs: 90, sm: 110 }}
-                sx={{ borderRadius: 3 }}
+                height={70}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={1}>
+          {[...Array(8)].map((_, i) => (
+            <Grid key={i} size={{ xs: 6, sm: 3 }}>
+              <Skeleton
+                variant="rounded"
+                height={85}
+                sx={{ borderRadius: 2 }}
               />
             </Grid>
           ))}
@@ -176,286 +257,541 @@ const DashboardHome = () => {
       </Box>
     );
 
-  return (
-    <Box>
-      {/* Page Header */}
-      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Typography
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 800,
-            fontSize: { xs: "1rem", sm: "1.15rem", md: "1.3rem" },
-            color: "#1e293b",
-          }}
-        >
-          Society Overview
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: { xs: "0.68rem", sm: "0.78rem" },
-            color: "#94a3b8",
-          }}
-        >
-          Live stats - tap any card to navigate
-        </Typography>
-      </Box>
+  const collectionPct = stats?.totalBills
+    ? Math.round((stats.paidBills / stats.totalBills) * 100)
+    : 0;
 
-      {/* Residents + Flats */}
-      <SectionTitle
-        title="Residents & Flats"
-        subtitle="Current occupancy status"
-      />
-      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: 0.5 }}>
+  return (
+    <Box
+      sx={{ display: "flex", flexDirection: "column", gap: { xs: 1, sm: 1.2 } }}
+    >
+      {/* Hero */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2.5,
+          border: "1px solid #e0f2fe",
+          overflow: "hidden",
+          background: `linear-gradient(135deg, ${C} 0%, ${CD} 100%)`,
+        }}
+      >
+        <Box
+          sx={{
+            px: { xs: 1.5, sm: 2.5 },
+            py: { xs: 1.2, sm: 1.6 },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontWeight: 800,
+                fontSize: { xs: "0.82rem", sm: "0.95rem" },
+                color: "white",
+              }}
+            >
+              {getGreeting()},{" "}
+              {stats?.secretaryName?.split(" ")[0] || "Secretary"}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontSize: { xs: "0.55rem", sm: "0.62rem" },
+                color: "rgba(255,255,255,0.75)",
+                mt: 0.2,
+              }}
+            >
+              {getDate()} · Sunrise Heights Society
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 1.5, sm: 2.5 },
+              bgcolor: "rgba(255,255,255,0.12)",
+              borderRadius: 1.5,
+              px: { xs: 1.2, sm: 2 },
+              py: { xs: 0.7, sm: 1 },
+            }}
+          >
+            {[
+              { num: stats?.totalResidents ?? "—", lbl: "Residents" },
+              {
+                num: stats?.pendingRegistrations ?? "—",
+                lbl: "Pending",
+                warn: true,
+              },
+              {
+                num: `₹${Number(stats?.totalAmountCollected || 0).toLocaleString("en-IN")}`,
+                lbl: "Collected",
+              },
+            ].map((s, i) => (
+              <Box key={i} sx={{ textAlign: "center" }}>
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontWeight: 800,
+                    fontSize: { xs: "0.78rem", sm: "0.9rem" },
+                    color: s.warn ? "#fde68a" : "white",
+                  }}
+                >
+                  {s.num}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontSize: { xs: "0.48rem", sm: "0.55rem" },
+                    color: "rgba(255,255,255,0.65)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {s.lbl}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* KPI row */}
+      <Grid container spacing={{ xs: 0.8, sm: 1 }}>
         {[
           {
-            icon: (
-              <PeopleIcon
-                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
             label: "Total Residents",
             value: stats?.totalResidents,
-            sub: `${stats?.totalOwners} owners`,
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            path: "registrations",
+            trend: `${stats?.totalOwners ?? 0} owners · ${stats?.totalTenants ?? 0} tenants`,
+            borderColor: C,
           },
           {
-            icon: (
-              <PeopleIcon
-                sx={{ color: "#7c3aed", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Owners",
-            value: stats?.totalOwners,
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
-            path: "registrations",
-          },
-          {
-            icon: (
-              <PeopleIcon
-                sx={{ color: "#059669", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Tenants",
-            value: stats?.totalTenants,
-            color: "#059669",
-            bgcolor: "#dcfce7",
-            path: "registrations",
-          },
-          {
-            icon: (
-              <ApartmentIcon
-                sx={{ color: "#d97706", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Total Flats",
-            value: stats?.totalFlats,
-            sub: `${stats?.vacantFlats} vacant`,
-            color: "#d97706",
-            bgcolor: "#fef3c7",
-            path: "property",
-          },
-        ].map((card, i) => (
-          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
-            <StatCard {...card} onClick={() => go(card.path)} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Finance */}
-      <SectionTitle
-        title="Finance & Maintenance"
-        subtitle="Collection and billing overview"
-      />
-      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: 0.5 }}>
-        {[
-          {
-            icon: (
-              <AccountBalanceWalletIcon
-                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
             label: "Society Fund",
             value: `₹${Number(stats?.societyFundBalance || 0).toLocaleString("en-IN")}`,
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            path: "payments",
+            trend: `₹${Number(stats?.totalAmountCollected || 0).toLocaleString("en-IN")} collected`,
+            trendColor: "#059669",
+            borderColor: "#059669",
           },
           {
-            icon: (
-              <ReceiptIcon
-                sx={{ color: "#059669", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Collected",
-            value: `₹${Number(stats?.totalAmountCollected || 0).toLocaleString("en-IN")}`,
-            color: "#059669",
-            bgcolor: "#dcfce7",
-            path: "payments",
-          },
-          {
-            icon: (
-              <ReceiptIcon
-                sx={{ color: "#dc2626", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
             label: "Pending Bills",
             value: stats?.pendingBills,
-            sub: `₹${Number(stats?.totalAmountPending || 0).toLocaleString("en-IN")} due`,
-            color: "#dc2626",
-            bgcolor: "#fee2e2",
-            path: "maintenance",
+            trend: `₹${Number(stats?.totalAmountPending || 0).toLocaleString("en-IN")} due`,
+            trendColor: "#dc2626",
+            borderColor: "#dc2626",
+          },
+          {
+            label: "Open Complaints",
+            value: stats?.pendingComplaints,
+            trend: `${stats?.totalComplaints ?? 0} total raised`,
+            trendColor: "#d97706",
+            borderColor: "#d97706",
+          },
+        ].map((k, i) => (
+          <Grid key={i} size={{ xs: 6, sm: 3 }}>
+            <KpiCard {...k} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Quick actions label */}
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontWeight: 700,
+          fontSize: { xs: "0.6rem", sm: "0.65rem" },
+          color: "#94a3b8",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          mt: 0.2,
+        }}
+      >
+        Quick Actions
+      </Typography>
+
+      {/* Quick action cards */}
+      <Grid container spacing={{ xs: 0.8, sm: 1 }}>
+        {[
+          {
+            icon: (
+              <HowToRegIcon sx={{ color: C, fontSize: { xs: 13, sm: 15 } }} />
+            ),
+            title: "Registrations",
+            sub: `${stats?.pendingRegistrations ?? 0} pending`,
+            subColor: stats?.pendingRegistrations > 0 ? "#d97706" : "#94a3b8",
+            accentColor: C,
+            path: "registrations",
           },
           {
             icon: (
               <ReceiptIcon
-                sx={{ color: "#7c3aed", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#dc2626", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Paid Bills",
-            value: stats?.paidBills,
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
+            title: "Maintenance",
+            sub: `${stats?.pendingBills ?? 0} unpaid`,
+            subColor: stats?.pendingBills > 0 ? "#dc2626" : "#94a3b8",
+            accentColor: "#dc2626",
             path: "maintenance",
           },
-        ].map((card, i) => (
-          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
-            <StatCard {...card} onClick={() => go(card.path)} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Complaints + Issues */}
-      <SectionTitle
-        title="Complaints & Issues"
-        subtitle="Resident complaints and caretaker tasks"
-      />
-      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: 0.5 }}>
-        {[
           {
             icon: (
               <ReportProblemIcon
-                sx={{ color: "#dc2626", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#d97706", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Total Complaints",
-            value: stats?.totalComplaints,
-            sub: `${stats?.pendingComplaints} pending`,
-            color: "#dc2626",
-            bgcolor: "#fee2e2",
+            title: "Complaints",
+            sub: `${stats?.pendingComplaints ?? 0} open`,
+            subColor: stats?.pendingComplaints > 0 ? "#d97706" : "#94a3b8",
+            accentColor: "#d97706",
             path: "complaints",
-          },
-          {
-            icon: (
-              <ReportProblemIcon
-                sx={{ color: "#d97706", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Pending",
-            value: stats?.pendingComplaints,
-            color: "#d97706",
-            bgcolor: "#fef3c7",
-            path: "complaints",
-          },
-          {
-            icon: (
-              <EngineeringIcon
-                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Caretaker Issues",
-            value: stats?.totalIssues,
-            sub: `${stats?.pendingIssues} pending`,
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            path: "complaints",
-          },
-          {
-            icon: (
-              <EngineeringIcon
-                sx={{ color: "#059669", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Caretakers",
-            value: stats?.activeCaretakers,
-            color: "#059669",
-            bgcolor: "#dcfce7",
-            path: "caretakers",
-          },
-        ].map((card, i) => (
-          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
-            <StatCard {...card} onClick={() => go(card.path)} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Requests + Communication */}
-      <SectionTitle
-        title="Requests & Communication"
-        subtitle="Pending actions and announcements"
-      />
-      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: 1 }}>
-        {[
-          {
-            icon: (
-              <HowToRegIcon
-                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
-              />
-            ),
-            label: "Registrations",
-            value: stats?.totalRegistrations,
-            sub: `${stats?.pendingRegistrations} pending`,
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
-            path: "registrations",
           },
           {
             icon: (
               <LockOpenIcon
-                sx={{ color: "#7c3aed", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#7c3aed", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Permissions",
-            value: stats?.totalPermissions,
-            sub: `${stats?.pendingPermissions} pending`,
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
+            title: "Permissions",
+            sub: `${stats?.pendingPermissions ?? 0} pending`,
+            subColor: stats?.pendingPermissions > 0 ? "#7c3aed" : "#94a3b8",
+            accentColor: "#7c3aed",
             path: "permissions",
           },
           {
             icon: (
               <CampaignIcon
-                sx={{ color: "#d97706", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#059669", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Announcements",
-            value: stats?.totalAnnouncements,
-            sub: `${stats?.alertAnnouncements} alerts`,
-            color: "#d97706",
-            bgcolor: "#fef3c7",
+            title: "Announcements",
+            sub: `${stats?.totalAnnouncements ?? 0} posted`,
+            subColor: "#94a3b8",
+            accentColor: "#059669",
             path: "announcements",
           },
           {
             icon: (
-              <HomeWorkIcon
-                sx={{ color: "#059669", fontSize: { xs: 16, sm: 20 } }}
+              <EngineeringIcon
+                sx={{ color: C, fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Active Listings",
-            value: stats?.activeListings,
-            sub: `of ${stats?.totalListings} total`,
-            color: "#059669",
-            bgcolor: "#dcfce7",
+            title: "Caretakers",
+            sub: `${stats?.activeCaretakers ?? 0} active`,
+            subColor: "#94a3b8",
+            accentColor: C,
+            path: "caretakers",
+          },
+          {
+            icon: (
+              <AccountBalanceWalletIcon
+                sx={{ color: "#059669", fontSize: { xs: 13, sm: 15 } }}
+              />
+            ),
+            title: "Payments",
+            sub: `₹${Number(stats?.societyFundBalance || 0).toLocaleString("en-IN")}`,
+            subColor: "#059669",
+            accentColor: "#059669",
+            path: "payments",
+          },
+          {
+            icon: (
+              <ApartmentIcon
+                sx={{ color: "#d97706", fontSize: { xs: 13, sm: 15 } }}
+              />
+            ),
+            title: "Property",
+            sub: `${stats?.activeListings ?? 0} listings`,
+            subColor: "#94a3b8",
+            accentColor: "#d97706",
             path: "property",
           },
-        ].map((card, i) => (
-          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
-            <StatCard {...card} onClick={() => go(card.path)} />
+        ].map((q, i) => (
+          <Grid key={i} size={{ xs: 3, sm: 3 }}>
+            <QuickCard {...q} onClick={() => go(q.path)} />
           </Grid>
         ))}
+      </Grid>
+
+      {/* Bottom panels */}
+      <Grid container spacing={{ xs: 0.8, sm: 1 }}>
+        {/* Wing collection */}
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              border: "1px solid #e0f2fe",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                px: { xs: 1.5, sm: 2 },
+                py: { xs: 0.8, sm: 1 },
+                bgcolor: "#f8fbff",
+                borderBottom: "1px solid #e0f2fe",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: ff,
+                  fontWeight: 700,
+                  fontSize: { xs: "0.65rem", sm: "0.72rem" },
+                  color: "#1e293b",
+                }}
+              >
+                Maintenance Collection
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: ff,
+                  fontSize: "0.58rem",
+                  fontWeight: 700,
+                  color: collectionPct >= 80 ? "#059669" : "#d97706",
+                  bgcolor: collectionPct >= 80 ? "#dcfce7" : "#fef9c3",
+                  px: 0.8,
+                  py: 0.2,
+                  borderRadius: 1,
+                }}
+              >
+                {collectionPct}% collected
+              </Typography>
+            </Box>
+            <Box sx={{ px: { xs: 1.5, sm: 2 }, py: 0.5 }}>
+              {["Wing A", "Wing B", "Wing C", "Wing D", "Wing E"].map(
+                (w, i) => (
+                  <BarRow
+                    key={w}
+                    label={w}
+                    pct={[92, 78, 85, 60, 70][i]}
+                    color={C}
+                  />
+                ),
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Right side panels */}
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {/* Caretaker issues */}
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                border: "1px solid #e0f2fe",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 0.8, sm: 1 },
+                  bgcolor: "#f8fbff",
+                  borderBottom: "1px solid #e0f2fe",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontWeight: 700,
+                    fontSize: { xs: "0.65rem", sm: "0.72rem" },
+                    color: "#1e293b",
+                  }}
+                >
+                  Caretaker Issues
+                </Typography>
+                <Typography
+                  onClick={() => go("complaints")}
+                  sx={{
+                    fontFamily: ff,
+                    fontSize: "0.58rem",
+                    fontWeight: 700,
+                    color: C,
+                    cursor: "pointer",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  View all →
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  px: { xs: 1.5, sm: 2 },
+                  py: 0.8,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 0.8,
+                }}
+              >
+                {[
+                  {
+                    lbl: "Total",
+                    val: stats?.totalIssues ?? 0,
+                    color: C,
+                    bg: "#e0f2fe",
+                  },
+                  {
+                    lbl: "Pending",
+                    val: stats?.pendingIssues ?? 0,
+                    color: "#d97706",
+                    bg: "#fef9c3",
+                  },
+                  {
+                    lbl: "Staff",
+                    val: stats?.activeCaretakers ?? 0,
+                    color: "#059669",
+                    bg: "#dcfce7",
+                  },
+                ].map((s) => (
+                  <Box
+                    key={s.lbl}
+                    sx={{
+                      bgcolor: s.bg,
+                      borderRadius: 1.5,
+                      p: { xs: 0.8, sm: 1 },
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: ff,
+                        fontWeight: 800,
+                        fontSize: { xs: "0.9rem", sm: "1rem" },
+                        color: s.color,
+                      }}
+                    >
+                      {s.val}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: ff,
+                        fontSize: { xs: "0.5rem", sm: "0.55rem" },
+                        fontWeight: 600,
+                        color: "#94a3b8",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        mt: 0.2,
+                      }}
+                    >
+                      {s.lbl}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+
+            {/* Resident breakdown */}
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                border: "1px solid #e0f2fe",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 0.8, sm: 1 },
+                  bgcolor: "#f8fbff",
+                  borderBottom: "1px solid #e0f2fe",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontWeight: 700,
+                    fontSize: { xs: "0.65rem", sm: "0.72rem" },
+                    color: "#1e293b",
+                  }}
+                >
+                  Resident Breakdown
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  px: { xs: 1.5, sm: 2 },
+                  py: 0.8,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 0.8,
+                }}
+              >
+                {[
+                  {
+                    lbl: "Total",
+                    val: stats?.totalResidents ?? 0,
+                    color: C,
+                    bg: "#e0f2fe",
+                  },
+                  {
+                    lbl: "Owners",
+                    val: stats?.totalOwners ?? 0,
+                    color: "#7c3aed",
+                    bg: "#f3e8ff",
+                  },
+                  {
+                    lbl: "Tenants",
+                    val: stats?.totalTenants ?? 0,
+                    color: "#059669",
+                    bg: "#dcfce7",
+                  },
+                  {
+                    lbl: "Vacant",
+                    val: stats?.vacantFlats ?? 0,
+                    color: "#d97706",
+                    bg: "#fef9c3",
+                  },
+                ].map((s) => (
+                  <Box
+                    key={s.lbl}
+                    sx={{
+                      bgcolor: s.bg,
+                      borderRadius: 1.5,
+                      p: { xs: 0.8, sm: 1 },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.8,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: ff,
+                        fontWeight: 800,
+                        fontSize: { xs: "0.88rem", sm: "1rem" },
+                        color: s.color,
+                      }}
+                    >
+                      {s.val}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: ff,
+                        fontSize: { xs: "0.52rem", sm: "0.58rem" },
+                        fontWeight: 600,
+                        color: "#64748b",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {s.lbl}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+          </Box>
+        </Grid>
       </Grid>
     </Box>
   );
