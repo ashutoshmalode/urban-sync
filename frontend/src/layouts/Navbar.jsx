@@ -56,7 +56,7 @@ const Navbar = ({ onMenuClick }) => {
         flexShrink: 0,
       }}
     >
-      <Toolbar sx={{ minHeight: "56px !important", px: { xs: 1.5, sm: 2 } }}>
+      <Toolbar sx={{ minHeight: "52px !important", px: { xs: 1.5, sm: 2 } }}>
         {/* Hamburger */}
         <IconButton
           onClick={onMenuClick}

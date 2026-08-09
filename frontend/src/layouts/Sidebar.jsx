@@ -124,7 +124,7 @@ const Sidebar = ({ open, onClose }) => {
           alignItems: "center",
           gap: { xs: 1, sm: 1.5 },
           flexShrink: 0,
-          minHeight: { xs: 60, sm: 80 },
+          minHeight: { xs: 52, sm: 52 },
         }}
       >
         <Box

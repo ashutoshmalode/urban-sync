@@ -1,103 +1,165 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Box, Typography, Paper, Grid, Skeleton, Chip } from "@mui/material";
+import { Box, Typography, Paper, Grid, Skeleton } from "@mui/material";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import CampaignIcon from "@mui/icons-material/Campaign";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import axiosInstance from "../../api/axiosInstance";
 import { showError } from "../../utils/toast";
 
-const StatCard = ({ icon, label, value, sub, color, bgcolor, onClick }) => (
+const C = "#7c3aed";
+const CD = "#6d28d9";
+const ff = "Inter, sans-serif";
+
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+};
+
+const getDate = () =>
+  new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const KpiCard = ({ label, value, trend, trendColor, borderColor }) => (
   <Paper
     elevation={0}
-    onClick={onClick}
     sx={{
-      p: { xs: 1.2, sm: 1.8, md: 2 },
-      borderRadius: 3,
-      border: "1px solid #e0f2fe",
-      boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
-      cursor: onClick ? "pointer" : "default",
-      transition: "all 0.2s",
+      p: { xs: 1, sm: 1.2 },
+      borderRadius: 2,
+      border: `1.5px solid ${borderColor || C}40`,
+      borderLeft: `3px solid ${borderColor || C}`,
+      boxShadow: `0 2px 8px ${borderColor || C}18`,
+      bgcolor: `${borderColor || C}04`,
       height: "100%",
-      "&:hover": onClick
-        ? {
-            transform: "translateY(-2px)",
-            boxShadow: "0 4px 20px rgba(8,145,178,0.12)",
-          }
-        : {},
     }}
   >
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        mb: { xs: 1, sm: 1.5 },
-      }}
-    >
-      <Box
-        sx={{
-          width: { xs: 32, sm: 38, md: 40 },
-          height: { xs: 32, sm: 38, md: 40 },
-          borderRadius: 2,
-          bgcolor,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </Box>
-      {sub && (
-        <Chip
-          label={sub}
-          size="small"
-          sx={{
-            bgcolor: "#f1f5f9",
-            color: "#64748b",
-            fontFamily: "Inter, sans-serif",
-            fontSize: { xs: "0.55rem", sm: "0.62rem" },
-            fontWeight: 600,
-            height: 18,
-            maxWidth: { xs: 72, sm: 110 },
-            "& .MuiChip-label": {
-              px: 0.8,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            },
-          }}
-        />
-      )}
-    </Box>
     <Typography
       sx={{
-        fontFamily: "Inter, sans-serif",
-        fontSize: { xs: "1.1rem", sm: "1.4rem", md: "1.6rem" },
+        fontFamily: ff,
         fontWeight: 800,
-        color,
+        fontSize: { xs: "1.1rem", sm: "1.3rem" },
+        color: "#0f172a",
         lineHeight: 1,
       }}
     >
-      {value ?? "-"}
+      {value ?? "—"}
     </Typography>
     <Typography
       sx={{
-        fontFamily: "Inter, sans-serif",
-        fontSize: { xs: "0.6rem", sm: "0.68rem", md: "0.72rem" },
+        fontFamily: ff,
+        fontSize: { xs: "0.55rem", sm: "0.6rem" },
         fontWeight: 600,
         color: "#94a3b8",
         textTransform: "uppercase",
         letterSpacing: "0.04em",
-        mt: 0.5,
-        lineHeight: 1.3,
+        mt: 0.4,
       }}
     >
       {label}
     </Typography>
+    {trend && (
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: { xs: "0.55rem", sm: "0.58rem" },
+          fontWeight: 600,
+          color: trendColor || C,
+          mt: 0.5,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {trend}
+      </Typography>
+    )}
+  </Paper>
+);
+
+const QuickCard = ({ icon, title, sub, subColor, onClick, accentColor }) => (
+  <Paper
+    elevation={0}
+    onClick={onClick}
+    sx={{
+      p: { xs: 1, sm: 1.2 },
+      borderRadius: 2,
+      border: "1px solid #ede9fe",
+      bgcolor: "white",
+      cursor: "pointer",
+      transition: "all 0.18s",
+      "&:hover": {
+        boxShadow: "0 3px 12px rgba(124,58,237,0.1)",
+        transform: "translateY(-1px)",
+      },
+      display: "flex",
+      flexDirection: "column",
+      gap: 0.7,
+      height: "100%",
+    }}
+  >
+    <Box
+      sx={{
+        width: { xs: 26, sm: 30 },
+        height: { xs: 26, sm: 30 },
+        borderRadius: 1.5,
+        bgcolor: `${accentColor}15`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {icon}
+    </Box>
+    <Box sx={{ flexGrow: 1 }}>
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontWeight: 700,
+          fontSize: { xs: "0.68rem", sm: "0.75rem" },
+          color: "#0f172a",
+          lineHeight: 1.2,
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: { xs: "0.55rem", sm: "0.6rem" },
+          color: subColor || "#94a3b8",
+          mt: 0.3,
+          fontWeight: 600,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {sub}
+      </Typography>
+    </Box>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontSize: "0.55rem",
+          fontWeight: 700,
+          color: accentColor,
+        }}
+      >
+        Open
+      </Typography>
+      <ArrowForwardIcon sx={{ fontSize: 9, color: accentColor }} />
+    </Box>
   </Paper>
 );
 
@@ -110,6 +172,7 @@ const ResidentHomePage = () => {
   const [permissions, setPermissions] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const go = (path) => navigate(`/resident/dashboard/${path}`);
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,23 +207,30 @@ const ResidentHomePage = () => {
   const pendingBills = bills.filter((b) => b.status === "PENDING");
   const pendingComplaints = complaints.filter((c) => c.status === "PENDING");
   const pendingPermissions = permissions.filter((p) => p.status === "PENDING");
-  const go = (path) => navigate(`/resident/dashboard/${path}`);
+  const totalDue = pendingBills.reduce((s, b) => s + Number(b.totalAmount), 0);
 
   if (loading)
     return (
-      <Box>
-        <Skeleton
-          variant="rounded"
-          height={36}
-          sx={{ mb: 2, width: { xs: 160, sm: 200 }, borderRadius: 2 }}
-        />
-        <Grid container spacing={{ xs: 1, sm: 2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Skeleton variant="rounded" height={70} sx={{ borderRadius: 2.5 }} />
+        <Grid container spacing={1}>
           {[...Array(4)].map((_, i) => (
-            <Grid key={i} size={{ xs: 6, md: 3 }}>
+            <Grid key={i} size={{ xs: 6, sm: 3 }}>
               <Skeleton
                 variant="rounded"
-                height={{ xs: 90, sm: 110 }}
-                sx={{ borderRadius: 3 }}
+                height={70}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={1}>
+          {[...Array(4)].map((_, i) => (
+            <Grid key={i} size={{ xs: 6, sm: 3 }}>
+              <Skeleton
+                variant="rounded"
+                height={85}
+                sx={{ borderRadius: 2 }}
               />
             </Grid>
           ))}
@@ -169,231 +239,367 @@ const ResidentHomePage = () => {
     );
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Typography
+    <Box
+      sx={{ display: "flex", flexDirection: "column", gap: { xs: 1, sm: 1.2 } }}
+    >
+      {/* Hero */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2.5,
+          border: "1px solid #ede9fe",
+          overflow: "hidden",
+          background: `linear-gradient(135deg, ${C} 0%, ${CD} 100%)`,
+        }}
+      >
+        <Box
           sx={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 800,
-            fontSize: { xs: "1rem", sm: "1.15rem", md: "1.2rem" },
-            color: "#1e293b",
+            px: { xs: 1.5, sm: 2.5 },
+            py: { xs: 1.2, sm: 1.6 },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
-          Welcome back
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: { xs: "0.68rem", sm: "0.78rem" },
-            color: "#64748b",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {profile?.firstName} {profile?.lastName} - Flat {flatNumber} -{" "}
-          {profile?.residentType}
-        </Typography>
-      </Box>
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontWeight: 800,
+                fontSize: { xs: "0.82rem", sm: "0.95rem" },
+                color: "white",
+              }}
+            >
+              {getGreeting()}, {profile?.firstName}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontSize: { xs: "0.55rem", sm: "0.62rem" },
+                color: "rgba(255,255,255,0.75)",
+                mt: 0.2,
+              }}
+            >
+              {getDate()} · Flat {flatNumber} · {profile?.residentType}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 1.5, sm: 2.5 },
+              bgcolor: "rgba(255,255,255,0.12)",
+              borderRadius: 1.5,
+              px: { xs: 1.2, sm: 2 },
+              py: { xs: 0.7, sm: 1 },
+            }}
+          >
+            {[
+              { num: bills.length, lbl: "Bills" },
+              {
+                num: pendingBills.length,
+                lbl: "Unpaid",
+                warn: pendingBills.length > 0,
+              },
+              { num: complaints.length, lbl: "Issues" },
+            ].map((s, i) => (
+              <Box key={i} sx={{ textAlign: "center" }}>
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontWeight: 800,
+                    fontSize: { xs: "0.78rem", sm: "0.9rem" },
+                    color: s.warn ? "#fde68a" : "white",
+                  }}
+                >
+                  {s.num}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: ff,
+                    fontSize: { xs: "0.48rem", sm: "0.55rem" },
+                    color: "rgba(255,255,255,0.65)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {s.lbl}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Paper>
 
-      {/* Pending Bills Alert */}
+      {/* Pending bill alert */}
       {pendingBills.length > 0 && (
         <Paper
           elevation={0}
           onClick={() => go("bills")}
           sx={{
-            p: { xs: 1.5, sm: 2 },
-            mb: { xs: 1.5, sm: 2.5 },
-            borderRadius: 3,
+            borderRadius: 2,
             border: "1px solid #fecaca",
             bgcolor: "#fef2f2",
+            px: { xs: 1.5, sm: 2 },
+            py: { xs: 0.9, sm: 1.1 },
             cursor: "pointer",
-            "&:hover": { boxShadow: "0 4px 12px rgba(220,38,38,0.1)" },
+            transition: "all 0.18s",
+            "&:hover": { boxShadow: "0 3px 10px rgba(220,38,38,0.1)" },
+            display: "flex",
+            alignItems: "center",
+            gap: 1.2,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-            <ReceiptIcon
+          <ReceiptIcon
+            sx={{
+              color: "#dc2626",
+              fontSize: { xs: 15, sm: 18 },
+              flexShrink: 0,
+            }}
+          />
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
               sx={{
-                color: "#dc2626",
-                fontSize: { xs: 16, sm: 20 },
-                flexShrink: 0,
-              }}
-            />
-            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 700,
-                  fontSize: { xs: "0.78rem", sm: "0.85rem" },
-                  color: "#dc2626",
-                }}
-              >
-                {pendingBills.length} Pending Bill
-                {pendingBills.length > 1 ? "s" : ""}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: { xs: "0.65rem", sm: "0.72rem" },
-                  color: "#991b1b",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Due: ₹
-                {pendingBills
-                  .reduce((s, b) => s + Number(b.totalAmount), 0)
-                  .toLocaleString("en-IN")}{" "}
-                - Tap to pay
-              </Typography>
-            </Box>
-            <Chip
-              label="Pay Now"
-              size="small"
-              sx={{
-                bgcolor: "#dc2626",
-                color: "white",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: ff,
                 fontWeight: 700,
-                fontSize: { xs: "0.6rem", sm: "0.7rem" },
-                height: { xs: 20, sm: 24 },
-                flexShrink: 0,
+                fontSize: { xs: "0.7rem", sm: "0.78rem" },
+                color: "#dc2626",
               }}
-            />
+            >
+              {pendingBills.length} unpaid bill
+              {pendingBills.length > 1 ? "s" : ""} — ₹
+              {totalDue.toLocaleString("en-IN")} due
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontSize: { xs: "0.58rem", sm: "0.62rem" },
+                color: "#991b1b",
+              }}
+            >
+              Tap to view and pay pending maintenance bills
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.3,
+              bgcolor: "#dc2626",
+              borderRadius: 1.2,
+              px: 1,
+              py: 0.4,
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: ff,
+                fontSize: "0.58rem",
+                fontWeight: 700,
+                color: "white",
+              }}
+            >
+              Pay Now
+            </Typography>
+            <ArrowForwardIcon sx={{ fontSize: 9, color: "white" }} />
           </Box>
         </Paper>
       )}
 
-      {/* Stat Cards */}
-      <Grid
-        container
-        spacing={{ xs: 1, sm: 1.5, md: 2 }}
-        sx={{ mb: { xs: 1.5, sm: 2.5 } }}
+      {/* KPI row */}
+      <Grid container spacing={{ xs: 0.8, sm: 1 }}>
+        {[
+          {
+            label: "Total Bills",
+            value: bills.length,
+            trend: `${pendingBills.length} pending · ₹${totalDue.toLocaleString("en-IN")} due`,
+            trendColor: pendingBills.length > 0 ? "#dc2626" : "#059669",
+            borderColor: C,
+          },
+          {
+            label: "Complaints",
+            value: complaints.length,
+            trend: `${pendingComplaints.length} pending`,
+            trendColor: pendingComplaints.length > 0 ? "#d97706" : "#059669",
+            borderColor: "#dc2626",
+          },
+          {
+            label: "Permissions",
+            value: permissions.length,
+            trend: `${pendingPermissions.length} awaiting`,
+            trendColor: "#d97706",
+            borderColor: "#d97706",
+          },
+          {
+            label: "Announcements",
+            value: announcements.length,
+            trend: "From secretary",
+            trendColor: "#94a3b8",
+            borderColor: "#059669",
+          },
+        ].map((k, i) => (
+          <Grid key={i} size={{ xs: 6, sm: 3 }}>
+            <KpiCard {...k} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Quick actions label */}
+      <Typography
+        sx={{
+          fontFamily: ff,
+          fontWeight: 700,
+          fontSize: { xs: "0.6rem", sm: "0.65rem" },
+          color: "#94a3b8",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          mt: 0.2,
+        }}
       >
+        Quick Actions
+      </Typography>
+
+      {/* Quick action cards */}
+      <Grid container spacing={{ xs: 0.8, sm: 1 }}>
         {[
           {
             icon: (
-              <ReceiptIcon
-                sx={{ color: "#0891b2", fontSize: { xs: 16, sm: 20 } }}
+              <PaymentIcon
+                sx={{ color: "#dc2626", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Total Bills",
-            value: bills.length,
-            sub: `${pendingBills.length} pending`,
-            color: "#0891b2",
-            bgcolor: "#e0f2fe",
+            title: "Pay Bills",
+            sub:
+              pendingBills.length > 0
+                ? `₹${totalDue.toLocaleString("en-IN")} due`
+                : "All clear ✓",
+            subColor: pendingBills.length > 0 ? "#dc2626" : "#059669",
+            accentColor: "#dc2626",
             path: "bills",
           },
           {
             icon: (
               <ReportProblemIcon
-                sx={{ color: "#dc2626", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: C, fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Complaints",
-            value: complaints.length,
-            sub: `${pendingComplaints.length} pending`,
-            color: "#dc2626",
-            bgcolor: "#fee2e2",
+            title: "Complaints",
+            sub: `${complaints.length} raised`,
+            subColor: pendingComplaints.length > 0 ? "#d97706" : "#94a3b8",
+            accentColor: C,
             path: "complaints",
           },
           {
             icon: (
               <LockOpenIcon
-                sx={{ color: "#7c3aed", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#059669", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Permissions",
-            value: permissions.length,
-            sub: `${pendingPermissions.length} pending`,
-            color: "#7c3aed",
-            bgcolor: "#f3e8ff",
+            title: "Permissions",
+            sub: `${permissions.length} total`,
+            subColor: pendingPermissions.length > 0 ? "#d97706" : "#94a3b8",
+            accentColor: "#059669",
             path: "permissions",
           },
           {
             icon: (
               <CampaignIcon
-                sx={{ color: "#d97706", fontSize: { xs: 16, sm: 20 } }}
+                sx={{ color: "#d97706", fontSize: { xs: 13, sm: 15 } }}
               />
             ),
-            label: "Announcements",
-            value: announcements.length,
-            color: "#d97706",
-            bgcolor: "#fef3c7",
+            title: "Notices",
+            sub: `${announcements.length} posted`,
+            subColor: "#94a3b8",
+            accentColor: "#d97706",
             path: "announcements",
           },
-        ].map((card, i) => (
-          <Grid key={i} size={{ xs: 6, md: 3 }}>
-            <StatCard {...card} onClick={() => go(card.path)} />
+        ].map((q, i) => (
+          <Grid key={i} size={{ xs: 3, sm: 3 }}>
+            <QuickCard {...q} onClick={() => go(q.path)} />
           </Grid>
         ))}
       </Grid>
 
-      {/* Recent Announcements */}
+      {/* Recent announcements */}
       {announcements.length > 0 && (
         <Paper
           elevation={0}
           sx={{
-            borderRadius: 3,
-            border: "1px solid #e0f2fe",
+            borderRadius: 2,
+            border: "1px solid #ede9fe",
             overflow: "hidden",
-            boxShadow: "0 2px 12px rgba(8,145,178,0.06)",
           }}
         >
           <Box
             sx={{
-              px: { xs: 2, sm: 2.5 },
-              py: { xs: 1.2, sm: 1.5 },
-              bgcolor: "#f8fbff",
-              borderBottom: "1px solid #e0f2fe",
+              px: { xs: 1.5, sm: 2 },
+              py: { xs: 0.8, sm: 1 },
+              bgcolor: "#faf5ff",
+              borderBottom: "1px solid #ede9fe",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
             <Typography
               sx={{
-                fontFamily: "Inter, sans-serif",
+                fontFamily: ff,
                 fontWeight: 700,
-                fontSize: { xs: "0.78rem", sm: "0.85rem" },
+                fontSize: { xs: "0.65rem", sm: "0.72rem" },
                 color: "#1e293b",
               }}
             >
               Recent Announcements
             </Typography>
+            <Typography
+              onClick={() => go("announcements")}
+              sx={{
+                fontFamily: ff,
+                fontSize: "0.58rem",
+                fontWeight: 700,
+                color: C,
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              View all →
+            </Typography>
           </Box>
-          {announcements.slice(0, 3).map((a) => (
+          {announcements.slice(0, 3).map((a, i) => (
             <Box
               key={a.id}
               sx={{
-                px: { xs: 2, sm: 2.5 },
-                py: { xs: 1.2, sm: 1.5 },
-                borderBottom: "1px solid #f1f5f9",
+                px: { xs: 1.5, sm: 2 },
+                py: { xs: 0.9, sm: 1 },
+                borderBottom: i < 2 ? "1px solid #f5f3ff" : "none",
                 display: "flex",
                 alignItems: "flex-start",
-                gap: { xs: 1, sm: 1.5 },
+                gap: 1,
               }}
             >
               <Box
                 sx={{
-                  width: 7,
-                  height: 7,
+                  width: 6,
+                  height: 6,
                   borderRadius: "50%",
-                  mt: 0.6,
+                  mt: 0.5,
                   flexShrink: 0,
                   bgcolor:
                     a.type === "ALERT"
                       ? "#dc2626"
                       : a.type === "NOTIFICATION"
-                        ? "#0891b2"
+                        ? C
                         : "#94a3b8",
                 }}
               />
               <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: { xs: "0.75rem", sm: "0.82rem" },
+                    fontFamily: ff,
                     fontWeight: 600,
+                    fontSize: { xs: "0.68rem", sm: "0.75rem" },
                     color: "#1e293b",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -404,15 +610,14 @@ const ResidentHomePage = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: { xs: "0.65rem", sm: "0.72rem" },
+                    fontFamily: ff,
+                    fontSize: { xs: "0.58rem", sm: "0.62rem" },
                     color: "#64748b",
                     mt: 0.2,
-                    lineHeight: 1.4,
                   }}
                 >
-                  {a.message?.substring(0, 60)}
-                  {a.message?.length > 60 ? "..." : ""}
+                  {a.message?.substring(0, 70)}
+                  {a.message?.length > 70 ? "..." : ""}
                 </Typography>
               </Box>
             </Box>

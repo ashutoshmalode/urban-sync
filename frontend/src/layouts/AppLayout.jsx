@@ -33,7 +33,8 @@ const AppLayout = ({ children }) => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, md: 3 },
+            p: { xs: 1.5, sm: 2 },
+            pt: { xs: 0.5, sm: 1 },
             overflow: "auto",
             minWidth: 0,
             transition: "all 0.25s ease",
