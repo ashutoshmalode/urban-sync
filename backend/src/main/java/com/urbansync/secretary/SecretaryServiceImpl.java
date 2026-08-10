@@ -107,7 +107,7 @@ public class SecretaryServiceImpl implements SecretaryService {
 
         // Send email
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("malodeashu.dummydata@gmail.com");
+        message.setFrom("malodeashu.dummydata@gmail.com", "UrbanSync");
         message.setTo(profile.getEmail());
         message.setSubject("UrbanSync — Profile Update OTP");
         message.setText(
