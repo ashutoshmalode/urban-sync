@@ -917,8 +917,8 @@ const ProfilePage = () => {
         <Box
           sx={{
             background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)",
-            px: { xs: 2, sm: 3 },
-            py: { xs: 2, sm: 2.5 },
+            px: { xs: 1.5, sm: 2.5 },
+            py: { xs: 1.2, sm: 1.6 },
             display: "flex",
             alignItems: "center",
             gap: { xs: 1.5, sm: 2 },
@@ -927,10 +927,10 @@ const ProfilePage = () => {
         >
           <Avatar
             sx={{
-              width: { xs: 44, sm: 56 },
-              height: { xs: 44, sm: 56 },
+              width: { xs: 36, sm: 44 },
+              height: { xs: 36, sm: 44 },
               bgcolor: "rgba(255,255,255,0.2)",
-              fontSize: { xs: "1.1rem", sm: "1.6rem" },
+              fontSize: { xs: "0.9rem", sm: "1.2rem" },
               fontWeight: 700,
               fontFamily: "Inter, sans-serif",
               border: "2px solid rgba(255,255,255,0.3)",
@@ -944,7 +944,7 @@ const ProfilePage = () => {
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography
               sx={{
-                fontSize: { xs: "0.9rem", sm: "1.2rem" },
+                fontSize: { xs: "0.82rem", sm: "1rem" },
                 fontWeight: 800,
                 color: "white",
                 fontFamily: "Inter, sans-serif",
@@ -958,7 +958,7 @@ const ProfilePage = () => {
             </Typography>
             <Typography
               sx={{
-                fontSize: { xs: "0.68rem", sm: "0.8rem" },
+                fontSize: { xs: "0.6rem", sm: "0.72rem" },
                 color: "rgba(255,255,255,0.8)",
                 fontFamily: "Inter, sans-serif",
                 mt: 0.3,
