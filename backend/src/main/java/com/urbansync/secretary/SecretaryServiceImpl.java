@@ -107,16 +107,16 @@ public class SecretaryServiceImpl implements SecretaryService {
 
         // Send email
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("malodeashu.dummydata@gmail.com", "UrbanSync");
+        message.setFrom("malodeashu.dummydata@gmail.com");
+
         message.setTo(profile.getEmail());
         message.setSubject("UrbanSync — Profile Update OTP");
         message.setText(
                 "Hello " + profile.getFirstName() + ",\n\n" +
-                "Your OTP for profile update is: " + otp + "\n\n" +
-                "This OTP is valid for 5 minutes.\n" +
-                "Do not share this OTP with anyone.\n\n" +
-                "— UrbanSync System"
-        );
+                        "Your OTP for profile update is: " + otp + "\n\n" +
+                        "This OTP is valid for 5 minutes.\n" +
+                        "Do not share this OTP with anyone.\n\n" +
+                        "— UrbanSync System");
 
         mailSender.send(message);
     }
@@ -176,8 +176,8 @@ public class SecretaryServiceImpl implements SecretaryService {
 
         return SecretaryMapper.toDTO(profile);
     }
-    
- // ── Forgot Password: Send OTP (no auth — pre-login) ──────────────────────
+
+    // ── Forgot Password: Send OTP (no auth — pre-login) ──────────────────────
     @Override
     public void sendForgotPasswordOtp(String email) {
 
@@ -204,11 +204,10 @@ public class SecretaryServiceImpl implements SecretaryService {
         message.setSubject("UrbanSync — Password Reset OTP");
         message.setText(
                 "Hello " + profile.getFirstName() + ",\n\n" +
-                "Your OTP for password reset is: " + otp + "\n\n" +
-                "This OTP is valid for 5 minutes.\n" +
-                "If you did not request this, please ignore this email.\n\n" +
-                "— UrbanSync System"
-        );
+                        "Your OTP for password reset is: " + otp + "\n\n" +
+                        "This OTP is valid for 5 minutes.\n" +
+                        "If you did not request this, please ignore this email.\n\n" +
+                        "— UrbanSync System");
 
         mailSender.send(message);
     }
