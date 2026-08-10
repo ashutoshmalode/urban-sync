@@ -29,6 +29,7 @@ import {
   CircularProgress,
   useMediaQuery,
   useTheme,
+  FormHelperText,
 } from "@mui/material";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import AddIcon from "@mui/icons-material/Add";
@@ -217,6 +218,22 @@ const PropertyPage = () => {
     { id: 4, name: "Wing D" },
     { id: 5, name: "Wing E" },
   ];
+  
+  const [flatsList, setFlatsList] = useState([]);
+const [flatsLoading, setFlatsLoading] = useState(false);
+
+const fetchFlats = async () => {
+  setFlatsLoading(true);
+  try {
+    const res = await axiosInstance.get("/api/flat/all");
+    console.log("Flats fetched:", res); // Debugging line
+    setFlatsList(res.data); // adjust based on your response shape
+  } catch {
+    showError("Failed to load flats");
+  } finally {
+    setFlatsLoading(false);
+  }
+};
 
   const loadData = async () => {
     setLoading(true);
@@ -373,6 +390,7 @@ const PropertyPage = () => {
       setActionLoading(false);
     }
   };
+  // /flat/all
 
   const handleCreatePost = async () => {
     const e = {};
@@ -505,7 +523,10 @@ const PropertyPage = () => {
             variant="outlined"
             size="small"
             startIcon={<HomeWorkIcon sx={{ fontSize: "13px !important" }} />}
-            onClick={() => setCreatePostOpen(true)}
+            onClick={() => {
+              setCreatePostOpen(true);
+              fetchFlats();
+            }}
             sx={{
               borderRadius: 2,
               borderColor: "#0891b2",
@@ -1389,160 +1410,168 @@ const PropertyPage = () => {
         >
           Create Property Listing
         </DialogTitle>
-        <DialogContent sx={{ pt: 1.5, px: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <TextField
-              label="Flat ID *"
-              value={postForm.flatId}
-              onChange={(e) => {
-                if (/^\d*$/.test(e.target.value))
-                  setPostForm({ ...postForm, flatId: e.target.value });
-              }}
-              size="small"
-              fullWidth
-              error={!!postFormErrors.flatId}
-              helperText={
-                postFormErrors.flatId || "Enter flat ID from Flats tab"
-              }
-              sx={fieldStyle(isMobile)}
-            />
-            <TextField
-              label="Owner Name *"
-              value={postForm.ownerName}
-              onChange={(e) => {
-                if (!/^[a-zA-Z\s]*$/.test(e.target.value)) return;
-                setPostForm({ ...postForm, ownerName: e.target.value });
-              }}
-              size="small"
-              fullWidth
-              error={!!postFormErrors.ownerName}
-              helperText={postFormErrors.ownerName}
-              sx={fieldStyle(isMobile)}
-            />
-            <TextField
-              label="Contact Number *"
-              value={postForm.contactNumber}
-              onChange={(e) => {
-                if (!/^\d*$/.test(e.target.value) || e.target.value.length > 10)
-                  return;
-                setPostForm({ ...postForm, contactNumber: e.target.value });
-              }}
-              size="small"
-              fullWidth
-              error={!!postFormErrors.contactNumber}
-              helperText={postFormErrors.contactNumber}
-              sx={fieldStyle(isMobile)}
-            />
-            <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}
-            >
-              <FormControl size="small" sx={fieldStyle(isMobile)}>
-                <InputLabel
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: isMobile ? "0.78rem" : "0.875rem",
-                  }}
-                >
-                  Type
-                </InputLabel>
-                <Select
-                  value={postForm.listingType}
-                  onChange={(e) =>
-                    setPostForm({ ...postForm, listingType: e.target.value })
-                  }
-                  label="Type"
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: isMobile ? "0.78rem" : "0.875rem",
-                  }}
-                >
-                  <MenuItem
-                    value="RENT"
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    Rent
-                  </MenuItem>
-                  <MenuItem
-                    value="SALE"
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    Sale
-                  </MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={fieldStyle(isMobile)}>
-                <InputLabel
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: isMobile ? "0.78rem" : "0.875rem",
-                  }}
-                >
-                  Furnishing
-                </InputLabel>
-                <Select
-                  value={postForm.furnishingStatus}
-                  onChange={(e) =>
-                    setPostForm({
-                      ...postForm,
-                      furnishingStatus: e.target.value,
-                    })
-                  }
-                  label="Furnishing"
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: isMobile ? "0.78rem" : "0.875rem",
-                  }}
-                >
-                  <MenuItem
-                    value="FULLY_FURNISHED"
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    Fully
-                  </MenuItem>
-                  <MenuItem
-                    value="SEMI_FURNISHED"
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    Semi
-                  </MenuItem>
-                  <MenuItem
-                    value="NON_FURNISHED"
-                    sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    None
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <TextField
-              label="Availability Date"
-              value={postForm.availabilityDate}
-              onChange={(e) =>
-                setPostForm({ ...postForm, availabilityDate: e.target.value })
-              }
-              size="small"
-              fullWidth
-              type="date"
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={fieldStyle(isMobile)}
-            />
-          </Box>
-        </DialogContent>
+      <DialogContent sx={{ pt: 1.5, px: 2 }}>
+  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+
+    {/* ✅ REPLACED: Flat ID TextField → Select dropdown */}
+    <FormControl
+      size="small"
+      fullWidth
+      error={!!postFormErrors.flatId}
+      sx={fieldStyle(isMobile)}
+    >
+      <InputLabel
+        sx={{
+          fontFamily: "Inter, sans-serif",
+          fontSize: isMobile ? "0.78rem" : "0.875rem",
+        }}
+      >
+        Flat *
+      </InputLabel>
+      <Select
+  value={postForm.flatId}
+  onChange={(e) => setPostForm({ ...postForm, flatId: e.target.value })}
+  label="Flat *"
+  disabled={loading}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 200,  // ✅ was 40, fix here
+        "& .MuiMenuItem-root": {
+          fontSize: "0.82rem",
+          fontFamily: "Inter, sans-serif",
+          py: 0.6,
+          minHeight: "auto",
+        },
+      },
+    },
+  }}
+  sx={{
+    fontFamily: "Inter, sans-serif",
+    fontSize: isMobile ? "0.78rem" : "0.875rem",
+  }}
+>
+  {loading ? (
+    <MenuItem disabled sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+      <em>Loading flats…</em>
+    </MenuItem>
+  ) : flats.length === 0 ? (
+    <MenuItem disabled sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+      <em>No flats available</em>
+    </MenuItem>
+  ) : (
+    flats.map((flat) => (
+      <MenuItem
+        key={flat.id}
+        value={flat.id}
+        sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}
+      >
+        {flat.flatNumber} 
+      </MenuItem>
+    ))
+  )}
+</Select>
+      <FormHelperText sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.72rem" }}>
+        {postFormErrors.flatId || "Select a flat from the list"}
+      </FormHelperText>
+    </FormControl>
+
+    {/* ✅ UNCHANGED below */}
+    <TextField
+      label="Owner Name *"
+      value={postForm.ownerName}
+      onChange={(e) => {
+        if (!/^[a-zA-Z\s]*$/.test(e.target.value)) return;
+        setPostForm({ ...postForm, ownerName: e.target.value });
+      }}
+      size="small"
+      fullWidth
+      error={!!postFormErrors.ownerName}
+      helperText={postFormErrors.ownerName}
+      sx={fieldStyle(isMobile)}
+    />
+    <TextField
+      label="Contact Number *"
+      value={postForm.contactNumber}
+      onChange={(e) => {
+        if (!/^\d*$/.test(e.target.value) || e.target.value.length > 10) return;
+        setPostForm({ ...postForm, contactNumber: e.target.value });
+      }}
+      size="small"
+      fullWidth
+      error={!!postFormErrors.contactNumber}
+      helperText={postFormErrors.contactNumber}
+      sx={fieldStyle(isMobile)}
+    />
+    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}>
+      <FormControl size="small" sx={fieldStyle(isMobile)}>
+        <InputLabel
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: isMobile ? "0.78rem" : "0.875rem",
+          }}
+        >
+          Type
+        </InputLabel>
+        <Select
+          value={postForm.listingType}
+          onChange={(e) => setPostForm({ ...postForm, listingType: e.target.value })}
+          label="Type"
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: isMobile ? "0.78rem" : "0.875rem",
+          }}
+        >
+          <MenuItem value="RENT" sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+            Rent
+          </MenuItem>
+          <MenuItem value="SALE" sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+            Sale
+          </MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl size="small" sx={fieldStyle(isMobile)}>
+        <InputLabel
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: isMobile ? "0.78rem" : "0.875rem",
+          }}
+        >
+          Furnishing
+        </InputLabel>
+        <Select
+          value={postForm.furnishingStatus}
+          onChange={(e) => setPostForm({ ...postForm, furnishingStatus: e.target.value })}
+          label="Furnishing"
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: isMobile ? "0.78rem" : "0.875rem",
+          }}
+        >
+          <MenuItem value="FULLY_FURNISHED" sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+            Fully
+          </MenuItem>
+          <MenuItem value="SEMI_FURNISHED" sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+            Semi
+          </MenuItem>
+          <MenuItem value="NON_FURNISHED" sx={{ fontFamily: "Inter, sans-serif", fontSize: "0.82rem" }}>
+            None
+          </MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+    <TextField
+      label="Availability Date"
+      value={postForm.availabilityDate}
+      onChange={(e) => setPostForm({ ...postForm, availabilityDate: e.target.value })}
+      size="small"
+      fullWidth
+      type="date"
+      slotProps={{ inputLabel: { shrink: true } }}
+      sx={fieldStyle(isMobile)}
+    />
+  </Box>
+</DialogContent>
         <DialogActions
           sx={{ p: 1.5, px: 2, gap: 0.8, borderTop: "1px solid #e0f2fe" }}
         >
